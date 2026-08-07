@@ -22,7 +22,7 @@
         .card.filtrado { border-color: #2563eb; background-color: #f0f4ff; }
         .card-num { font-size: 22px; font-weight: 700; color: #0f172a; }
         .card-txt { font-size: 11px; color: #64748b; font-weight: 500; }
-        .input-filtro { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; }
+        .input-filtro { width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; }
         .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; white-space: nowrap; }
         th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
@@ -67,7 +67,7 @@
                         <tr><th>Status</th><th>CTe</th><th>Notas</th><th>Volumes</th><th>Localização</th><th>Cliente Destino</th><th>Ocorrência</th></tr>
                     </thead>
                     <tbody id="tabelaCorpo">
-                        <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">Aguardando dados...</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">Aguardando colagem da planilha...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -129,6 +129,7 @@
                 if(!dt || !txt) { alert("Preencha a data e cole os dados."); return; }
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
                 
+                // CORREÇÃO CRÍTICA AQUI: Puxa o cabeçalho real usando linhas[0]
                 const primeiraLinha = linhas[0].split('\t').map(t => normalizarTexto(t));
                 let idxCte = primeiraLinha.findIndex(t => t.includes('cte')), idxNf = primeiraLinha.findIndex(t => t.includes('nota') || t.includes('nf')), idxVol = primeiraLinha.findIndex(t => t.includes('vol')), idxDst = primeiraLinha.findIndex(t => t.includes('dest') || t.includes('cliente')), idxOco = primeiraLinha.findIndex(t => t.includes('ocor'));
                 if(idxCte===-1) idxCte=0; if(idxNf===-1) idxNf=1; if(idxVol===-1) idxVol=2; if(idxDst===-1) idxDst=4; if(idxOco===-1) idxOco=5;
