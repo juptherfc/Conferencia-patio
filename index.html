@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Conferência de Entregas Expresso SM</title>
+    <title>Logística Realtime - Expresso SM</title>
+    <!-- Conectores Oficiais do Firebase do Google para Tempo Real -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
@@ -27,7 +30,6 @@
         .input-filtro:focus { border-color: #2563eb; background: white; }
         .progresso-texto { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; white-space: nowrap; }
         .btn-export-topo { background-color: #16a34a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 38px; }
-        .btn-export-topo:hover { background-color: #15803d; }
         .form-deposito-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
         .input-tabela-cel { width: 65px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; background: #fff; outline: none; }
         .input-tabela-loc { width: 85px; color: #2563eb; font-weight: 700; }
@@ -44,7 +46,6 @@
         .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
         .alerta-info { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .alerta-aviso { background-color: #fffbeb; color: #d97706; border-color: #fde68a; }
         .modal-sobra-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; }
         .modal-sobra-box { background: white; padding: 24px; border-radius: 16px; width: 550px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; }
         .modal-grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -75,7 +76,7 @@
         <button id="menu-hist" class="btn-menu" onclick="mudarAba('hist')">📂 Histórico</button>
     </aside>
     <main>
-        <div id="alertaStatus" class="alerta alerta-info">Aguardando colagem da planilha Expresso São Miguel.</div>
+        <div id="alertaStatus" class="alerta alerta-info">Aguardando conexão em tempo real com a nuvem do Google...</div>
         <div id="tela-conf" class="aba-conteudo active">
             <div class="cards-grid">
                 <div class="card" id="card-tot-box" onclick="filtrarPorCard('todos')"><span class="card-num" id="c-tot">0</span><span class="card-txt">Manifestados</span></div>
@@ -100,7 +101,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabelaCorpo">
-                        <tr><td colspan="18" style="text-align:center; padding:40px; color:#94a3b8;">Use a aba "Alimentar Sistema" para carregar a sua lista de entregas.</td></tr>
+                        <tr><td colspan="18" style="text-align:center; padding:40px; color:#94a3b8;">Conectando...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -114,7 +115,7 @@
                         <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff; width: 100%;">
                     </div>
                     <div style="flex: 1; min-width: 200px;">
-                        <span class="modal-label">Área de Colagem de Dados (Ctrl+V)</span>
+                        <span class="modal-label">Área de Colagem (Ctrl+V)</span>
                         <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 38px;" placeholder="Cole a planilha aqui..."></textarea>
                     </div>
                     <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="processarTextoColado()">Processar Planilha</button>
@@ -203,17 +204,27 @@
     </div>
 
     <script>
+        // ATENÇÃO OPERADOR: Substitua estes dados fictícios pelas credenciais geradas no seu Firebase do Google
+        const firebaseConfig = {
+            apiKey: "COLE_SUA_API_KEY_AQUI",
+            databaseURL: "https://COLE_SUA_URL_DO_REALTIME_DATABASE_://firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref("patio_sao_miguel");
+
         let dadosLocais = [];
         let logLeiturasTurno = [];
         let filtroCardAtivo = 'todos';
         
-        function salvarMemoriaFisicaLocalStorage() {
-            localStorage.setItem('LOGISTICA_DB_PERMANENTE', JSON.stringify(dadosLocais));
-        }
-        function carregarMemoriaFisicaLocalStorage() {
-            const salvo = localStorage.getItem('LOGISTICA_DB_PERMANENTE');
-            if (salvo) { dadosLocais = JSON.parse(salvo); filtrarTabela(); montarFiltrosDeDatasHistoricas(); }
-        }
+        // CONEXÃO REALTIME: O robô escuta a nuvem do Google e avisa os celulares no mesmo segundo
+        db.on("value", (snapshot) => {
+            const val = snapshot.val();
+            dadosLocais = val ? Object.values(val) : [];
+            filtrarTabela();
+            montarFiltrosDeDatasHistoricas();
+            mostrarAlerta("<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔", "sucesso");
+        });
+
         function mudarAba(id) {
             try {
                 document.querySelectorAll('.aba-conteudo').forEach(t => t.classList.remove('active'));
@@ -225,9 +236,7 @@
                 if(id === 'colar') { document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T'); }
             } catch(e) { console.error(e); }
         }
-        function mostrarAlerta(msg, tipo) {
-            const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${tipo}`; a.innerHTML = msg; }
-        }
+        function mostrarAlerta(msg, tipo) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${tipo}`; a.innerHTML = msg; } }
         function normalizarTexto(t) { if(!t) return ""; return t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim(); }
         
         function processarTextoColado() {
@@ -238,30 +247,23 @@
                 if(!txt) return;
                 const part = dataEscolhidaRaw.split('-'); const dataTrabalhoFormatada = `${part}/${part}/${part}`;
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
-                
-                const primeiraLinha = linhas[0] || "";
-                const tits = primeiraLinha.split('\t').map(t => normalizarTexto(t));
+                const primeiraLinha = linhas[0] || ""; const tits = primeiraLinha.split('\t').map(t => normalizarTexto(t));
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
-                
-                if (tits.includes('cte') || tits.includes('notas') || tits.includes('ocorrencia')) {
+                if (tits.includes('cte') || tits.includes('notas')) {
                     idx = {
-                        cte: tits.indexOf('cte') !== -1 ? tits.indexOf('cte') : 0,
-                        notas: tits.indexOf('notas') !== -1 ? tits.indexOf('notas') : 1, 
-                        vol: tits.indexOf('volumes') !== -1 ? tits.indexOf('volumes') : tits.indexOf('vol') !== -1 ? tits.indexOf('vol') : 2,
-                        cliRem: tits.indexOf('clienteremetente') !== -1 ? tits.indexOf('clienteremetente') : 7,
-                        dst: tits.indexOf('clientedestino') !== -1 ? tits.indexOf('clientedestino') : 8,
-                        agR: tits.indexOf('agenciaremetente') !== -1 ? tits.indexOf('agenciaremetente') : 9,
-                        emi: tits.indexOf('demissao') !== -1 ? tits.indexOf('demissao') : 10,
-                        prvA: tits.indexOf('pagencia') !== -1 ? tits.indexOf('pagencia') : 11, prvE: tits.indexOf('pentrega') !== -1 ? tits.indexOf('pentrega') : 12,
-                        dtO: tits.indexOf('docor') !== -1 ? tits.indexOf('docor') : 13, oco: tits.indexOf('ocorrencia') !== -1 ? tits.indexOf('ocorrencia') : 14,
-                        atraso: tits.indexOf('diasatraso') !== -1 ? tits.indexOf('diasatraso') : 15, ult: tits.indexOf('dataultocorrencia') !== -1 ? tits.indexOf('dataultocorrencia') : 16
+                        cte: tits.indexOf('cte')!==-1?tits.indexOf('cte'):0, notas: tits.indexOf('notas')!==-1?tits.indexOf('notas'):1, vol: tits.indexOf('volumes')!==-1?tits.indexOf('volumes'):2,
+                        cliRem: tits.indexOf('clienteremetente')!==-1?tits.indexOf('clienteremetente'):7, dst: tits.indexOf('clientedestino')!==-1?tits.indexOf('clientedestino'):8, agR: tits.indexOf('agenciaremetente')!==-1?tits.indexOf('agenciaremetente'):9,
+                        emi: tits.indexOf('demissao')!==-1?tits.indexOf('demissao'):10, prvA: tits.indexOf('pagencia')!==-1?tits.indexOf('pagencia'):11, prvE: tits.indexOf('pentrega')!==-1?tits.indexOf('pentrega'):12,
+                        dtO: tits.indexOf('docor')!==-1?tits.indexOf('docor'):13, oco: tits.indexOf('ocorrencia')!==-1?tits.indexOf('ocorrencia'):14, atraso: tits.indexOf('diasatraso')!==-1?tits.indexOf('diasatraso'):15, ult: tits.indexOf('dataultocorrencia')!==-1?tits.indexOf('dataultocorrencia'):16
                     };
                 }
                 for(let i = 1; i < linhas.length; i++) {
                     if(!linhas[i].trim()) continue;
                     const cel = linhas[i].split('\t'); const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '-';
                     if(dadosLocais.some(r => r.cte === cVal && r.emissao === dataTrabalhoFormatada)) continue;
-                    dadosLocais.push({
+                    
+                    // Envia cada linha lida diretamente para a nuvem global do Google
+                    db.child(cVal + "_" + dataTrabalhoFormatada.replace(/\//g,"-")).set({
                         conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
                         notas: cel[idx.notas] ? cel[idx.notas].trim() : '-', volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
                         qtdA: "", localizacao: "", tipo: "", qtdB: "", remetente: cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
@@ -271,17 +273,17 @@
                         atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0', ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
                     });
                 }
-                document.getElementById('caixaTextoColagem').value = ''; salvarMemoriaFisicaLocalStorage();
-                mostrarAlerta(`Planilha unificada ao dia <b>${dataTrabalhoFormatada}</b> com sucesso!`, "sucesso");
-                mudarAba('conf'); filtrarTabela();
-            } catch(e) { mostrarAlerta("Erro inesperado ao processar os dados.", "erro"); }
+                document.getElementById('caixaTextoColagem').value = '';
+                mudarAba('conf');
+            } catch(e) { console.error(e); }
         }
+        function filtrarPorCard(tipoCard) { filtroCardAtivo = tipoCard; document.querySelectorAll('.card').forEach(c => c.classList.remove('filtrado')); let idM = tipoCard === 'todos' ? 'card-tot-box' : tipoCard === 'pendentes' ? 'card-pnd-box' : tipoCard === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(idM).classList.add('filtrado'); filtrarTabela(); }
         function filtrarTabela() {
             const bU = document.getElementById('buscaUnica').value.toLowerCase();
             const filtrados = dadosLocais.filter(r => {
                 if (r.isSobra) return !bU || (r.cte || '').toLowerCase().includes(bU) || (r.notas || '').toLowerCase().includes(bU) || (r.localizacao || '').toLowerCase().includes(bU);
                 const txtOco = (r.ocorrencia || '').toUpperCase().trim();
-                const isBo = txtOco.includes('B.O') || txtOco.includes('BO ') || txtOco.includes('BOLETIM') || txtOco.includes('INDENIZ'); const isEntrega = txtOco === 'EM ENTREGA';
+                const isBo = txtOco.includes('B.O') || txtOco.includes('BOLETIM'); const isEntrega = txtOco === 'EM ENTREGA';
                 if (filtroCardAtivo === 'entrega' && !isEntrega) return false; if (filtroCardAtivo === 'bo' && !isBo) return false; if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
                 return !bU || (r.cte || '').toLowerCase().includes(bU) || (r.notas || '').toLowerCase().includes(bU) || (r.destino || '').toLowerCase().includes(bU) || (r.localizacao || '').toLowerCase().includes(bU);
             });
@@ -293,18 +295,19 @@
                 const tr = document.createElement('tr'); const dJan = parseInt(r.atraso) || 0;
                 if(r.isSobra) { tr.className = "linha-sobra"; } else if(r.conferido) { tr.className = "linha-conferida"; } else { const valA = r.qtdA.toString().trim().toLowerCase(); if(valA !== "" && valA !== "ok" && valA !== "0" && valA !== "-") { tr.className = "linha-divergente"; } }
                 let tagConferencia = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>';
-                tr.innerHTML = `<td style="text-align:center;">${tagConferencia}</td><td class="cte-bold">${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="text-align:center;"><input type="text" value="${r.qtdA}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','qtdA',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.localizacao}" class="input-tabela-cel input-tabela-loc" onchange="atualizarCampoMemoria('${r.cte}','localizacao',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.tipo}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','tipo',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.qtdB}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','qtdB',this.value)"></td><td>${r.remetente}</td><td>${r.destino}</td><td>${r.agencia}</td><td>${r.emissao}</td><td>${r.previsaoAg}</td><td>${r.previsaoEnt}</td><td>${r.dataOco}</td><td>${r.ocorrencia || '-'}</td><td style="text-align:center;">${dJan > 0 ? `<span class="atraso-badge">${dJan}</span>` : '0'}</td><td>${r.ultOcorrencia}</td>`;
+                tr.innerHTML = `<td style="text-align:center;">${tagConferencia}</td><td class="cte-bold">${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="text-align:center;"><input type="text" value="${r.qtdA}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdA',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.localizacao}" class="input-tabela-cel input-tabela-loc" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','localizacao',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.tipo}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','tipo',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.qtdB}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdB',this.value)"></td><td>${r.remetente}</td><td>${r.destino}</td><td>${r.agencia}</td><td>${r.emissao}</td><td>${r.previsaoAg}</td><td>${r.previsaoEnt}</td><td>${r.dataOco}</td><td>${r.ocorrencia || '-'}</td><td style="text-align:center;">${dJan > 0 ? `<span class="atraso-badge">${dJan}</span>` : '0'}</td><td>${r.ultOcorrencia}</td>`;
                 corpo.appendChild(tr);
             });
             atualizarContadoresGlobais();
         }
-        function atualizarCampoMemoria(cteItem, campo, novoValor) {
-            dadosLocais.forEach(r => { if(r.cte.toString().trim() === cteItem.toString().trim()) { r[campo] = novoValor; if(campo === 'localizacao' && novoValor.trim() !== "") { r.conferido = true; r.dataHoraBipagem = new Date().toLocaleDateString('pt-BR') + " " + new Date().toLocaleTimeString('pt-BR'); } } });
-            salvarMemoriaFisicaLocalStorage(); filtrarTabela();
+        function atualizarCampoMemoria(cteItem, emissaoItem, campo, novoValor) {
+            const key = cteItem + "_" + emissaoItem.replace(/\//g,"-"); let updates = {}; updates[campo] = novoValor;
+            if(campo === 'localizacao' && novoValor.trim() !== "") { updates['conferido'] = true; updates['dataHoraBipagem'] = new Date().toLocaleDateString('pt-BR') + " " + new Date().toLocaleTimeString('pt-BR'); }
+            db.child(key).update(updates);
         }
         function atualizarContadoresGlobais() {
             let tot = dadosLocais.length, pnd = 0, ent = 0, bo = 0, conf = 0;
-            dadosLocais.forEach(r => { const txt = (r.ocorrencia || '').toUpperCase().trim(); const temBo = txt.includes('B.O') || txt.includes('BO ') || txt.includes('BOLETIM') || txt.includes('INDENIZ'); if(r.conferido || r.isSobra) conf++; if(txt === 'EM ENTREGA') { ent++; } else if(temBo) { bo++; } else { pnd++; } });
+            dadosLocais.forEach(r => { const txt = (r.ocorrencia || '').toUpperCase().trim(); const temBo = txt.includes('B.O') || txt.includes('BOLETIM'); if(r.conferido || r.isSobra) conf++; if(txt === 'EM ENTREGA') { ent++; } else if(temBo) { bo++; } else { pnd++; } });
             document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo; document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
         }
         function lancarFisicoAutomatico() {
@@ -315,34 +318,31 @@
                 document.getElementById('m-cte').value = cIn || etIn || ""; document.getElementById('m-nf').value = nfIn || ""; document.getElementById('m-loc').value = lIn || "SOBRA"; document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = ""; document.getElementById('m-emi').value = new Date().toISOString().split('T');
                 document.getElementById('modalSobra').style.display = 'flex'; return;
             }
-            const jEx = logLeiturasTurno.some(l => l.cte === alvo.cte && l.status === "SUCESSO"); if (jEx && !confirm(`Este CTe [${alvo.cte}] já foi conferido! Deseja atualizar?`)) { limparCamposBipagem(); return; }
-            if(lIn) alvo.localizacao = lIn; if(qAIn) alvo.qtdA = qAIn; if(tIn) alvo.tipo = tIn; if(qBIn) alvo.qtdB = qBIn;
-            alvo.conferido = true; alvo.dataHoraBipagem = new Date().toLocaleDateString('pt-BR') + " " + hora; salvarMemoriaFisicaLocalStorage();
-            mostrarAlerta(`CTe <b>${alvo.cte}</b> processado.`, jEx ? "aviso" : "sucesso");
-            logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||'MANTIDO', qtdA: qAIn||'MANTIDO', tipo: tIn||'MANTIDO', qtdB: qBIn||'MANTIDO', res: jEx ? "⚠️ ATUALIZADO" : "✔ REGISTRADO", status: jEx ? "AVISO" : "SUCESSO" });
-            renderizarLogDepositoHtml(); limparCamposBipagem(); filtrarTabela();
+            const key = alvo.cte + "_" + alvo.emissao.replace(/\//g,"-"); let updates = { conferido: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + hora };
+            if(lIn) updates['localizacao'] = lIn; if(qAIn) updates['qtdA'] = qAIn; if(tIn) updates['tipo'] = tIn; if(qBIn) updates['qtdB'] = qBIn;
+            db.child(key).update(updates);
+            logLeituresTurno = logLeiturasTurno || []; logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||alvo.localizacao||'OK', res: "✔ REGISTRADO", status: "SUCESSO" });
+            renderizarLogDepositoHtml(); limparCamposBipagem();
         }
         function fecharModalSobra() { document.getElementById('modalSobra').style.display = 'none'; limparCamposBipagem(); }
         function salvarCadastroSobraCompleto() {
             const hora = new Date().toLocaleTimeString('pt-BR'); const cS = document.getElementById('m-cte').value.trim(); const nS = document.getElementById('m-nf').value.trim(); const vS = document.getElementById('m-vol').value.trim(); const lS = document.getElementById('m-loc').value.trim().toUpperCase(); const aS = document.getElementById('m-ag').value.trim().toUpperCase(); const eS = document.getElementById('m-emi').value;
             let dF = "-"; if(eS) { const p = eS.split('-'); dF = `${p}/${p}/${p}`; }
-            let sItem = { conferido: true, isSobra: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + hora, cte: cS || "SOBRA-" + Date.now().toString().slice(-4), notas: nS || "-", volumes: vS || "1", qtdA: "OK", localizacao: lS || "SOBRA", tipo: "MANTIDO", qtdB: "MANTIDO", remetente: "SOBRA", destino: "SOBRA", agencia: aS || "LOCAL", emissao: dF, previsaoAg: "-", previsaoEnt: "-", dataOco: "-", ocorrencia: "SOBRA", atraso: "0", ultOcorrencia: "-" };
-            dadosLocais.unshift(sItem); salvarMemoriaFisicaLocalStorage();
-            logLeiturasTurno.unshift({ hora: hora, cte: sItem.cte, nf: sItem.notas, dst: sItem.destino, loc: sItem.localizacao, qtdA: sItem.qtdA, tipo: sItem.tipo, qtdB: sItem.qtdB, res: "⚠️ SOBRA CADASTRADA", status: "AVISO" });
-            fecharModalSobra(); renderizarLogDepositoHtml(); filtrarTabela();
+            let cVal = cS || "SOBRA-" + Date.now().toString().slice(-4);
+            db.child(cVal + "_SOBRA").set({ conferido: true, isSobra: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + hora, cte: cVal, notas: nS || "-", volumes: vS || "1", qtdA: "OK", localizacao: lS || "SOBRA", tipo: "MANTIDO", qtdB: "MANTIDO", remetente: "SOBRA", destino: "SOBRA", agencia: aS || "LOCAL", emissao: dF, previsaoAg: "-", previsaoEnt: "-", dataOco: "-", ocorrencia: "SOBRA", atraso: "0", ultOcorrencia: "-" });
+            fecharModalSobra();
         }
         function limparCamposBipagem() { document.getElementById('d-cte').value = ''; document.getElementById('d-etiq').value = ''; document.getElementById('d-nf').value = ''; document.getElementById('d-loc').value = ''; document.getElementById('d-qtdA').value = ''; document.getElementById('d-tipo').value = ''; document.getElementById('d-qtdB').value = ''; document.getElementById('d-cte').focus(); }
-        function renderizarLogDepositoHtml() { const logBody = document.getElementById('tabelaLogDeposito'); if(!logBody) return; logBody.innerHTML = ""; logLeiturasTurno.forEach(l => { const tr = document.createElement('tr'); let cCor = l.status === "SUCESSO" ? "#16a34a" : l.status === "AVISO" ? "#d97706" : "#ef4444"; tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>${l.qtdA}</td><td>${l.tipo}</td><td>${l.qtdB}</td><td><b style="color:${cCor};">${l.res}</b></td>`; logBody.appendChild(tr); }); }
-        function filtrarLogDeposito() { const b = document.getElementById('buscaLogDep').value.trim().toLowerCase(); const logBody = document.getElementById('tabelaLogDeposito'); if(!logBody) return; logBody.innerHTML = ""; logLeiturasTurno.filter(l => l.cte.toLowerCase().includes(b) || l.nf.toLowerCase().includes(b) || l.loc.toLowerCase().includes(b)).forEach(l => { const tr = document.createElement('tr'); let cCor = l.status === "SUCESSO" ? "#16a34a" : l.status === "AVISO" ? "#d97706" : "#ef4444"; tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>${l.qtdA}</td><td>${l.tipo}</td><td>${l.qtdB}</td><td><b style="color:${cCor};">${l.res}</b></td>`; logBody.appendChild(tr); }); }
-        function montarFiltrosDeDatasHistoricas() { const selDia = document.getElementById('filtroDiaHist'); if(!selDia) return; let dUnicas = new Set(); dadosLocais.forEach(r => { if(r.emissao && r.emissao.trim() !== "" && r.emissao.includes('/')) dUnicas.add(r.emissao.trim()); }); const ord = Array.from(dUnicas).sort((a,b) => { const pA=a.split('/'); const pB=b.split('/'); return new Date(pB, pB-1, pB) - new Date(pA, pA-1, pA); }); selDia.innerHTML = '<option value="">-- Buscar em Todo o Histórico do Banco --</option>' + ord.map(d => `<option value="${d}">${d}</option>`).join(''); }
+        function renderizarLogDepositoHtml() { const logBody = document.getElementById('tabelaLogDeposito'); if(!logBody) return; logBody.innerHTML = ""; logLeiturasTurno.forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; logBody.appendChild(tr); }); }
+        function filtrarLogDeposito() { const b = document.getElementById('buscaLogDep').value.trim().toLowerCase(); const logBody = document.getElementById('tabelaLogDeposito'); if(!logBody) return; logBody.innerHTML = ""; logLeiturasTurno.filter(l => l.cte.toLowerCase().includes(b) || l.loc.toLowerCase().includes(b)).forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; logBody.appendChild(tr); }); }
+        function montarFiltrosDeDatasHistoricas() { const selDia = document.getElementById('filtroDiaHist'); if(!selDia) return; let dUnicas = new Set(); dadosLocais.forEach(r => { if(r.emissao && r.emissao.trim() !== "" && r.emissao.includes('/')) dUnicas.add(r.emissao.trim()); }); const ord = Array.from(dUnicas).sort((a,b) => { const pA=a.split('/'); const pB=b.split('/'); return new Date(pB, pB-1, pB) - new Date(pA, pA-1, pA); }); selDia.innerHTML = '<option value="">-- Buscar em Todo o Histórico --</option>' + ord.map(d => `<option value="${d}">${d}</option>`).join(''); }
         function carregarDadosDoDiaSelecionadoHist() {
             const dSel = document.getElementById('filtroDiaHist').value; const bTxt = document.getElementById('buscaInputHist').value.trim().toLowerCase(); const b = document.getElementById('tabelaCorpoHist'); if(!b) return; b.innerHTML = ''; if(!dSel && !bTxt) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite o CTe ou Nota Fiscal para pesquisar.</td></tr>'; return; }
-            const flt = dadosLocais.filter(r => { const matchData = !dSel || r.emissao.trim() === dSel; const matchBusca = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt); return matchData && matchBusca; }); if(flt.length === 0) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Nenhum registro localizado.</td></tr>'; return; }
+            const flt = dadosLocais.filter(r => { const matchData = !dSel || r.emissao.trim() === dSel; const matchBusca = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt); return matchData && matchBusca; }); if(flt.length === 0) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Nenhum registro.</td></tr>'; return; }
             flt.forEach(r => { const tr = document.createElement('tr'); if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>'; tr.innerHTML = `<td>${tag}</td><td>${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="color:#2563eb; font-weight:700;">${r.localizacao||'-'}</td><td>${r.qtdA||'-'}</td><td>${r.tipo||'-'}</td><td>${r.qtdB||'-'}</td><td>${r.destino}</td><td>${r.agencia}</td><td>${r.emissao}</td><td style="font-weight:600; color:#475569;">${r.dataHoraBipagem||'Aguardando'}</td>`; b.appendChild(tr); });
         }
-        function exportarNovaPlanilha() { if(dadosLocais.length === 0) return; let csv = "STATUS CONFERENCIA;CTe;Notas;VOLUMES;QTD (A);LOCALIZACAO;TIPO;QTD (B);CLIENTE REMETENTE;CLIENTE DESTINO;AGENCIA REMETENTE;DATA TRABALHO;DATA HORA BIPAGEM\n"; dadosLocais.forEach(r => { csv += `${r.isSobra?"SOBRA":r.conferido?"CONFERIDO":"PENDENTE"};${r.cte};${r.notas};${r.volumes};${r.qtdA};${r.localizacao};${r.tipo};${r.qtdB};${r.remetente};${r.destino};${r.agencia};${r.emissao};${r.dataHoraBipagem||''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Logistica_Anual.csv"; link.click(); }
-        function filtrPorCard(tipoCard) { filtroCardAtivo = tipoCard; document.querySelectorAll('.card').forEach(c => c.classList.remove('filtrado')); let idM = tipoCard === 'todos' ? 'card-tot-box' : tipoCard === 'pendentes' ? 'card-pnd-box' : tipoCard === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(idM).classList.add('filtrado'); filtrarTabela(); }
-        window.onload = function() { carregarMemoriaFisicaLocalStorage(); const inputs = Array.from(document.querySelectorAll('.seq-input')); inputs.forEach((inp, idx) => { inp.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (idx < inputs.length - 1) inputs[idx + 1].focus(); else lancarFisicoAutomatico(); } }); }); };
+        function exportarNovaPlanilha() { if(dadosLocais.length === 0) return; let csv = "STATUS CONFERENCIA;CTe;Notas;VOLUMES;QTD (A);LOCALIZACAO;TIPO;QTD (B);CLIENTE REMETENTE;CLIENTE DESTINO;AGENCIA REMETENTE;DATA TRABALHO;DATA HORA BIPAGEM\n"; dadosLocais.forEach(r => { csv += `${r.isSobra?"SOBRA":r.conferido?"CONFERIDO":"PENDENTE"};${r.cte};${r.notas};${r.volumes};${r.qtdA};${r.localizacao};${r.tipo};${r.qtdB};${r.remetente};${r.destino};${r.agencia};${r.emissao};${r.dataHoraBipagem||''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Logistica_Realtime.csv"; link.click(); }
+        window.onload = function() { const inputs = Array.from(document.querySelectorAll('.seq-input')); inputs.forEach((inp, idx) => { inp.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (idx < inputs.length - 1) inputs[idx + 1].focus(); else lancarFisicoAutomatico(); } }); }); };
     </script>
 </body>
 </html>
