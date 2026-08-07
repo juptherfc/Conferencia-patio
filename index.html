@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Logística Realtime - Expresso SM</title>
-    <!-- Conectores Oficiais do Firebase do Google para Tempo Real -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-shrink: 0; flex-direction: column; gap: 8px; }
-        .logo-title { font-size: 18px; font-weight: bold; color: #0f172a; }
-        .logo-sub { font-size: 11px; color: #94a3b8; margin-bottom: 20px; }
         .btn-menu { display: flex; align-items: center; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; color: #64748b; text-align: left; cursor: pointer; }
         .btn-menu:hover { background-color: #f8fafc; color: #0f172a; }
         .btn-menu.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
@@ -25,51 +22,27 @@
         .card.filtrado { border-color: #2563eb; background-color: #f0f4ff; }
         .card-num { font-size: 22px; font-weight: 700; color: #0f172a; }
         .card-txt { font-size: 11px; color: #64748b; font-weight: 500; }
-        .busca-bloco-flex { display: flex; gap: 10px; align-items: center; width: 100%; flex-wrap: wrap; }
-        .input-filtro { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; min-width: 140px; }
-        .input-filtro:focus { border-color: #2563eb; background: white; }
-        .progresso-texto { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; white-space: nowrap; }
-        .btn-export-topo { background-color: #16a34a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 38px; }
-        .form-deposito-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
-        .input-tabela-cel { width: 65px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; background: #fff; outline: none; }
-        .input-tabela-loc { width: 85px; color: #2563eb; font-weight: 700; }
-        tr.linha-conferida td { background-color: #f0fdf4 !important; border-bottom-color: #bbf7d0; }
-        tr.linha-divergente td { background-color: #fff1f2 !important; border-bottom-color: #fecaca; }
-        tr.linha-sobra td { background-color: #faf5ff !important; border-bottom-color: #e9d5ff; }
-        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; position: relative; -webkit-overflow-scrolling: touch; }
+        .input-filtro { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; }
+        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; white-space: nowrap; }
-        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; font-size: 10px; }
+        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
         td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
-        .tag-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-        .tag-ok { background: #dcfce7; color: #15803d; }
-        .tag-sobra { background: #f3e8ff; color: #6b21a8; }
+        tr.linha-conferida td { background-color: #f0fdf4 !important; }
         .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
-        .alerta-info { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
-        .alerta-sucesso { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .modal-sobra-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-sobra-box { background: white; padding: 24px; border-radius: 16px; width: 550px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; }
-        .modal-grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .modal-campo-bloco { display: flex; flex-direction: column; gap: 4px; }
-        .modal-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; }
-        .modal-botoes-flex { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px; }
-        .historico-timeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
+        .alerta-info { background-color: #fef3c7; color: #d97706; }
+        .alerta-sucesso { background-color: #dcfce7; color: #15803d; }
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            aside { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #e2e8f0; flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; }
-            .logo-box { display: none; }
-            .btn-menu { padding: 8px 10px; font-size: 12px; justify-content: center; width: auto; }
-            main { padding: 10px; gap: 12px; height: calc(100vh - 60px); }
+            aside { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #e2e8f0; flex-direction: row; }
+            .btn-menu { padding: 8px 10px; font-size: 12px; width: auto; }
+            main { padding: 10px; height: calc(100vh - 60px); }
             .cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .form-deposito-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .historico-timeline-grid { grid-template-columns: 1fr; gap: 8px; }
-            .modal-sobra-box { width: 95%; padding: 16px; }
-            .modal-grid-campos { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <aside>
-        <div class="logo-box"><h1 class="logo-title">Conferência</h1><div class="logo-sub">Gestão Expresso SM</div></div>
+        <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 20px;">Expresso SM</div>
         <button id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')">📋 Painel</button>
         <button id="menu-colar" class="btn-menu" onclick="mudarAba('colar')">📥 Carregar</button>
         <button id="menu-dep" class="btn-menu" onclick="mudarAba('dep')">⚡ Bipar</button>
@@ -85,23 +58,16 @@
                 <div class="card" id="card-ent-box" onclick="mudarFiltroCard('entrega')"><span class="card-num" id="c-ent">0</span><span class="card-txt">Em Entrega</span></div>
             </div>
             <div class="bloco">
-                <div class="busca-bloco-flex">
-                    <input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal, Localização..." class="input-filtro" oninput="filtrarTabela()">
-                    <span class="progresso-texto" id="txtProgresso">Conferidos: 0 / 0</span>
-                    <button class="btn-export-topo" onclick="exportarNovaPlanilha()">💾 Exportar (.csv)</button>
-                </div>
+                <input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal, Localização..." class="input-filtro" oninput="filtrarTabela()">
+                <span id="txtProgresso" style="font-size: 12px; font-weight: 700; margin-left: 10px;">Conferidos: 0 / 0</span>
             </div>
             <div class="tabela-container">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Status Conf.</th><th>CTe</th><th>Notas</th><th>Volumes</th><th style="text-align:center;">QTD (A)</th><th style="text-align:center;">Localização</th><th style="text-align:center;">Tipo</th><th style="text-align:center;">QTD (B)</th>
-                            <th>Remetente</th><th>Cliente Destino</th><th>Agência Remetente</th><th>Data Emissão</th><th>Previsão Agência</th>
-                            <th>Previsão Entrega</th><th>Data Ocorrência</th><th>Ocorrência</th><th>Dias Atraso</th><th>Últ. Ocorrência</th>
-                        </tr>
+                        <tr><th>Status</th><th>CTe</th><th>Notas</th><th>Volumes</th><th>Localização</th><th>Cliente Destino</th><th>Ocorrência</th></tr>
                     </thead>
                     <tbody id="tabelaCorpo">
-                        <tr><td colspan="18" style="text-align:center; padding:40px; color:#94a3b8;">Carregando dados...</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">Aguardando dados...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -109,99 +75,29 @@
         <div id="tela-colar" class="aba-conteudo">
             <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
                 <h3>Alimentar Painel via Colagem Direta</h3>
-                <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-                    <div class="modal-campo-bloco" style="width: 100%; max-width: 200px;">
-                        <span class="modal-label" style="color: #2563eb; font-weight: 700;">📅 Data de Trabalho:</span>
-                        <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff; width: 100%;">
-                    </div>
-                    <div style="flex: 1; min-width: 200px;">
-                        <span class="modal-label">Área de Colagem (Ctrl+V)</span>
-                        <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 38px;" placeholder="Cole a planilha aqui..."></textarea>
-                    </div>
-                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="processarTextoColado()">Processar Planilha</button>
-                </div>
+                <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width: 200px;">
+                <textarea id="caixaTextoColagem" style="width:100%; height:100px; padding:8px; border:1px solid #e2e8f0; border-radius:8px;" placeholder="Cole a planilha aqui..."></textarea>
+                <button style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="processarTextoColado()">Processar Planilha</button>
             </div>
         </div>
         <div id="tela-dep" class="aba-conteudo">
-            <div class="bloco">
-                <h3 style="margin-bottom:4px;">Conferência Física por Bipagem Cruzada</h3>
-                <div class="form-deposito-grid">
-                    <input type="text" id="d-cte" placeholder="Bipar CTe" class="input-filtro seq-input">
-                    <input type="text" id="d-etiq" placeholder="Bipar Etiqueta" class="input-filtro seq-input">
-                    <input type="text" id="d-nf" placeholder="Lançar por NF" class="input-filtro seq-input">
-                    <input type="text" id="d-loc" placeholder="BOX / Localização" class="input-filtro seq-input">
-                    <input type="text" id="d-qtdA" placeholder="QTD A" class="input-filtro seq-input">
-                    <input type="text" id="d-tipo" placeholder="Tipo" class="input-filtro seq-input">
-                    <input type="text" id="d-qtdB" placeholder="QTD B" class="input-filtro seq-input">
-                </div>
-                <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura da Carga</button>
-                </div>
-                <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
-                    <input type="text" id="buscaLogDep" placeholder="🔍 Filtrar histórico do turno..." class="input-filtro" oninput="filtrarLogDeposito()">
-                </div>
-            </div>
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Horário</th><th>CTe Lido</th><th>Nota Fiscal</th><th>Cliente Destino</th><th>Nova Localização</th>
-                            <th>Nova QTD A</th><th>Novo Tipo</th><th>Nova QTD B</th><th>Resultado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaLogDeposito">
-                        <tr><td colspan="9" style="text-align:center; padding:40px; color:#94a3b8;">Nenhuma leitura realizada neste turno.</td></tr>
-                    </tbody>
-                </table>
+            <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
+                <h3>Conferência Física por Bipagem</h3>
+                <input type="text" id="d-cte" placeholder="Bipar CTe ou Nota Fiscal" class="input-filtro">
+                <input type="text" id="d-loc" placeholder="BOX / Localização" class="input-filtro">
+                <button style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
             </div>
         </div>
         <div id="tela-hist" class="aba-conteudo">
-            <div class="bloco">
-                <div class="historico-timeline-grid">
-                    <div class="modal-campo-bloco">
-                        <span class="modal-label">Filtrar por Dia de Trabalho Importado</span>
-                        <select id="filtroDiaHist" class="input-filtro" onchange="carregarDadosDoDiaSelecionadoHist()">
-                            <option value="">-- Buscar em Todo o Histórico do Banco --</option>
-                        </select>
-                    </div>
-                    <div class="modal-campo-bloco">
-                        <span class="modal-label">🔍 Consulta Cruzada Multidias</span>
-                        <input type="text" id="buscaInputHist" placeholder="Digitar CTe ou Nota Fiscal para rastrear..." class="input-filtro" oninput="carregarDadosDoDiaSelecionadoHist()">
-                    </div>
-                </div>
-            </div>
+            <div class="bloco"><h3>Consulta Geral de Banco</h3></div>
             <div class="tabela-container">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Status Conf.</th><th>CTe</th><th>Notas</th><th>Volumes</th><th>BOX / Loc</th><th>QTD (A)</th><th>Tipo</th><th>QTD (B)</th>
-                            <th>Cliente Destino</th><th>Agência</th><th>Data Trabalho</th><th>Data e Hora Conf.</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaCorpoHist">
-                        <tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite o CTe ou Nota Fiscal para pesquisar.</td></tr>
-                    </tbody>
+                    <thead><tr><th>Status</th><th>CTe</th><th>Notas</th><th>BOX / Loc</th><th>Data Trabalho</th></tr></thead>
+                    <tbody id="tabelaCorpoHist"><tr><td colspan="5" style="text-align:center; padding:40px;">Registros salvos em nuvem.</td></tr></tbody>
                 </table>
             </div>
         </div>
     </main>
-    <div id="modalSobra" class="modal-sobra-overlay">
-        <div class="modal-sobra-box">
-            <div class="modal-sobra-titulo">⚠️ Carga Não Localizada - Cadastrar Sobra</div>
-            <div class="modal-grid-campos">
-                <div class="modal-campo-bloco"><span class="modal-label">Número do CTe</span><input type="text" id="m-cte" class="input-filtro"></div>
-                <div class="modal-campo-bloco"><span class="modal-label">Nota Fiscal (NF)</span><input type="text" id="m-nf" class="input-filtro"></div>
-                <div class="modal-campo-bloco"><span class="modal-label">Volumes</span><input type="text" id="m-vol" value="1" class="input-filtro"></div>
-                <div class="modal-campo-bloco"><span class="modal-label">Localização</span><input type="text" id="m-loc" value="SOBRA" class="input-filtro"></div>
-                <div class="modal-campo-bloco"><span class="modal-label">Agência Remetente</span><input type="text" id="m-ag" placeholder="Ex: RS-BLU" class="input-filtro"></div>
-                <div class="modal-campo-bloco"><span class="modal-label">Data de Emissão</span><input type="date" id="m-emi" class="input-filtro"></div>
-            </div>
-            <div class="modal-botoes-flex">
-                <button onclick="fecharModalSobra()" class="btn-export-topo" style="background:#64748b;">Cancelar</button>
-                <button onclick="salvarCadastroSobraCompleto()" class="btn-export-topo" style="background:#7c3aed;">💾 Salvar Sobra</button>
-            </div>
-        </div>
-    </div>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDYdpRAq83dRXsV3_XGQWV2xOKM26MK9mk",
@@ -209,11 +105,11 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref("patio_sao_miguel");
-        let dadosLocais = [], logLeiturasTurno = [], filtroCardAtivo = 'todos';
+        let dadosLocais = [], filtroCardAtivo = 'todos';
         
         db.on("value", snapshot => {
             const val = snapshot.val(); dadosLocais = val ? Object.values(val) : [];
-            filtrarTabela(); montarFiltrosDeDatasHistoricas();
+            filtrarTabela();
             mostrarAlerta("<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔", "sucesso");
         });
         function mudarAba(id) {
@@ -222,159 +118,61 @@
             const t = document.getElementById(`tela-${id}`), m = document.getElementById(`menu-${id}`);
             if(t) t.classList.add('active'); if(m) m.classList.add('active');
             if(id === 'dep') document.getElementById('d-cte').focus();
-            if(id === 'hist') { carregarDadosDoDiaSelecionadoHist(); montarFiltrosDeDatasHistoricas(); }
-            if(id === 'colar') document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T')[0];
         }
         function mostrarAlerta(m, t) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${t}`; a.innerHTML = m; } }
         function normalizarTexto(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim() : ""; }
-                function processarTextoColado() {
+        
+        function processarTextoColado() {
             try {
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dt = document.getElementById('dataTrabalhoImportacao').value;
-                if(!dt || !txt) { alert("Preencha a data e cole os dados da planilha."); return; }
-                
-                const part = dt.split('-'); 
-                const dtF = `${part[2]}/${part[1]}/${part[0]}`; // Formata YYYY-MM-DD para DD/MM/YYYY
+                if(!dt || !txt) { alert("Preencha a data e cole os dados."); return; }
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
                 
-                // Pega a primeira linha e higieniza os títulos das colunas
-                const tits = linhas[0].split('\t').map(t => normalizarTexto(t));
-                
-                // Mapeamento dinâmico inteligente para encontrar as colunas certas do Expresso SM
-                let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
-                
-                // Procura a posição exata de cada coluna importante baseada no texto dela
-                tits.forEach((tit, i) => {
-                    if (tit.includes('cte')) idx.cte = i;
-                    else if (tit.includes('nota')) idx.notas = i;
-                    else if (tit.includes('vol')) idx.vol = i;
-                    else if (tit.includes('remetente')) idx.cliRem = i;
-                    else if (tit.includes('destino')) idx.dst = i;
-                    else if (tit.includes('agencia')) idx.agR = i;
-                    else if (tit.includes('emissao') || tit.includes('demissao')) idx.emi = i;
-                    else if (tit.includes('pagencia') || tit.includes('prevag')) idx.prvA = i;
-                    else if (tit.includes('pentrega') || tit.includes('prevent')) idx.prvE = i;
-                    else if (tit.includes('docor') || tit.includes('dataocor')) idx.dtO = i;
-                    else if (tit.includes('ocorrencia')) idx.oco = i;
-                    else if (tit.includes('atraso')) idx.atraso = i;
-                    else if (tit.includes('ultocor') || tit.includes('datault')) idx.ult = i;
-                });
+                const primeiraLinha = linhas[0].split('\t').map(t => normalizarTexto(t));
+                let idxCte = primeiraLinha.findIndex(t => t.includes('cte')), idxNf = primeiraLinha.findIndex(t => t.includes('nota') || t.includes('nf')), idxVol = primeiraLinha.findIndex(t => t.includes('vol')), idxDst = primeiraLinha.findIndex(t => t.includes('dest') || t.includes('cliente')), idxOco = primeiraLinha.findIndex(t => t.includes('ocor'));
+                if(idxCte===-1) idxCte=0; if(idxNf===-1) idxNf=1; if(idxVol===-1) idxVol=2; if(idxDst===-1) idxDst=4; if(idxOco===-1) idxOco=5;
 
-                // Varre as linhas de dados pulando o cabeçalho (i = 1)
                 for(let i = 1; i < linhas.length; i++) {
                     if(!linhas[i].trim()) continue;
-                    const cel = linhas[i].split('\t'); 
-                    const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '';
-                    if(!cVal || cVal === '-') continue; // Ignora se não houver número de CTe válido
-                    
-                    // Envia os dados higienizados direto para a nuvem do Firebase
-                    db.child(cVal + "_" + dtF.replace(/\//g,"-")).set({
-                        conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
-                        notas: cel[idx.notas] ? cel[idx.notas].trim() : '-', 
-                        volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
-                        qtdA: "", localizacao: "", tipo: "", qtdB: "", 
-                        remetente: cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
-                        destino: cel[idx.dst] ? cel[idx.dst].trim() : '-', 
-                        agencia: cel[idx.agR] ? cel[idx.agR].trim() : '-',
-                        emissao: dtF, 
-                        previsaoAg: cel[idx.prvA] ? cel[idx.prvA].trim() : '-', 
-                        previsaoEnt: cel[idx.prvE] ? cel[idx.prvE].trim() : '-',
-                        dataOco: cel[idx.dtO] ? cel[idx.dtO].trim() : '-', 
-                        ocorrencia: cel[idx.oco] ? cel[idx.oco].trim() : '',
-                        atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0', 
-                        ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
-                    });
-                }
-                
-                // Limpa a área de colagem e joga o usuário de volta para o Painel principal
-                document.getElementById('caixaTextoColagem').value = ''; 
-                mudarAba('conf');
-            } catch(e) { 
-                console.error(e);
-                alert("Erro ao processar. Certifique-se de copiar a planilha inteira incluindo a linha de cabeçalhos.");
-            }
-        }
-                for(let i = 1; i < linhas.length; i++) {
-                    if(!linhas[i].trim()) continue;
-                    const cel = linhas[i].split('\t'); const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '-';
-                    if(dadosLocais.some(r => r.cte === cVal && r.emissao === dtF)) continue;
-                    db.child(cVal + "_" + dtF.replace(/\//g,"-")).set({
-                        conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
-                        notas: cel[idx.notas] ? cel[idx.notas].trim() : '-', volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
-                        qtdA: "", localizacao: "", tipo: "", qtdB: "", remetente: cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
-                        destino: cel[idx.dst] ? cel[idx.dst].trim() : '-', agencia: cel[idx.agR] ? cel[idx.agR].trim() : '-',
-                        emissao: dtF, previsaoAg: cel[idx.prvA] ? cel[idx.prvA].trim() : '-', previsaoEnt: cel[idx.prvE] ? cel[idx.prvE].trim() : '-',
-                        dataOco: cel[idx.dtO] ? cel[idx.dtO].trim() : '-', ocorrencia: cel[idx.oco] ? cel[idx.oco].trim() : '',
-                        atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0', ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
+                    const cel = linhas[i].split('\t'); const cVal = cel[idxCte] ? cel[idxCte].trim() : '';
+                    if(!cVal || cVal === '-') continue;
+                    db.child(cVal + "_" + dt).set({
+                        conferido: false, cte: cVal, notas: cel[idxNf] ? cel[idxNf].trim() : '-', volumes: cel[idxVol] ? cel[idxVol].trim() : '1', localizacao: "", destino: cel[idxDst] ? cel[idxDst].trim() : '-', ocorrencia: cel[idxOco] ? cel[idxOco].trim() : '', emissao: dt
                     });
                 }
                 document.getElementById('caixaTextoColagem').value = ''; mudarAba('conf');
-            } catch(e) { console.error(e); }
+            } catch(e) { alert("Erro ao processar. Inclua os títulos das colunas."); }
         }
         function mudarFiltroCard(c) { filtroCardAtivo = c; document.querySelectorAll('.card').forEach(x => x.classList.remove('filtrado')); const id = c === 'todos' ? 'card-tot-box' : c === 'pendentes' ? 'card-pnd-box' : c === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(id).classList.add('filtrado'); filtrarTabela(); }
         function filtrarTabela() {
             const b = document.getElementById('buscaUnica').value.toLowerCase();
             const f = dadosLocais.filter(r => {
-                if (r.isSobra) return !b || r.cte.toLowerCase().includes(b) || r.notas.toLowerCase().includes(b) || r.localizacao.toLowerCase().includes(b);
-                const o = (r.ocorrencia || '').toUpperCase().trim(); const isBo = o.includes('B.O') || o.includes('BOLETIM'); const isE = o === 'EM ENTREGA';
+                const o = (r.ocorrencia || '').toUpperCase(); const isBo = o.includes('B.O') || o.includes('BOLETIM'); const isE = o === 'EM ENTREGA';
                 if (filtroCardAtivo === 'entrega' && !isE) return false; if (filtroCardAtivo === 'bo' && !isBo) return false; if (filtroCardAtivo === 'pendentes' && (isE || isBo)) return false;
-                return !b || r.cte.toLowerCase().includes(b) || r.notas.toLowerCase().includes(b) || r.destino.toLowerCase().includes(b) || r.localizacao.toLowerCase().includes(b);
+                return !b || r.cte.toLowerCase().includes(b) || r.notas.toLowerCase().includes(b) || r.destino.toLowerCase().includes(b);
             });
             renderizarTabelaHtml(f);
         }
         function renderizarTabelaHtml(f) {
             const c = document.getElementById('tabelaCorpo'); if(!c) return; c.innerHTML = '';
             f.forEach(r => {
-                const tr = document.createElement('tr'); const d = parseInt(r.atraso) || 0;
-                if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; else if(r.qtdA&&r.qtdA!=='ok'&&r.qtdA!=='0') tr.className = "linha-divergente";
-                let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>';
-                tr.innerHTML = `<td style="text-align:center;">${tag}</td><td style="font-weight:700;">${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="text-align:center;"><input type="text" value="${r.qtdA}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdA',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.localizacao}" class="input-tabela-cel input-tabela-loc" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','localizacao',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.tipo}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','tipo',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.qtdB}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdB',this.value)"></td><td>${r.remetente}</td><td>${r.destino}</td><td>${r.agencia||'-'}</td><td>${r.emissao}</td><td>${r.previsaoAg}</td><td>${r.previsaoEnt}</td><td>${r.dataOco}</td><td>${r.ocorrencia || '-'}</td><td style="text-align:center;">${d > 0 ? d : '0'}</td><td>${r.ultOcorrencia}</td>`;
+                const tr = document.createElement('tr'); if(r.conferido) tr.className = "linha-conferida";
+                tr.innerHTML = `<td>${r.conferido?'✔ OK':'-'}</td><td><b>${r.cte}</b></td><td>${r.notas}</td><td>${r.volumes}</td><td><input type="text" value="${r.localizacao}" style="width:70px;text-align:center;border:1px solid #cbd5e1;border-radius:4px;" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}',this.value)"></td><td>${r.destino}</td><td>${r.ocorrencia||'-'}</td>`;
                 c.appendChild(tr);
             });
             let tot = dadosLocais.length, pnd = 0, ent = 0, bo = 0, conf = 0;
-            dadosLocais.forEach(r => { const o = (r.ocorrencia || '').toUpperCase().trim(); if(r.conferido || r.isSobra) conf++; if(o === 'EM ENTREGA') ent++; else if(o.includes('B.O')||o.includes('BOLETIM')) bo++; else pnd++; });
+            dadosLocais.forEach(r => { const o = (r.ocorrencia || '').toUpperCase(); if(r.conferido) conf++; if(o === 'EM ENTREGA') ent++; else if(o.includes('B.O')) bo++; else pnd++; });
             document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo;
             document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
         }
-        function atualizarCampoMemoria(cte, em, campo, v) {
-            const k = cte + "_" + em.replace(/\//g,"-"); let u = {}; u[campo] = v;
-            if(campo === 'localizacao' && v.trim() !== "") { u['conferido'] = true; u['dataHoraBipagem'] = new Date().toLocaleDateString('pt-BR') + " " + new Date().toLocaleTimeString('pt-BR'); }
-            db.child(k).update(u);
-        }
+        function atualizarCampoMemoria(cte, em, v) { db.child(cte+"_"+em).update({ localizacao: v, conferido: v.trim() !== "" }); }
         function lancarFisicoAutomatico() {
-            const c = document.getElementById('d-cte').value.trim(), et = document.getElementById('d-etiq').value.trim(), nf = document.getElementById('d-nf').value.trim(), loc = document.getElementById('d-loc').value.trim().toUpperCase();
-            const qA = document.getElementById('d-qtdA').value.trim(), t = document.getElementById('d-tipo').value.trim(), qB = document.getElementById('d-qtdB').value.trim();
-            let alvo = null; if (c) alvo = dadosLocais.find(r => r.cte.toString().trim() === c); else if (et) alvo = dadosLocais.find(r => r.cte.toString().trim() === et); else if (nf) alvo = dadosLocais.find(r => r.notas.toString().trim() === nf || r.notas.toString().trim().includes(nf));
-            const h = new Date().toLocaleTimeString('pt-BR');
-            if (!alvo) {
-                document.getElementById('m-cte').value = c || et || ""; document.getElementById('m-nf').value = nf || ""; document.getElementById('m-loc').value = loc || "SOBRA"; document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = ""; document.getElementById('m-emi').value = new Date().toISOString().split('T');
-                document.getElementById('modalSobra').style.display = 'flex'; return;
-            }
-            const k = alvo.cte + "_" + alvo.emissao.replace(/\//g,"-"); let u = { conferido: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + h };
-            if(loc) u['localizacao'] = loc; if(qA) u['qtdA'] = qA; if(t) u['tipo'] = t; if(qB) u['qtdB'] = qB;
-            db.child(k).update(u);
-            logLeiturasTurno = logLeiturasTurno || []; logLeiturasTurno.unshift({ hora: h, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: loc||alvo.localizacao||'OK', res: "✔ REGISTRADO" });
-            renderizarLogDepositoHtml(); limparCamposBipagem();
+            const c = document.getElementById('d-cte').value.trim(), loc = document.getElementById('d-loc').value.trim().toUpperCase();
+            let alvo = dadosLocais.find(r => r.cte.toString().trim() === c || r.notas.toString().trim() === c);
+            if(alvo) { db.child(alvo.cte+"_"+alvo.emissao).update({ localizacao: loc, conferido: true }); }
+            document.getElementById('d-cte').value = ''; document.getElementById('d-loc').value = '';
         }
-        function fecharModalSobra() { document.getElementById('modalSobra').style.display = 'none'; limparCamposBipagem(); }
-        function salvarCadastroSobraCompleto() {
-            const h = new Date().toLocaleTimeString('pt-BR'), c = document.getElementById('m-cte').value.trim(), n = document.getElementById('m-nf').value.trim(), v = document.getElementById('m-vol').value.trim(), loc = document.getElementById('m-loc').value.trim().toUpperCase(), ag = document.getElementById('m-ag').value.trim().toUpperCase(), em = document.getElementById('m-emi').value;
-            let dtF = "-"; if(em) { const p = em.split('-'); dtF = `${p}/${p}/${p}`; }
-            let cVal = c || "SOBRA-" + Date.now().toString().slice(-4);
-            db.child(cVal + "_SOBRA").set({ conferido: true, isSobra: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + h, cte: cVal, notas: n || "-", volumes: v || "1", qtdA: "OK", localizacao: loc || "SOBRA", tipo: "MANTIDO", qtdB: "MANTIDO", remetente: "SOBRA", destino: "SOBRA", agency: ag || "LOCAL", emissao: dtF, previsaoAg: "-", previsaoEnt: "-", dataOco: "-", ocorrencia: "SOBRA", atraso: "0", ultOcorrencia: "-" });
-            fecharModalSobra();
-        }
-        function limparCamposBipagem() { document.getElementById('d-cte').value = ''; document.getElementById('d-etiq').value = ''; document.getElementById('d-nf').value = ''; document.getElementById('d-loc').value = ''; document.getElementById('d-qtdA').value = ''; document.getElementById('d-tipo').value = ''; document.getElementById('d-qtdB').value = ''; document.getElementById('d-cte').focus(); }
-        function renderizarLogDepositoHtml() { const b = document.getElementById('tabelaLogDeposito'); if(!b) return; b.innerHTML = ""; logLeiturasTurno.forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; b.appendChild(tr); }); }
-        function filtrarLogDeposito() { const b = document.getElementById('buscaLogDep').value.trim().toLowerCase(), body = document.getElementById('tabelaLogDeposito'); if(!body) return; body.innerHTML = ""; logLeiturasTurno.filter(l => l.cte.toLowerCase().includes(b) || l.loc.toLowerCase().includes(b)).forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; body.appendChild(tr); }); }
-        function montarFiltrosDeDatasHistoricas() { const s = document.getElementById('filtroDiaHist'); if(!s) return; let d = new Set(); dadosLocais.forEach(r => { if(r.emissao && r.emissao.includes('/')) d.add(r.emissao.trim()); }); const ord = Array.from(d).sort((a,b) => { const pA=a.split('/'); const pB=b.split('/'); return new Date(pB, pB-1, pB) - new Date(pA, pA-1, pA); }); s.innerHTML = '<option value="">-- Buscar em Todo o Histórico --</option>' + ord.map(x => `<option value="${x}">${x}</option>`).join(''); }
-        function carregarDadosDoDiaSelecionadoHist() {
-            const d = document.getElementById('filtroDiaHist').value, bTxt = document.getElementById('buscaInputHist').value.trim().toLowerCase(), b = document.getElementById('tabelaCorpoHist'); if(!b) return; b.innerHTML = ''; if(!d && !bTxt) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite para pesquisar.</td></tr>'; return; }
-            const flt = dadosLocais.filter(r => { const mD = !d || r.emissao.trim() === d; const mB = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt); return mD && mB; }); if(flt.length === 0) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Nenhum registro.</td></tr>'; return; }
-            flt.forEach(r => { const tr = document.createElement('tr'); if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>'; tr.innerHTML = `<td>${tag}</td><td>${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="color:#2563eb; font-weight:700;">${r.localizacao||'-'}</td><td>${r.qtdA||'-'}</td><td>${r.tipo||'-'}</td><td>${r.qtdB||'-'}</td><td>${r.destino}</td><td>${r.agencia||'-'}</td><td>${r.emissao}</td><td style="font-weight:600; color:#475569;">${r.dataHoraBipagem||'Aguardando'}</td>`; b.appendChild(tr); });
-        }
-        function exportarNovaPlanilha() { if(dadosLocais.length === 0) return; let csv = "STATUS CONFERENCIA;CTe;Notas;VOLUMES;QTD (A);LOCALIZACAO;TIPO;QTD (B);CLIENTE REMETENTE;CLIENTE DESTINO;AGENCIA REMETENTE;DATA TRABALHO;DATA HORA BIPAGEM\n"; dadosLocais.forEach(r => { csv += `${r.isSobra?"SOBRA":r.conferido?"CONFERIDO":"PENDENTE"};${r.cte};${r.notas};${r.volumes};${r.qtdA};${r.localizacao};${r.tipo};${r.qtdB};${r.remetente};${r.destino};${r.agencia||'-'};${r.emissao};${r.dataHoraBipagem||''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Logistica_Realtime.csv"; link.click(); }
-        window.onload = function() { const inputs = Array.from(document.querySelectorAll('.seq-input')); inputs.forEach((inp, idx) => { inp.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (idx < inputs.length - 1) inputs[idx + 1].focus(); else lancarFisicoAutomatico(); } }); }); };
     </script>
 </body>
 </html>
