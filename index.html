@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Logística Realtime - Expresso SM</title>
-    <!-- Conectores Oficiais do Firebase do Google para Tempo Real -->
+    <!-- Conectores Oficiais e Estáveis do Firebase Realtime Database -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
@@ -30,6 +30,7 @@
         .input-filtro:focus { border-color: #2563eb; background: white; }
         .progresso-texto { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; white-space: nowrap; }
         .btn-export-topo { background-color: #16a34a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 38px; }
+        .btn-export-topo:hover { background-color: #15803d; }
         .form-deposito-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
         .input-tabela-cel { width: 65px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; background: #fff; outline: none; }
         .input-tabela-loc { width: 85px; color: #2563eb; font-weight: 700; }
@@ -46,13 +47,6 @@
         .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
         .alerta-info { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .modal-sobra-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-sobra-box { background: white; padding: 24px; border-radius: 16px; width: 550px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; }
-        .modal-grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .modal-campo-bloco { display: flex; flex-direction: column; gap: 4px; }
-        .modal-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; }
-        .modal-botoes-flex { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px; }
-        .historico-timeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
         @media (max-width: 768px) {
             body { flex-direction: column; }
             aside { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #e2e8f0; flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; }
@@ -115,7 +109,7 @@
                         <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff; width: 100%;">
                     </div>
                     <div style="flex: 1; min-width: 200px;">
-                        <span class="modal-label">Área de Colagem (Ctrl+V)</span>
+                        <span class="modal-label">Área de Colagem de Dados (Ctrl+V)</span>
                         <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 38px;" placeholder="Cole a planilha aqui..."></textarea>
                     </div>
                     <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="processarTextoColado()">Processar Planilha</button>
@@ -202,29 +196,22 @@
             </div>
         </div>
     </div>
-
     <script>
-        // ATENÇÃO OPERADOR: Substitua estes dados fictícios pelas credenciais geradas no seu Firebase do Google
+        // INSIRA AS SUAS CREDENCIAIS DO GOOGLE DA ETAPA ANTERIOR AQUI DENTRO:
         const firebaseConfig = {
             apiKey: "COLE_SUA_API_KEY_AQUI",
             databaseURL: "https://COLE_SUA_URL_DO_REALTIME_DATABASE_://firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref("patio_sao_miguel");
-
-        let dadosLocais = [];
-        let logLeiturasTurno = [];
-        let filtroCardAtivo = 'todos';
+        let dadosLocais = []; let logLeiturasTurno = []; let filtroCardAtivo = 'todos';
         
-        // CONEXÃO REALTIME: O robô escuta a nuvem do Google e avisa os celulares no mesmo segundo
+        // ESCUTA DA NUVEM: Sincroniza todas as telas no mesmo milionésimo de segundo
         db.on("value", (snapshot) => {
-            const val = snapshot.val();
-            dadosLocais = val ? Object.values(val) : [];
-            filtrarTabela();
-            montarFiltrosDeDatasHistoricas();
+            const val = snapshot.val(); dadosLocais = val ? Object.values(val) : [];
+            filtrarTabela(); montarFiltrosDeDatasHistoricas();
             mostrarAlerta("<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔", "sucesso");
         });
-
         function mudarAba(id) {
             try {
                 document.querySelectorAll('.aba-conteudo').forEach(t => t.classList.remove('active'));
@@ -233,19 +220,18 @@
                 if(tSel) tSel.classList.add('active'); if(mSel) mSel.classList.add('active');
                 if(id === 'dep') { document.getElementById('d-cte').focus(); }
                 if(id === 'hist') { carregarDadosDoDiaSelecionadoHist(); montarFiltrosDeDatasHistoricas(); }
-                if(id === 'colar') { document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T'); }
+                if(id === 'colar') { document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T')[0]; }
             } catch(e) { console.error(e); }
         }
         function mostrarAlerta(msg, tipo) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${tipo}`; a.innerHTML = msg; } }
         function normalizarTexto(t) { if(!t) return ""; return t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim(); }
-        
         function processarTextoColado() {
             try {
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dataEscolhidaRaw = document.getElementById('dataTrabalhoImportacao').value;
                 if(!dataEscolhidaRaw) { alert("Escolha a data antes de processar."); return; }
                 if(!txt) return;
-                const part = dataEscolhidaRaw.split('-'); const dataTrabalhoFormatada = `${part}/${part}/${part}`;
+                const part = dataEscolhidaRaw.split('-'); const dataTrabalhoFormatada = `${part[2]}/${part[1]}/${part[0]}`;
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
                 const primeiraLinha = linhas[0] || ""; const tits = primeiraLinha.split('\t').map(t => normalizarTexto(t));
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
@@ -261,8 +247,6 @@
                     if(!linhas[i].trim()) continue;
                     const cel = linhas[i].split('\t'); const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '-';
                     if(dadosLocais.some(r => r.cte === cVal && r.emissao === dataTrabalhoFormatada)) continue;
-                    
-                    // Envia cada linha lida diretamente para a nuvem global do Google
                     db.child(cVal + "_" + dataTrabalhoFormatada.replace(/\//g,"-")).set({
                         conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
                         notas: cel[idx.notas] ? cel[idx.notas].trim() : '-', volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
@@ -273,8 +257,7 @@
                         atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0', ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
                     });
                 }
-                document.getElementById('caixaTextoColagem').value = '';
-                mudarAba('conf');
+                document.getElementById('caixaTextoColagem').value = ''; mudarAba('conf');
             } catch(e) { console.error(e); }
         }
         function filtrarPorCard(tipoCard) { filtroCardAtivo = tipoCard; document.querySelectorAll('.card').forEach(c => c.classList.remove('filtrado')); let idM = tipoCard === 'todos' ? 'card-tot-box' : tipoCard === 'pendentes' ? 'card-pnd-box' : tipoCard === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(idM).classList.add('filtrado'); filtrarTabela(); }
@@ -282,8 +265,7 @@
             const bU = document.getElementById('buscaUnica').value.toLowerCase();
             const filtrados = dadosLocais.filter(r => {
                 if (r.isSobra) return !bU || (r.cte || '').toLowerCase().includes(bU) || (r.notas || '').toLowerCase().includes(bU) || (r.localizacao || '').toLowerCase().includes(bU);
-                const txtOco = (r.ocorrencia || '').toUpperCase().trim();
-                const isBo = txtOco.includes('B.O') || txtOco.includes('BOLETIM'); const isEntrega = txtOco === 'EM ENTREGA';
+                const txtOco = (r.ocorrencia || '').toUpperCase().trim(); const isBo = txtOco.includes('B.O') || txtOco.includes('BOLETIM'); const isEntrega = txtOco === 'EM ENTREGA';
                 if (filtroCardAtivo === 'entrega' && !isEntrega) return false; if (filtroCardAtivo === 'bo' && !isBo) return false; if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
                 return !bU || (r.cte || '').toLowerCase().includes(bU) || (r.notas || '').toLowerCase().includes(bU) || (r.destino || '').toLowerCase().includes(bU) || (r.localizacao || '').toLowerCase().includes(bU);
             });
@@ -321,7 +303,7 @@
             const key = alvo.cte + "_" + alvo.emissao.replace(/\//g,"-"); let updates = { conferido: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + hora };
             if(lIn) updates['localizacao'] = lIn; if(qAIn) updates['qtdA'] = qAIn; if(tIn) updates['tipo'] = tIn; if(qBIn) updates['qtdB'] = qBIn;
             db.child(key).update(updates);
-            logLeituresTurno = logLeiturasTurno || []; logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||alvo.localizacao||'OK', res: "✔ REGISTRADO", status: "SUCESSO" });
+            logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||alvo.localizacao||'OK', res: "✔ REGISTRADO", status: "SUCESSO" });
             renderizarLogDepositoHtml(); limparCamposBipagem();
         }
         function fecharModalSobra() { document.getElementById('modalSobra').style.display = 'none'; limparCamposBipagem(); }
