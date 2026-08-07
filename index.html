@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Conferência de Entregas</title>
+    <title>Conferência de Entregas Expresso SM</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
@@ -39,15 +39,14 @@
         th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; font-size: 10px; }
         td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
         .tag-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-        .tag-ok { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .tag-sobra { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
+        .tag-ok { background: #dcfce7; color: #15803d; }
+        .tag-sobra { background: #f3e8ff; color: #6b21a8; }
         .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
         .alerta-info { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
         .alerta-aviso { background-color: #fffbeb; color: #d97706; border-color: #fde68a; }
         .modal-sobra-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; }
         .modal-sobra-box { background: white; padding: 24px; border-radius: 16px; width: 550px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; }
-        .modal-sobra-titulo { font-size: 16px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .modal-grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .modal-campo-bloco { display: flex; flex-direction: column; gap: 4px; }
         .modal-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; }
@@ -108,14 +107,14 @@
         </div>
         <div id="tela-colar" class="aba-conteudo">
             <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
-                <h3>Alimentar Planilhas</h3>
+                <h3>Alimentar Painel via Colagem Direta</h3>
                 <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                     <div class="modal-campo-bloco" style="width: 100%; max-width: 200px;">
                         <span class="modal-label" style="color: #2563eb; font-weight: 700;">📅 Data de Trabalho:</span>
                         <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff; width: 100%;">
                     </div>
                     <div style="flex: 1; min-width: 200px;">
-                        <span class="modal-label">Área de Colagem (Ctrl+V)</span>
+                        <span class="modal-label">Área de Colagem de Dados (Ctrl+V)</span>
                         <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 38px;" placeholder="Cole a planilha aqui..."></textarea>
                     </div>
                     <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="processarTextoColado()">Processar Planilha</button>
@@ -135,7 +134,7 @@
                     <input type="text" id="d-qtdB" placeholder="QTD B" class="input-filtro seq-input">
                 </div>
                 <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="lancarFisicoAutomatico()">Confirmar Leitura da Carga</button>
+                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura da Carga</button>
                 </div>
                 <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
                     <input type="text" id="buscaLogDep" placeholder="🔍 Filtrar histórico do turno..." class="input-filtro" oninput="filtrarLogDeposito()">
@@ -202,6 +201,7 @@
             </div>
         </div>
     </div>
+
     <script>
         let dadosLocais = [];
         let logLeiturasTurno = [];
@@ -222,7 +222,7 @@
                 if(tSel) tSel.classList.add('active'); if(mSel) mSel.classList.add('active');
                 if(id === 'dep') { document.getElementById('d-cte').focus(); }
                 if(id === 'hist') { carregarDadosDoDiaSelecionadoHist(); montarFiltrosDeDatasHistoricas(); }
-                if(id === 'colar') { document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T')[0]; }
+                if(id === 'colar') { document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T'); }
             } catch(e) { console.error(e); }
         }
         function mostrarAlerta(msg, tipo) {
@@ -236,12 +236,11 @@
                 const dataEscolhidaRaw = document.getElementById('dataTrabalhoImportacao').value;
                 if(!dataEscolhidaRaw) { alert("Escolha a data antes de processar."); return; }
                 if(!txt) return;
-                const part = dataEscolhidaRaw.split('-'); const dataTrabalhoFormatada = `${part[2]}/${part[1]}/${part[0]}`;
+                const part = dataEscolhidaRaw.split('-'); const dataTrabalhoFormatada = `${part}/${part}/${part}`;
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
                 
-                // RETIFICAÇÃO OPERACIONAL: Isola a primeira linha de texto antes de quebrar as colunas em lote
-                const primeiraLinhaTexto = linhas[0] || "";
-                const tits = primeiraLinhaTexto.split('\t').map(t => normalizarTexto(t));
+                const primeiraLinha = linhas[0] || "";
+                const tits = primeiraLinha.split('\t').map(t => normalizarTexto(t));
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
                 
                 if (tits.includes('cte') || tits.includes('notas') || tits.includes('ocorrencia')) {
@@ -277,8 +276,6 @@
                 mudarAba('conf'); filtrarTabela();
             } catch(e) { mostrarAlerta("Erro inesperado ao processar os dados.", "erro"); }
         }
-        function filtrarPorCard(tipoCard) { filtroCardAtivo = tipoCard; document.querySelectorAll('.card').forEach(c => c.classList.remove('filtrado')); let idM = tipoCard === 'todos' ? 'card-tot-box' : tipoCard === 'pendentes' ? 'card-pnd-box' : tipoCard === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(idM).classList.add('filtrado'); filtrarTabela(); }
-    </script>
         function filtrarTabela() {
             const bU = document.getElementById('buscaUnica').value.toLowerCase();
             const filtrados = dadosLocais.filter(r => {
@@ -308,12 +305,11 @@
         function atualizarContadoresGlobais() {
             let tot = dadosLocais.length, pnd = 0, ent = 0, bo = 0, conf = 0;
             dadosLocais.forEach(r => { const txt = (r.ocorrencia || '').toUpperCase().trim(); const temBo = txt.includes('B.O') || txt.includes('BO ') || txt.includes('BOLETIM') || txt.includes('INDENIZ'); if(r.conferido || r.isSobra) conf++; if(txt === 'EM ENTREGA') { ent++; } else if(temBo) { bo++; } else { pnd++; } });
-            document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo;
-            document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
+            document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo; document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
         }
         function lancarFisicoAutomatico() {
             const cIn = document.getElementById('d-cte').value.trim(); const etIn = document.getElementById('d-etiq').value.trim(); const nfIn = document.getElementById('d-nf').value.trim(); const lIn = document.getElementById('d-loc').value.trim().toUpperCase(); const qAIn = document.getElementById('d-qtdA').value.trim(); const tIn = document.getElementById('d-tipo').value.trim(); const qBIn = document.getElementById('d-qtdB').value.trim();
-            let alvo = null; if (cIn) alvo = dadosLocais.find(r => r.cte.toString().trim() === cIn); else if (etIn) alvo = dadosLocais.find(r => r.cte.toString().trim() === etIn); else if (nfIn) alvo = dadosLocais.find(r => r.notas.toString().trim().includes(nfIn));
+            let alvo = null; if (cIn) alvo = dadosLocais.find(r => r.cte.toString().trim() === cIn); else if (etIn) alvo = dadosLocais.find(r => r.cte.toString().trim() === etIn); else if (nfIn) alvo = dadosLocais.find(r => r.notas.toString().trim() === nfIn || r.notas.toString().trim().includes(nfIn));
             const hora = new Date().toLocaleTimeString('pt-BR');
             if (!alvo) {
                 document.getElementById('m-cte').value = cIn || etIn || ""; document.getElementById('m-nf').value = nfIn || ""; document.getElementById('m-loc').value = lIn || "SOBRA"; document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = ""; document.getElementById('m-emi').value = new Date().toISOString().split('T');
@@ -345,6 +341,7 @@
             flt.forEach(r => { const tr = document.createElement('tr'); if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>'; tr.innerHTML = `<td>${tag}</td><td>${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="color:#2563eb; font-weight:700;">${r.localizacao||'-'}</td><td>${r.qtdA||'-'}</td><td>${r.tipo||'-'}</td><td>${r.qtdB||'-'}</td><td>${r.destino}</td><td>${r.agencia}</td><td>${r.emissao}</td><td style="font-weight:600; color:#475569;">${r.dataHoraBipagem||'Aguardando'}</td>`; b.appendChild(tr); });
         }
         function exportarNovaPlanilha() { if(dadosLocais.length === 0) return; let csv = "STATUS CONFERENCIA;CTe;Notas;VOLUMES;QTD (A);LOCALIZACAO;TIPO;QTD (B);CLIENTE REMETENTE;CLIENTE DESTINO;AGENCIA REMETENTE;DATA TRABALHO;DATA HORA BIPAGEM\n"; dadosLocais.forEach(r => { csv += `${r.isSobra?"SOBRA":r.conferido?"CONFERIDO":"PENDENTE"};${r.cte};${r.notas};${r.volumes};${r.qtdA};${r.localizacao};${r.tipo};${r.qtdB};${r.remetente};${r.destino};${r.agencia};${r.emissao};${r.dataHoraBipagem||''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Logistica_Anual.csv"; link.click(); }
+        function filtrPorCard(tipoCard) { filtroCardAtivo = tipoCard; document.querySelectorAll('.card').forEach(c => c.classList.remove('filtrado')); let idM = tipoCard === 'todos' ? 'card-tot-box' : tipoCard === 'pendentes' ? 'card-pnd-box' : tipoCard === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(idM).classList.add('filtrado'); filtrarTabela(); }
         window.onload = function() { carregarMemoriaFisicaLocalStorage(); const inputs = Array.from(document.querySelectorAll('.seq-input')); inputs.forEach((inp, idx) => { inp.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (idx < inputs.length - 1) inputs[idx + 1].focus(); else lancarFisicoAutomatico(); } }); }); };
     </script>
 </body>
