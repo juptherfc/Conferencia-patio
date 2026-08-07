@@ -2,78 +2,82 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CORREÇÃO CHAVE: Força o navegador do celular a ajustar os botões e tabelas ao tamanho exato do visor móvel -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Conferência de Entregas</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; }
+        body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
         aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-shrink: 0; flex-direction: column; gap: 8px; }
         .logo-title { font-size: 18px; font-weight: bold; color: #0f172a; }
         .logo-sub { font-size: 11px; color: #94a3b8; margin-bottom: 20px; }
-        .btn-menu { display: flex; align-items: center; width: 100%; padding: 10px 12px; background: none; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; color: #64748b; text-align: left; cursor: pointer; }
+        .btn-menu { display: flex; align-items: center; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; color: #64748b; text-align: left; cursor: pointer; }
         .btn-menu:hover { background-color: #f8fafc; color: #0f172a; }
         .btn-menu.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
-        main { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; height: 100vh; overflow: hidden; }
-        .aba-conteudo { display: none; flex-direction: column; gap: 20px; height: 100%; overflow: hidden; }
+        main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; overflow: hidden; }
+        .aba-conteudo { display: none; flex-direction: column; gap: 16px; height: 100%; overflow: hidden; }
         .aba-conteudo.active { display: flex; }
-        .bloco { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; flex-shrink: 0; }
-        .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; flex-shrink: 0; }
-        .card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; min-height: 95px; cursor: pointer; transition: 0.2s; }
-        .card:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+        .bloco { background: white; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; flex-shrink: 0; }
+        .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; flex-shrink: 0; }
+        .card { background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; min-height: 85px; cursor: pointer; }
         .card.filtrado { border-color: #2563eb; background-color: #f0f4ff; }
-        .card-num { font-size: 26px; font-weight: 700; color: #0f172a; }
-        .card-txt { font-size: 12px; color: #64748b; font-weight: 500; }
-        .busca-bloco-flex { display: flex; gap: 12px; align-items: center; width: 100%; margin-top: 5px; }
-        .input-filtro { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #334155; outline: none; }
+        .card-num { font-size: 22px; font-weight: 700; color: #0f172a; }
+        .card-txt { font-size: 11px; color: #64748b; font-weight: 500; }
+        .busca-bloco-flex { display: flex; gap: 10px; align-items: center; width: 100%; flex-wrap: wrap; }
+        .input-filtro { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; min-width: 140px; }
         .input-filtro:focus { border-color: #2563eb; background: white; }
-        .progresso-texto { font-size: 13px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; white-space: nowrap; }
-        .btn-export-topo { background-color: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s; white-space: nowrap; height: 40px; }
-        .btn-export-topo:hover { background-color: #15803d; }
-        .form-deposito-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 10px; align-items: center; }
-        .input-tabela-cel { width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; font-size: 11px; text-align: center; color: #334155; font-weight: 600; background: #fff; outline: none; }
-        .input-tabela-loc { width: 90px; color: #2563eb; font-weight: 700; }
+        .progresso-texto { font-size: 12px; font-weight: 700; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; white-space: nowrap; }
+        .btn-export-topo { background-color: #16a34a; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 38px; }
+        
+        /* Ajuste fino na grade de inputs para celulares: vira lista vertical em telas pequenas */
+        .form-deposito-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; align-items: center; }
+        .input-tabela-cel { width: 65px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center; background: #fff; outline: none; }
+        .input-tabela-loc { width: 85px; color: #2563eb; font-weight: 700; }
         
         tr.linha-conferida td { background-color: #f0fdf4 !important; border-bottom-color: #bbf7d0; }
         tr.linha-divergente td { background-color: #fff1f2 !important; border-bottom-color: #fecaca; }
         tr.linha-sobra td { background-color: #faf5ff !important; border-bottom-color: #e9d5ff; }
         
-        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; position: relative; }
+        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; position: relative; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; white-space: nowrap; }
-        th { background: #f8fafc; padding: 10px 12px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; text-transform: uppercase; font-size: 10px; }
-        td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #475569; vertical-align: middle; }
-        tr:hover td { background-color: #f8fafc; }
-        .tag-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #cbd5e1; }
-        .tag-ok { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .tag-sobra { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
-        .alerta { padding: 14px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid transparent; flex-shrink: 0; }
+        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; font-size: 10px; }
+        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
+        .tag-status { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+        .tag-ok { background: #dcfce7; color: #15803d; }
+        .tag-sobra { background: #f3e8ff; color: #6b21a8; }
+        .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
         .alerta-info { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .alerta-erro { background-color: #fee2e2; color: #ef4444; border-color: #fca5a5; }
         .alerta-aviso { background-color: #fffbeb; color: #d97706; border-color: #fde68a; }
 
-        .modal-sobra-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-sobra-box { background: white; padding: 24px; border-radius: 16px; width: 550px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; }
-        .modal-sobra-titulo { font-size: 16px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .modal-grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .modal-campo-bloco { display: flex; flex-direction: column; gap: 4px; }
-        .modal-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; }
-        .modal-botoes-flex { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px; }
-        .historico-timeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
+        /* CSS RESPONSIVO PARA CELULAR (MEDIA QUERY) */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            aside { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #e2e8f0; flex-direction: row; align-items: center; justify-content: space-between; gap: 4px; }
+            .logo-box { display: none; }
+            .btn-menu { padding: 8px 10px; font-size: 12px; justify-content: center; width: auto; }
+            main { padding: 10px; gap: 12px; height: calc(100vh - 60px); }
+            .cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .form-deposito-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .historico-timeline-grid { grid-template-columns: 1fr; gap: 8px; }
+            .modal-sobra-box { width: 95%; padding: 16px; }
+            .modal-grid-campos { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <aside>
         <div class="logo-box"><h1 class="logo-title">Conferência</h1><div class="logo-sub">Gestão Expresso SM</div></div>
-        <button id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')">Conferência Ativa</button>
-        <button id="menu-colar" class="btn-menu" onclick="mudarAba('colar')">📥 Alimentar Sistema</button>
-        <button id="menu-dep" class="btn-menu" onclick="mudarAba('dep')">Conf. Depósito</button>
-        <button id="menu-hist" class="btn-menu" onclick="mudarAba('hist')">📂 Histórico por Dia</button>
+        <button id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')">📋 Painel</button>
+        <button id="menu-colar" class="btn-menu" onclick="mudarAba('colar')">📥 Carregar</button>
+        <button id="menu-dep" class="btn-menu" onclick="mudarAba('dep')">⚡ Bipar</button>
+        <button id="menu-hist" class="btn-menu" onclick="mudarAba('hist')">📂 Histórico</button>
     </aside>
     <main>
         <div id="alertaStatus" class="alerta alerta-info">Aguardando colagem da planilha Expresso São Miguel.</div>
         <div id="tela-conf" class="aba-conteudo active">
             <div class="cards-grid">
-                <div class="card" id="card-tot-box" onclick="filtrarPorCard('todos')"><span class="card-num" id="c-tot">0</span><span class="card-txt">Total Registros</span></div>
+                <div class="card" id="card-tot-box" onclick="filtrarPorCard('todos')"><span class="card-num" id="c-tot">0</span><span class="card-txt">Manifestados</span></div>
                 <div class="card" id="card-pnd-box" onclick="filtrarPorCard('pendentes')"><span class="card-num" id="c-pnd">0</span><span class="card-txt">Pendentes</span></div>
                 <div class="card" id="card-bo-box" onclick="filtrarPorCard('bo')"><span class="card-num" id="c-bo">0</span><span class="card-txt">Com B.O</span></div>
                 <div class="card" id="card-ent-box" onclick="filtrarPorCard('entrega')"><span class="card-num" id="c-ent">0</span><span class="card-txt">Em Entrega</span></div>
@@ -82,7 +86,7 @@
                 <div class="busca-bloco-flex">
                     <input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal, Localização..." class="input-filtro" oninput="filtrarTabela()">
                     <span class="progresso-texto" id="txtProgresso">Conferidos: 0 / 0</span>
-                    <button class="btn-export-topo" onclick="exportarNovaPlanilha()">💾 Exportar Excel (.csv)</button>
+                    <button class="btn-export-topo" onclick="exportarNovaPlanilha()">💾 Exportar (.csv)</button>
                 </div>
             </div>
             <div class="tabela-container">
@@ -101,18 +105,18 @@
             </div>
         </div>
         <div id="tela-colar" class="aba-conteudo">
-            <div class="bloco" style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
                 <h3>Alimentar Painel via Colagem Direta</h3>
-                <div style="display: flex; gap: 16px; align-items: flex-end;">
-                    <div class="modal-campo-bloco" style="width: 200px;">
+                <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="modal-campo-bloco" style="width: 100%; max-width: 200px;">
                         <span class="modal-label" style="color: #2563eb; font-weight: 700;">📅 Data de Trabalho:</span>
-                        <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff;">
+                        <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="border-color: #2563eb; background: #fff; width: 100%;">
                     </div>
-                    <div style="flex: 1;">
+                    <div style="flex: 1; min-width: 200px;">
                         <span class="modal-label">Área de Colagem de Dados (Ctrl+V)</span>
-                        <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 42px;" placeholder="Selecione tudo no Excel (Ctrl+A), copie (Ctrl+C) e cole aqui dentro..."></textarea>
+                        <textarea id="caixaTextoColagem" class="area-colagem" style="margin-bottom: 0; height: 38px;" placeholder="Cole a planilha aqui..."></textarea>
                     </div>
-                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 24px; border-radius:8px; font-weight:600; cursor:pointer; height: 42px;" onclick="processarTextoColado()">Processar e Atualizar Painel</button>
+                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:600; cursor:pointer; height: 38px;" onclick="processarTextoColado()">Processar Planilha</button>
                 </div>
             </div>
         </div>
@@ -130,10 +134,10 @@
                     <input type="text" id="d-qtdB" placeholder="QTD B" class="input-filtro seq-input">
                 </div>
                 <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura da Carga</button>
+                    <button class="btn-import" style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura da Carga</button>
                 </div>
-                <div style="margin-top:14px; display:flex; gap:10px; align-items:center;">
-                    <input type="text" id="buscaLogDep" placeholder="🔍 Filtrar visualização do histórico de bipagem deste turno..." class="input-filtro" oninput="filtrarLogDeposito()">
+                <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="buscaLogDep" placeholder="🔍 Filtrar histórico do turno..." class="input-filtro" oninput="filtrarLogDeposito()">
                 </div>
             </div>
             <div class="tabela-container">
@@ -194,7 +198,7 @@
             </div>
             <div class="modal-botoes-flex">
                 <button onclick="fecharModalSobra()" class="btn-export-topo" style="background:#64748b;">Cancelar</button>
-                <button onclick="salvarCadastroSobraCompleto()" class="btn-export-topo" style="background:#7c3aed;">💾 Salvar Sobra no Pátio</button>
+                <button onclick="salvarCadastroSobraCompleto()" class="btn-export-topo" style="background:#7c3aed;">💾 Salvar Sobra</button>
             </div>
         </div>
     </div>
@@ -225,8 +229,7 @@
                 if(id === 'dep') { document.getElementById('d-cte').focus(); }
                 if(id === 'hist') { carregarDadosDoDiaSelecionadoHist(); montarFiltrosDeDatasHistoricas(); }
                 if(id === 'colar') {
-                    const hoje = new Date();
-                    document.getElementById('dataTrabalhoImportacao').value = hoje.toISOString().split('T')[0];
+                    document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T')[0];
                 }
             } catch(e) { console.error(e); }
         }
@@ -243,56 +246,64 @@
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dataEscolhidaRaw = document.getElementById('dataTrabalhoImportacao').value;
                 
-                if(!dataEscolhidaRaw) { alert("Atenção operador! Escolha a data de trabalho no calendário antes de clicar em Processar."); return; }
+                if(!dataEscolhidaRaw) { alert("Escolha a data antes de processar."); return; }
                 if(!txt) return;
                 
                 const part = dataEscolhidaRaw.split('-');
                 const dataTrabalhoFormatada = `${part[2]}/${part[1]}/${part[0]}`;
                 
                 const linhas = txt.split(/\r?\n/);
-                // RETIFICAÇÃO TÉCNICA CHAVE: Quebra as colunas lendo estritamente o índice zero das linhas para evitar travamento
-                const tits = linhas[0].split('\t').map(t => normalizarTexto(t));
+                // FIX CIRÚRGICO DEFINITIVO DO PROCESSAMENTO: Garante a leitura correta lendo a primeira linha
+                const primeiraLinha = linhas[0] || "";
+                const tits = primeiraLinha.split('\t').map(t => normalizarTexto(t));
+                
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
                 
                 if (tits.includes('cte') || tits.includes('notas') || tits.includes('ocorrencia')) {
                     idx = {
-                        cte: tits.indexOf('cte'), notas: tits.indexOf('notas'), 
-                        vol: tits.indexOf('volumes') !== -1 ? tits.indexOf('volumes') : tits.indexOf('vol'),
-                        cliRem: tits.indexOf('clienteremetente'), dst: tits.indexOf('clientedestino'),
-                        agR: tits.indexOf('agenciaremetente'), emi: tits.indexOf('demissao'),
-                        prvA: tits.indexOf('pagencia'), prvE: tits.indexOf('pentrega'),
-                        dtO: tits.indexOf('docor'), oco: tits.indexOf('ocorrencia'),
-                        atraso: tits.indexOf('diasatraso'), ult: tits.indexOf('dataultocorrencia')
+                        cte: tits.indexOf('cte') !== -1 ? tits.indexOf('cte') : 0,
+                        notas: tits.indexOf('notas') !== -1 ? tits.indexOf('notas') : 1, 
+                        vol: tits.indexOf('volumes') !== -1 ? tits.indexOf('volumes') : tits.indexOf('vol') !== -1 ? tits.indexOf('vol') : 2,
+                        cliRem: tits.indexOf('clienteremetente') !== -1 ? tits.indexOf('clienteremetente') : 7,
+                        dst: tits.indexOf('clientedestino') !== -1 ? tits.indexOf('clientedestino') : 8,
+                        agR: tits.indexOf('agenciaremetente') !== -1 ? tits.indexOf('agenciaremetente') : 9,
+                        emi: tits.indexOf('demissao') !== -1 ? tits.indexOf('demissao') : 10,
+                        prvA: tits.indexOf('pagencia') !== -1 ? tits.indexOf('pagencia') : 11,
+                        prvE: tits.indexOf('pentrega') !== -1 ? tits.indexOf('pentrega') : 12,
+                        dtO: tits.indexOf('docor') !== -1 ? tits.indexOf('docor') : 13,
+                        oco: tits.indexOf('ocorrencia') !== -1 ? tits.indexOf('ocorrencia') : 14,
+                        atraso: tits.indexOf('diasatraso') !== -1 ? tits.indexOf('diasatraso') : 15,
+                        ult: tits.indexOf('dataultocorrencia') !== -1 ? tits.indexOf('dataultocorrencia') : 16
                     };
                 }
 
                 for(let i = 1; i < linhas.length; i++) {
                     if(!linhas[i].trim()) continue;
                     const cel = linhas[i].split('\t');
-                    const cVal = idx.cte !== -1 && cel[idx.cte] ? cel[idx.cte].trim() : '-';
+                    const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '-';
                     
                     if(dadosLocais.some(r => r.cte === cVal && r.emissao === dataTrabalhoFormatada)) continue;
 
                     dadosLocais.push({
                         conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
-                        notas: idx.notas !== -1 && cel[idx.notas] ? cel[idx.notas].trim() : '-',
-                        volumes: idx.vol !== -1 && cel[idx.vol] ? cel[idx.vol].trim() : '0',
+                        notas: cel[idx.notas] ? cel[idx.notas].trim() : '-',
+                        volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
                         qtdA: "", localizacao: "", tipo: "", qtdB: "",
-                        remetente: idx.cliRem !== -1 && cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
-                        destino: idx.dst !== -1 && cel[idx.dst] ? cel[idx.dst].trim() : '-',
-                        agencia: idx.agR !== -1 && cel[idx.agR] ? cel[idx.agR].trim() : '-',
+                        remetente: cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
+                        destino: cel[idx.dst] ? cel[idx.dst].trim() : '-',
+                        agencia: cel[idx.agR] ? cel[idx.agR].trim() : '-',
                         emissao: dataTrabalhoFormatada,
-                        previsaoAg: idx.prvA !== -1 && cel[idx.prvA] ? cel[idx.prvA].trim() : '-',
-                        previsaoEnt: idx.prvE !== -1 && cel[idx.prvE] ? cel[idx.prvE].trim() : '-',
-                        dataOco: idx.dtO !== -1 && cel[idx.dtO] ? cel[idx.dtO].trim() : '-',
-                        ocorrencia: idx.oco !== -1 && cel[idx.oco] ? cel[idx.oco].trim() : '',
-                        atraso: idx.atraso !== -1 && cel[idx.atraso] ? cel[idx.atraso].trim() : '0',
-                        ultOcorrencia: idx.ult !== -1 && cel[idx.ult] ? cel[idx.ult].trim() : '-'
+                        previsaoAg: cel[idx.prvA] ? cel[idx.prvA].trim() : '-',
+                        previsaoEnt: cel[idx.prvE] ? cel[idx.prvE].trim() : '-',
+                        dataOco: cel[idx.dtO] ? cel[idx.dtO].trim() : '-',
+                        ocorrencia: cel[idx.oco] ? cel[idx.oco].trim() : '',
+                        atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0',
+                        ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
                     });
                 }
                 document.getElementById('caixaTextoColagem').value = '';
                 salvarMemoriaFisicaLocalStorage();
-                mostrarAlerta(`<b>Sucesso!</b> Planilha vinculada ao dia útil <b>${dataTrabalhoFormatada}</b> arquivada de forma permanente.`, "sucesso");
+                mostrarAlerta(`Planilha unificada ao dia <b>${dataTrabalhoFormatada}</b> com sucesso!`, "sucesso");
                 mudarAba('conf'); filtrarTabela();
             } catch(e) { mostrarAlerta("Erro inesperado ao processar os dados.", "erro"); }
         }
@@ -376,10 +387,8 @@
             else if (nfIn) alvo = dadosLocais.find(r => r.notas.toString().trim().includes(nfIn));
             const hora = new Date().toLocaleTimeString('pt-BR');
             if (!alvo) {
-                document.getElementById('m-cte').value = cIn || etIn || "";
-                document.getElementById('m-nf').value = nfIn || "";
-                document.getElementById('m-loc').value = lIn || "SOBRA";
-                document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = "";
+                document.getElementById('m-cte').value = cIn || etIn || ""; document.getElementById('m-nf').value = nfIn || "";
+                document.getElementById('m-loc').value = lIn || "SOBRA"; document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = "";
                 document.getElementById('m-emi').value = new Date().toISOString().split('T')[0];
                 document.getElementById('modalSobra').style.display = 'flex'; return;
             }
@@ -388,9 +397,8 @@
             if(lIn) alvo.localizacao = lIn; if(qAIn) alvo.qtdA = qAIn; if(tIn) alvo.tipo = tIn; if(qBIn) alvo.qtdB = qBIn;
             alvo.conferido = true; alvo.dataHoraBipagem = new Date().toLocaleDateString('pt-BR') + " " + hora;
             salvarMemoriaFisicaLocalStorage();
-            let resTxt = jEx ? "⚠️ ATUALIZADO" : "✔ REGISTRADO"; let stTxt = jEx ? "AVISO" : "SUCESSO";
             mostrarAlerta(`CTe <b>${alvo.cte}</b> processado.`, jEx ? "aviso" : "sucesso");
-            logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||'MANTIDO', qtdA: qAIn||'MANTIDO', tipo: tIn||'MANTIDO', qtdB: qBIn||'MANTIDO', res: resTxt, status: stTxt });
+            logLeiturasTurno.unshift({ hora: hora, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: lIn||'MANTIDO', qtdA: qAIn||'MANTIDO', tipo: tIn||'MANTIDO', qtdB: qBIn||'MANTIDO', res: jEx ? "⚠️ ATUALIZADO" : "✔ REGISTRADO", status: jEx ? "AVISO" : "SUCESSO" });
             renderizarLogDepositoHtml(); limparCamposBipagem(); filtrarTabela();
         }
         function fecharModalSobra() { document.getElementById('modalSobra').style.display = 'none'; limparCamposBipagem(); }
@@ -439,7 +447,7 @@
         function carregarDadosDoDiaSelecionadoHist() {
             const dSel = document.getElementById('filtroDiaHist').value; const bTxt = document.getElementById('buscaInputHist').value.trim().toLowerCase();
             const b = document.getElementById('tabelaCorpoHist'); if(!b) return; b.innerHTML = '';
-            if(!dSel && !bTxt) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite o CTe ou Nota Fiscal para varrer o histórico.</td></tr>'; return; }
+            if(!dSel && !bTxt) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite o CTe ou Nota Fiscal para pesquisar.</td></tr>'; return; }
             const flt = dadosLocais.filter(r => {
                 const matchData = !dSel || r.emissao.trim() === dSel;
                 const matchBusca = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt);
