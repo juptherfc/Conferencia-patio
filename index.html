@@ -223,7 +223,7 @@
             if(t) t.classList.add('active'); if(m) m.classList.add('active');
             if(id === 'dep') document.getElementById('d-cte').focus();
             if(id === 'hist') { carregarDadosDoDiaSelecionadoHist(); montarFiltrosDeDatasHistoricas(); }
-            if(id === 'colar') document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T');
+            if(id === 'colar') document.getElementById('dataTrabalhoImportacao').value = new Date().toISOString().split('T')[0];
         }
         function mostrarAlerta(m, t) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${t}`; a.innerHTML = m; } }
         function normalizarTexto(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim() : ""; }
@@ -232,7 +232,7 @@
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dt = document.getElementById('dataTrabalhoImportacao').value;
                 if(!dt || !txt) return;
-                const p = dt.split('-'); const dtF = `${p}/${p}/${p}`;
+                const p = dt.split('-'); const dtF = `${p[2]}/${p[1]}/${p[0]}`;
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
                 const tits = linhas[0].split('\t').map(t => normalizarTexto(t));
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
@@ -272,10 +272,44 @@
             });
             renderizarTabelaHtml(f);
         }
+        function renderizarTabelaHtml(f) {
+            const c = document.getElementById('tabelaCorpo'); if(!c) return; c.innerHTML = '';
+            f.forEach(r => {
+                const tr = document.createElement('tr'); const d = parseInt(r.atraso) || 0;
+                if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; else if(r.qtdA&&r.qtdA!=='ok'&&r.qtdA!=='0') tr.className = "linha-divergente";
+                let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>';
+                tr.innerHTML = `<td style="text-align:center;">${tag}</td><td style="font-weight:700;">${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="text-align:center;"><input type="text" value="${r.qtdA}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdA',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.localizacao}" class="input-tabela-cel input-tabela-loc" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','localizacao',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.tipo}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','tipo',this.value)"></td><td style="text-align:center;"><input type="text" value="${r.qtdB}" class="input-tabela-cel" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}','qtdB',this.value)"></td><td>${r.remetente}</td><td>${r.destino}</td><td>${r.agencia||'-'}</td><td>${r.emissao}</td><td>${r.previsaoAg}</td><td>${r.previsaoEnt}</td><td>${r.dataOco}</td><td>${r.ocorrencia || '-'}</td><td style="text-align:center;">${d > 0 ? d : '0'}</td><td>${r.ultOcorrencia}</td>`;
+                c.appendChild(tr);
+            });
+            let tot = dadosLocais.length, pnd = 0, ent = 0, bo = 0, conf = 0;
+            dadosLocais.forEach(r => { const o = (r.ocorrencia || '').toUpperCase().trim(); if(r.conferido || r.isSobra) conf++; if(o === 'EM ENTREGA') ent++; else if(o.includes('B.O')||o.includes('BOLETIM')) bo++; else pnd++; });
+            document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo;
+            document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
+        }
+        function atualizarCampoMemoria(cte, em, campo, v) {
+            const k = cte + "_" + em.replace(/\//g,"-"); let u = {}; u[campo] = v;
+            if(campo === 'localizacao' && v.trim() !== "") { u['conferido'] = true; u['dataHoraBipagem'] = new Date().toLocaleDateString('pt-BR') + " " + new Date().toLocaleTimeString('pt-BR'); }
+            db.child(k).update(u);
+        }
+        function lancarFisicoAutomatico() {
+            const c = document.getElementById('d-cte').value.trim(), et = document.getElementById('d-etiq').value.trim(), nf = document.getElementById('d-nf').value.trim(), loc = document.getElementById('d-loc').value.trim().toUpperCase();
+            const qA = document.getElementById('d-qtdA').value.trim(), t = document.getElementById('d-tipo').value.trim(), qB = document.getElementById('d-qtdB').value.trim();
+            let alvo = null; if (c) alvo = dadosLocais.find(r => r.cte.toString().trim() === c); else if (et) alvo = dadosLocais.find(r => r.cte.toString().trim() === et); else if (nf) alvo = dadosLocais.find(r => r.notas.toString().trim() === nf || r.notas.toString().trim().includes(nf));
+            const h = new Date().toLocaleTimeString('pt-BR');
+            if (!alvo) {
+                document.getElementById('m-cte').value = c || et || ""; document.getElementById('m-nf').value = nf || ""; document.getElementById('m-loc').value = loc || "SOBRA"; document.getElementById('m-vol').value = "1"; document.getElementById('m-ag').value = ""; document.getElementById('m-emi').value = new Date().toISOString().split('T');
+                document.getElementById('modalSobra').style.display = 'flex'; return;
+            }
+            const k = alvo.cte + "_" + alvo.emissao.replace(/\//g,"-"); let u = { conferido: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + h };
+            if(loc) u['localizacao'] = loc; if(qA) u['qtdA'] = qA; if(t) u['tipo'] = t; if(qB) u['qtdB'] = qB;
+            db.child(k).update(u);
+            logLeiturasTurno = logLeiturasTurno || []; logLeiturasTurno.unshift({ hora: h, cte: alvo.cte, nf: alvo.notas, dst: alvo.destino, loc: loc||alvo.localizacao||'OK', res: "✔ REGISTRADO" });
+            renderizarLogDepositoHtml(); limparCamposBipagem();
+        }
         function fecharModalSobra() { document.getElementById('modalSobra').style.display = 'none'; limparCamposBipagem(); }
         function salvarCadastroSobraCompleto() {
             const h = new Date().toLocaleTimeString('pt-BR'), c = document.getElementById('m-cte').value.trim(), n = document.getElementById('m-nf').value.trim(), v = document.getElementById('m-vol').value.trim(), loc = document.getElementById('m-loc').value.trim().toUpperCase(), ag = document.getElementById('m-ag').value.trim().toUpperCase(), em = document.getElementById('m-emi').value;
-            let dtF = "-"; if(em) { const p = em.split('-'); dtF = `${p[2]}/${p[1]}/${p[0]}`; }
+            let dtF = "-"; if(em) { const p = em.split('-'); dtF = `${p}/${p}/${p}`; }
             let cVal = c || "SOBRA-" + Date.now().toString().slice(-4);
             db.child(cVal + "_SOBRA").set({ conferido: true, isSobra: true, dataHoraBipagem: new Date().toLocaleDateString('pt-BR') + " " + h, cte: cVal, notas: n || "-", volumes: v || "1", qtdA: "OK", localizacao: loc || "SOBRA", tipo: "MANTIDO", qtdB: "MANTIDO", remetente: "SOBRA", destino: "SOBRA", agency: ag || "LOCAL", emissao: dtF, previsaoAg: "-", previsaoEnt: "-", dataOco: "-", ocorrencia: "SOBRA", atraso: "0", ultOcorrencia: "-" });
             fecharModalSobra();
@@ -283,10 +317,10 @@
         function limparCamposBipagem() { document.getElementById('d-cte').value = ''; document.getElementById('d-etiq').value = ''; document.getElementById('d-nf').value = ''; document.getElementById('d-loc').value = ''; document.getElementById('d-qtdA').value = ''; document.getElementById('d-tipo').value = ''; document.getElementById('d-qtdB').value = ''; document.getElementById('d-cte').focus(); }
         function renderizarLogDepositoHtml() { const b = document.getElementById('tabelaLogDeposito'); if(!b) return; b.innerHTML = ""; logLeiturasTurno.forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; b.appendChild(tr); }); }
         function filtrarLogDeposito() { const b = document.getElementById('buscaLogDep').value.trim().toLowerCase(), body = document.getElementById('tabelaLogDeposito'); if(!body) return; body.innerHTML = ""; logLeiturasTurno.filter(l => l.cte.toLowerCase().includes(b) || l.loc.toLowerCase().includes(b)).forEach(l => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${l.hora}</td><td style="font-weight:700;">${l.cte}</td><td>${l.nf}</td><td>${l.dst}</td><td><span style="color:#2563eb; font-weight:700;">${l.loc}</span></td><td>-</td><td>-</td><td>-</td><td><b style="color:#16a34a;">${l.res}</b></td>`; body.appendChild(tr); }); }
-        function montarFiltrosDeDatasHistoricas() { const s = document.getElementById('filtroDiaHist'); if(!s) return; let d = new Set(); dadosLocais.forEach(r => { if(r.emissao && r.emissao.includes('/')) d.add(r.emissao.trim()); }); const ord = Array.from(d).sort((a,b) => { const pA=a.split('/'); const pB=b.split('/'); return new Date(pB[2], pB[1]-1, pB[0]) - new Date(pA[2], pA[1]-1, pA[0]); }); s.innerHTML = '<option value="">-- Buscar em Todo o Histórico --</option>' + ord.map(x => `<option value="${x}">${x}</option>`).join(''); }
+        function montarFiltrosDeDatasHistoricas() { const s = document.getElementById('filtroDiaHist'); if(!s) return; let d = new Set(); dadosLocais.forEach(r => { if(r.emissao && r.emissao.includes('/')) d.add(r.emissao.trim()); }); const ord = Array.from(d).sort((a,b) => { const pA=a.split('/'); const pB=b.split('/'); return new Date(pB, pB-1, pB) - new Date(pA, pA-1, pA); }); s.innerHTML = '<option value="">-- Buscar em Todo o Histórico --</option>' + ord.map(x => `<option value="${x}">${x}</option>`).join(''); }
         function carregarDadosDoDiaSelecionadoHist() {
             const d = document.getElementById('filtroDiaHist').value, bTxt = document.getElementById('buscaInputHist').value.trim().toLowerCase(), b = document.getElementById('tabelaCorpoHist'); if(!b) return; b.innerHTML = ''; if(!d && !bTxt) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Digite para pesquisar.</td></tr>'; return; }
-            const flt = dadosLocais.filter(r => { const mD = !d || r.emissao.trim() === d; const mB = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt); return mD && mB; }); if(flt.length === 0) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Nenhum registro localizado.</td></tr>'; return; }
+            const flt = dadosLocais.filter(r => { const mD = !d || r.emissao.trim() === d; const mB = !bTxt || r.cte.toLowerCase().includes(bTxt) || r.notas.toLowerCase().includes(bTxt); return mD && mB; }); if(flt.length === 0) { b.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:40px; color:#94a3b8;">Nenhum registro.</td></tr>'; return; }
             flt.forEach(r => { const tr = document.createElement('tr'); if(r.isSobra) tr.className = "linha-sobra"; else if(r.conferido) tr.className = "linha-conferida"; let tag = r.isSobra ? '<span class="tag-status tag-sobra">⚠️ SOBRA</span>' : r.conferido ? '<span class="tag-status tag-ok">✔ CONFERIDO</span>' : '<span class="tag-status">-</span>'; tr.innerHTML = `<td>${tag}</td><td>${r.cte}</td><td>${r.notas}</td><td style="text-align:center;">${r.volumes}</td><td style="color:#2563eb; font-weight:700;">${r.localizacao||'-'}</td><td>${r.qtdA||'-'}</td><td>${r.tipo||'-'}</td><td>${r.qtdB||'-'}</td><td>${r.destino}</td><td>${r.agencia||'-'}</td><td>${r.emissao}</td><td style="font-weight:600; color:#475569;">${r.dataHoraBipagem||'Aguardando'}</td>`; b.appendChild(tr); });
         }
         function exportarNovaPlanilha() { if(dadosLocais.length === 0) return; let csv = "STATUS CONFERENCIA;CTe;Notas;VOLUMES;QTD (A);LOCALIZACAO;TIPO;QTD (B);CLIENTE REMETENTE;CLIENTE DESTINO;AGENCIA REMETENTE;DATA TRABALHO;DATA HORA BIPAGEM\n"; dadosLocais.forEach(r => { csv += `${r.isSobra?"SOBRA":r.conferido?"CONFERIDO":"PENDENTE"};${r.cte};${r.notas};${r.volumes};${r.qtdA};${r.localizacao};${r.tipo};${r.qtdB};${r.remetente};${r.destino};${r.agencia||'-'};${r.emissao};${r.dataHoraBipagem||''}\n`; }); const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Logistica_Realtime.csv"; link.click(); }
