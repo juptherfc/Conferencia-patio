@@ -227,23 +227,73 @@
         }
         function mostrarAlerta(m, t) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${t}`; a.innerHTML = m; } }
         function normalizarTexto(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim() : ""; }
-        function processarTextoColado() {
+                function processarTextoColado() {
             try {
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dt = document.getElementById('dataTrabalhoImportacao').value;
-                if(!dt || !txt) return;
-                const p = dt.split('-'); const dtF = `${p[2]}/${p[1]}/${p[0]}`;
+                if(!dt || !txt) { alert("Preencha a data e cole os dados da planilha."); return; }
+                
+                const part = dt.split('-'); 
+                const dtF = `${part[2]}/${part[1]}/${part[0]}`; // Formata YYYY-MM-DD para DD/MM/YYYY
                 const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
+                
+                // Pega a primeira linha e higieniza os títulos das colunas
                 const tits = linhas[0].split('\t').map(t => normalizarTexto(t));
+                
+                // Mapeamento dinâmico inteligente para encontrar as colunas certas do Expresso SM
                 let idx = { cte: 0, notas: 1, vol: 2, cliRem: 7, dst: 8, agR: 9, emi: 10, prvA: 11, prvE: 12, dtO: 13, oco: 14, atraso: 15, ult: 16 };
-                if (tits.includes('cte') || tits.includes('notas')) {
-                    idx = {
-                        cte: tits.indexOf('cte')!==-1?tits.indexOf('cte'):0, notas: tits.indexOf('notas')!==-1?tits.indexOf('notas'):1, vol: tits.indexOf('volumes')!==-1?tits.indexOf('volumes'):2,
-                        cliRem: tits.indexOf('clienteremetente')!==-1?tits.indexOf('clienteremetente'):7, dst: tits.indexOf('clientedestino')!==-1?tits.indexOf('clientedestino'):8, agR: tits.indexOf('agenciaremetente')!==-1?tits.indexOf('agenciaremetente'):9,
-                        emi: tits.indexOf('demissao')!==-1?tits.indexOf('demissao'):10, prvA: tits.indexOf('pagencia')!==-1?tits.indexOf('pagencia'):11, prvE: tits.indexOf('pentrega')!==-1?tits.indexOf('pentrega'):12,
-                        dtO: tits.indexOf('docor')!==-1?tits.indexOf('docor'):13, oco: tits.indexOf('ocorrencia')!==-1?tits.indexOf('ocorrencia'):14, atraso: tits.indexOf('diasatraso')!==-1?tits.indexOf('diasatraso'):15, ult: tits.indexOf('dataultocorrencia')!==-1?tits.indexOf('dataultocorrencia'):16
-                    };
+                
+                // Procura a posição exata de cada coluna importante baseada no texto dela
+                tits.forEach((tit, i) => {
+                    if (tit.includes('cte')) idx.cte = i;
+                    else if (tit.includes('nota')) idx.notas = i;
+                    else if (tit.includes('vol')) idx.vol = i;
+                    else if (tit.includes('remetente')) idx.cliRem = i;
+                    else if (tit.includes('destino')) idx.dst = i;
+                    else if (tit.includes('agencia')) idx.agR = i;
+                    else if (tit.includes('emissao') || tit.includes('demissao')) idx.emi = i;
+                    else if (tit.includes('pagencia') || tit.includes('prevag')) idx.prvA = i;
+                    else if (tit.includes('pentrega') || tit.includes('prevent')) idx.prvE = i;
+                    else if (tit.includes('docor') || tit.includes('dataocor')) idx.dtO = i;
+                    else if (tit.includes('ocorrencia')) idx.oco = i;
+                    else if (tit.includes('atraso')) idx.atraso = i;
+                    else if (tit.includes('ultocor') || tit.includes('datault')) idx.ult = i;
+                });
+
+                // Varre as linhas de dados pulando o cabeçalho (i = 1)
+                for(let i = 1; i < linhas.length; i++) {
+                    if(!linhas[i].trim()) continue;
+                    const cel = linhas[i].split('\t'); 
+                    const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '';
+                    if(!cVal || cVal === '-') continue; // Ignora se não houver número de CTe válido
+                    
+                    // Envia os dados higienizados direto para a nuvem do Firebase
+                    db.child(cVal + "_" + dtF.replace(/\//g,"-")).set({
+                        conferido: false, isSobra: false, dataHoraBipagem: "", cte: cVal,
+                        notas: cel[idx.notas] ? cel[idx.notas].trim() : '-', 
+                        volumes: cel[idx.vol] ? cel[idx.vol].trim() : '0',
+                        qtdA: "", localizacao: "", tipo: "", qtdB: "", 
+                        remetente: cel[idx.cliRem] ? cel[idx.cliRem].trim() : '-',
+                        destino: cel[idx.dst] ? cel[idx.dst].trim() : '-', 
+                        agencia: cel[idx.agR] ? cel[idx.agR].trim() : '-',
+                        emissao: dtF, 
+                        previsaoAg: cel[idx.prvA] ? cel[idx.prvA].trim() : '-', 
+                        previsaoEnt: cel[idx.prvE] ? cel[idx.prvE].trim() : '-',
+                        dataOco: cel[idx.dtO] ? cel[idx.dtO].trim() : '-', 
+                        ocorrencia: cel[idx.oco] ? cel[idx.oco].trim() : '',
+                        atraso: cel[idx.atraso] ? cel[idx.atraso].trim() : '0', 
+                        ultOcorrencia: cel[idx.ult] ? cel[idx.ult].trim() : '-'
+                    });
                 }
+                
+                // Limpa a área de colagem e joga o usuário de volta para o Painel principal
+                document.getElementById('caixaTextoColagem').value = ''; 
+                mudarAba('conf');
+            } catch(e) { 
+                console.error(e);
+                alert("Erro ao processar. Certifique-se de copiar a planilha inteira incluindo a linha de cabeçalhos.");
+            }
+        }
                 for(let i = 1; i < linhas.length; i++) {
                     if(!linhas[i].trim()) continue;
                     const cel = linhas[i].split('\t'); const cVal = cel[idx.cte] ? cel[idx.cte].trim() : '-';
