@@ -657,7 +657,9 @@
                 let idxPrevAgencia = encontrarIndice(valor => valor.includes('previsaoagencia'));
                 let idxPrevEntrega = encontrarIndice(valor => valor.includes('previsaoentrega'));
                 let idxDataOcorrencia = encontrarIndice(valor => valor.includes('dataocorrencia'));
-                let idxOco = indicePorNome('ocor');
+                // "Data Ocorrência" e "Ocorrência" possuem texto semelhante.
+                // Aqui usamos correspondência exata para não gravar a data no campo da ocorrência.
+                let idxOco = encontrarIndice(valor => valor === 'ocorrencia');
                 let idxDiasAtraso = encontrarIndice(valor => valor.includes('diasatraso') || valor.includes('dias_atraso'));
                 let idxDataUltOcorrencia = encontrarIndice(valor => valor.includes('dataultocorrencia') || valor.includes('data_ult_ocorrencia'));
                 let inicioDados = 1;
@@ -668,6 +670,7 @@
                 }
 
                 const valorCelula = (celulas, indice, padrao = '') => indice >= 0 && celulas[indice] !== undefined ? celulas[indice].trim() : padrao;
+                const pareceData = valor => /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/.test(String(valor || '').trim());
                 const gravacoes = [];
                 for (let i = inicioDados; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
@@ -691,7 +694,8 @@
                         previsaoAgencia: valorCelula(celulas, idxPrevAgencia),
                         previsaoEntrega: valorCelula(celulas, idxPrevEntrega),
                         dataOcorrencia: valorCelula(celulas, idxDataOcorrencia),
-                        ocorrencia: valorCelula(celulas, idxOco),
+                        // Proteção adicional: ocorrência deve ser texto, nunca uma data.
+                        ocorrencia: pareceData(valorCelula(celulas, idxOco)) ? '' : valorCelula(celulas, idxOco),
                         diasAtraso: valorCelula(celulas, idxDiasAtraso),
                         dataUltOcorrencia: valorCelula(celulas, idxDataUltOcorrencia)
                     };
