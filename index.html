@@ -2,94 +2,86 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logística Realtime - Expresso SM</title>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; flex-direction: row; }
-        aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-shrink: 0; flex-direction: column; gap: 8px; }
-        .btn-menu { display: flex; align-items: center; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; color: #64748b; text-align: left; cursor: pointer; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; }
+        aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .btn-menu { display: flex; align-items: center; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; color: #64748b; text-align: left; cursor: pointer; font-weight: 500; }
         .btn-menu:hover { background-color: #f8fafc; color: #0f172a; }
         .btn-menu.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
         main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; overflow: hidden; }
         .aba-conteudo { display: none; flex-direction: column; gap: 16px; height: 100%; overflow: hidden; }
         .aba-conteudo.active { display: flex; }
-        .bloco { background: white; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; flex-shrink: 0; }
-        .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; flex-shrink: 0; }
-        .card { background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; min-height: 85px; cursor: pointer; }
+        .bloco { background: white; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .card { background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 85px; cursor: pointer; }
         .card.filtrado { border-color: #2563eb; background-color: #f0f4ff; }
         .card-num { font-size: 22px; font-weight: 700; color: #0f172a; }
-        .card-txt { font-size: 11px; color: #64748b; font-weight: 500; }
-        .input-filtro { width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #334155; outline: none; }
-        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; min-height: 0; }
+        .card-txt { font-size: 11px; color: #64748b; }
+        .input-filtro { width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; }
+        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; white-space: nowrap; }
-        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
-        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
+        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
+        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
         tr.linha-conferida td { background-color: #f0fdf4 !important; }
-        .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+        .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; }
         .alerta-info { background-color: #fef3c7; color: #d97706; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; }
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            aside { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #e2e8f0; flex-direction: row; }
-            .btn-menu { padding: 8px 10px; font-size: 12px; width: auto; }
-            main { padding: 10px; height: calc(100vh - 60px); }
-            .cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-        }
     </style>
 </head>
 <body>
     <aside>
-        <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 20px;">Expresso SM</div>
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">Expresso SM</div>
         <button id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')">📋 Painel</button>
         <button id="menu-colar" class="btn-menu" onclick="mudarAba('colar')">📥 Carregar</button>
         <button id="menu-dep" class="btn-menu" onclick="mudarAba('dep')">⚡ Bipar</button>
         <button id="menu-hist" class="btn-menu" onclick="mudarAba('hist')">📂 Histórico</button>
     </aside>
     <main>
-        <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados do Google Firebase...</div>
+        <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados...</div>
+        
         <div id="tela-conf" class="aba-conteudo active">
             <div class="cards-grid">
-                <div class="card" id="card-tot-box" onclick="mudarFiltroCard('todos')"><span class="card-num" id="c-tot">0</span><span class="card-txt">Manifestados</span></div>
-                <div class="card" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')"><span class="card-num" id="c-pnd">0</span><span class="card-txt">Pendentes</span></div>
-                <div class="card" id="card-bo-box" onclick="mudarFiltroCard('bo')"><span class="card-num" id="c-bo">0</span><span class="card-txt">Com B.O</span></div>
-                <div class="card" id="card-ent-box" onclick="mudarFiltroCard('entrega')"><span class="card-num" id="c-ent">0</span><span class="card-txt">Em Entrega</span></div>
+                <div class="card" id="card-tot-box" onclick="mudarFiltroCard('todos')"><span class="card-num" id="c-tot">0</span><br><span class="card-txt">Manifestados</span></div>
+                <div class="card" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')"><span class="card-num" id="c-pnd">0</span><br><span class="card-txt">Pendentes</span></div>
+                <div class="card" id="card-bo-box" onclick="mudarFiltroCard('bo')"><span class="card-num" id="c-bo">0</span><br><span class="card-txt">Com B.O</span></div>
+                <div class="card" id="card-ent-box" onclick="mudarFiltroCard('entrega')"><span class="card-num" id="c-ent">0</span><br><span class="card-txt">Em Entrega</span></div>
             </div>
-            <div class="bloco">
-                <input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal, Localização..." class="input-filtro" oninput="filtrarTabela()">
-                <span id="txtProgresso" style="font-size: 12px; font-weight: 700; margin-left: 10px;">Conferidos: 0 / 0</span>
-            </div>
+            <div class="bloco"><input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal..." class="input-filtro" oninput="filtrarTabela()"></div>
             <div class="tabela-container">
                 <table>
                     <thead>
                         <tr><th>Status</th><th>CTe</th><th>Notas</th><th>Volumes</th><th>Localização</th><th>Cliente Destino</th><th>Ocorrência</th></tr>
                     </thead>
-                    <tbody id="tabelaCorpo">
-                        <tr><td colspan="7" style="text-align:center; padding:40px; color:#94a3b8;">Aguardando colagem da planilha...</td></tr>
-                    </tbody>
+                    <tbody id="tabelaCorpo"><tr><td colspan="7" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
                 </table>
             </div>
         </div>
+
         <div id="tela-colar" class="aba-conteudo">
             <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
                 <h3>Alimentar Painel via Colagem Direta</h3>
                 <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width: 200px;">
-                <textarea id="caixaTextoColagem" style="width:100%; height:100px; padding:8px; border:1px solid #e2e8f0; border-radius:8px;" placeholder="Cole a planilha aqui..."></textarea>
-                <button style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="processarTextoColado()">Processar Planilha</button>
+                <textarea id="caixaTextoColagem" style="width:100%; height:80px; padding:8px;" placeholder="Cole as linhas da planilha aqui..."></textarea>
+                <button style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="processarTextoColado()">Processar Planilha</button>
             </div>
         </div>
+
         <div id="tela-dep" class="aba-conteudo">
-            <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="bloco" style="display:flex; flex-direction:column; gap:12px;">
                 <h3>Conferência Física por Bipagem</h3>
-                <input type="text" id="d-cte" placeholder="Bipar CTe ou Nota Fiscal" class="input-filtro">
-                <input type="text" id="d-loc" placeholder="BOX / Localização" class="input-filtro">
-                <button style="background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
+                <input type="text" id="d-cte" placeholder="Bipar CTe ou digitar Nota Fiscal" class="input-filtro">
+                <input type="text" id="d-loc" placeholder="BOX / Localização de Destino" class="input-filtro">
+                <button style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
             </div>
         </div>
+
         <div id="tela-hist" class="aba-conteudo">
-            <div class="bloco"><h3>Consulta Geral de Banco</h3></div>
+            <div class="bloco"><h3>Histórico Geral do Banco</h3></div>
             <div class="tabela-container">
                 <table>
                     <thead><tr><th>Status</th><th>CTe</th><th>Notas</th><th>BOX / Loc</th><th>Data Trabalho</th></tr></thead>
@@ -98,26 +90,27 @@
             </div>
         </div>
     </main>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDYdpRAq83dRXsV3_XGQWV2xOKM26MK9mk",
-            databaseURL: "https://expresso-sm-default-rtdb.firebaseio.com/"
+            databaseURL: "https://firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref("patio_sao_miguel");
         let dadosLocais = [], filtroCardAtivo = 'todos';
         
-        db.on("value", snapshot => {
-            const val = snapshot.val(); dadosLocais = val ? Object.values(val) : [];
+        db.on("value", snap => {
+            const val = snap.val(); dadosLocais = val ? Object.values(val) : [];
             filtrarTabela();
             mostrarAlerta("<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔", "sucesso");
         });
+
         function mudarAba(id) {
             document.querySelectorAll('.aba-conteudo').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.btn-menu').forEach(m => m.classList.remove('active'));
             const t = document.getElementById(`tela-${id}`), m = document.getElementById(`menu-${id}`);
             if(t) t.classList.add('active'); if(m) m.classList.add('active');
-            if(id === 'dep') document.getElementById('d-cte').focus();
         }
         function mostrarAlerta(m, t) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${t}`; a.innerHTML = m; } }
         function normalizarTexto(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim() : ""; }
@@ -126,54 +119,29 @@
             try {
                 const txt = document.getElementById('caixaTextoColagem').value.trim();
                 const dt = document.getElementById('dataTrabalhoImportacao').value;
-                if(!dt || !txt) { alert("Preencha a data e cole os dados."); return; }
-                const linhas = txt.split(/\r?\n/); if (linhas.length === 0) return;
+                if(!dt || !txt) { alert("Escolha a data e cole os dados."); return; }
+                const linhas = txt.split(/\r?\n/);
                 
-                // CORREÇÃO CRÍTICA AQUI: Puxa o cabeçalho real usando linhas[0]
-                const primeiraLinha = linhas[0].split('\t').map(t => normalizarTexto(t));
-                let idxCte = primeiraLinha.findIndex(t => t.includes('cte')), idxNf = primeiraLinha.findIndex(t => t.includes('nota') || t.includes('nf')), idxVol = primeiraLinha.findIndex(t => t.includes('vol')), idxDst = primeiraLinha.findIndex(t => t.includes('dest') || t.includes('cliente')), idxOco = primeiraLinha.findIndex(t => t.includes('ocor'));
-                if(idxCte===-1) idxCte=0; if(idxNf===-1) idxNf=1; if(idxVol===-1) idxVol=2; if(idxDst===-1) idxDst=4; if(idxOco===-1) idxOco=5;
+                // Correção definitiva dos cabeçalhos usando index zero
+                const cabecalho = linhas[0].split('\t').map(t => normalizarTexto(t));
+                let idxCte = cabecalho.findIndex(t => t.includes('cte'));
+                let idxNf = cabecalho.findIndex(t => t.includes('nota') || t.includes('nf'));
+                let idxVol = cabecalho.findIndex(t => t.includes('vol'));
+                let idxDst = cabecalho.findIndex(t => t.includes('dest') || t.includes('cliente'));
+                let idxOco = cabecalho.findIndex(t => t.includes('ocor'));
 
-                for(let i = 1; i < linhas.length; i++) {
-                    if(!linhas[i].trim()) continue;
-                    const cel = linhas[i].split('\t'); const cVal = cel[idxCte] ? cel[idxCte].trim() : '';
-                    if(!cVal || cVal === '-') continue;
-                    db.child(cVal + "_" + dt).set({
-                        conferido: false, cte: cVal, notas: cel[idxNf] ? cel[idxNf].trim() : '-', volumes: cel[idxVol] ? cel[idxVol].trim() : '1', localizacao: "", destino: cel[idxDst] ? cel[idxDst].trim() : '-', ocorrencia: cel[idxOco] ? cel[idxOco].trim() : '', emissao: dt
-                    });
+                let startRow = 1;
+                if (idxCte === -1 && idxNf === -1) {
+                    idxCte = 0; idxNf = 1; idxVol = 2; idxDst = 4; idxOco = 5;
+                    startRow = 0;
                 }
-                document.getElementById('caixaTextoColagem').value = ''; mudarAba('conf');
-            } catch(e) { alert("Erro ao processar. Inclua os títulos das colunas."); }
-        }
-        function mudarFiltroCard(c) { filtroCardAtivo = c; document.querySelectorAll('.card').forEach(x => x.classList.remove('filtrado')); const id = c === 'todos' ? 'card-tot-box' : c === 'pendentes' ? 'card-pnd-box' : c === 'bo' ? 'card-bo-box' : 'card-ent-box'; document.getElementById(id).classList.add('filtrado'); filtrarTabela(); }
-        function filtrarTabela() {
-            const b = document.getElementById('buscaUnica').value.toLowerCase();
-            const f = dadosLocais.filter(r => {
-                const o = (r.ocorrencia || '').toUpperCase(); const isBo = o.includes('B.O') || o.includes('BOLETIM'); const isE = o === 'EM ENTREGA';
-                if (filtroCardAtivo === 'entrega' && !isE) return false; if (filtroCardAtivo === 'bo' && !isBo) return false; if (filtroCardAtivo === 'pendentes' && (isE || isBo)) return false;
-                return !b || r.cte.toLowerCase().includes(b) || r.notas.toLowerCase().includes(b) || r.destino.toLowerCase().includes(b);
-            });
-            renderizarTabelaHtml(f);
-        }
-        function renderizarTabelaHtml(f) {
-            const c = document.getElementById('tabelaCorpo'); if(!c) return; c.innerHTML = '';
-            f.forEach(r => {
-                const tr = document.createElement('tr'); if(r.conferido) tr.className = "linha-conferida";
-                tr.innerHTML = `<td>${r.conferido?'✔ OK':'-'}</td><td><b>${r.cte}</b></td><td>${r.notas}</td><td>${r.volumes}</td><td><input type="text" value="${r.localizacao}" style="width:70px;text-align:center;border:1px solid #cbd5e1;border-radius:4px;" onchange="atualizarCampoMemoria('${r.cte}','${r.emissao}',this.value)"></td><td>${r.destino}</td><td>${r.ocorrencia||'-'}</td>`;
-                c.appendChild(tr);
-            });
-            let tot = dadosLocais.length, pnd = 0, ent = 0, bo = 0, conf = 0;
-            dadosLocais.forEach(r => { const o = (r.ocorrencia || '').toUpperCase(); if(r.conferido) conf++; if(o === 'EM ENTREGA') ent++; else if(o.includes('B.O')) bo++; else pnd++; });
-            document.getElementById('c-tot').innerText = tot; document.getElementById('c-pnd').innerText = pnd; document.getElementById('c-ent').innerText = ent; document.getElementById('c-bo').innerText = bo;
-            document.getElementById('txtProgresso').innerText = `Conferidos: ${conf} / ${tot}`;
-        }
-        function atualizarCampoMemoria(cte, em, v) { db.child(cte+"_"+em).update({ localizacao: v, conferido: v.trim() !== "" }); }
-        function lancarFisicoAutomatico() {
-            const c = document.getElementById('d-cte').value.trim(), loc = document.getElementById('d-loc').value.trim().toUpperCase();
-            let alvo = dadosLocais.find(r => r.cte.toString().trim() === c || r.notas.toString().trim() === c);
-            if(alvo) { db.child(alvo.cte+"_"+alvo.emissao).update({ localizacao: loc, conferido: true }); }
-            document.getElementById('d-cte').value = ''; document.getElementById('d-loc').value = '';
-        }
-    </script>
-</body>
-</html>
+
+                for(let i = startRow; i < linhas.length; i++) {
+                    if(!linhas[i].trim()) continue;
+                    const cel = linhas[i].split('\t');
+                    const cVal = cel[idxCte] ? cel[idxCte].trim() : '';
+                    if(!cVal || cVal === '-') continue;
+                    
+                    db.child(cVal + "_" + dt).set({
+                        conferido: false, cte: cVal, 
+                        notas: cel[idxNf] ? cel[idxNf].trim() : '-', 
