@@ -169,6 +169,20 @@
         .deposito-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
         .deposito-vazio { margin-top: 18px; padding: 14px; border-radius: 8px; background: #f8fafc; color: #8a949e; font-size: 11px; }
         .deposito-vazio.oculto { display: none; }
+        .historico-filtros { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 10px; margin-top: 14px; }
+        .historico-filtros .select-filtro { height: 36px; }
+        .historico-resumo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; color: #7c8792; font-size: 11px; }
+        .historico-resumo strong { color: #374151; font-size: 15px; }
+        .historico-tabela-container { flex: 1; min-height: 0; overflow: auto; }
+        .historico-tabela { min-width: 720px; }
+        .historico-tabela td, .historico-tabela th { padding: 12px 14px; }
+        .lote-data { color: #374151; font-weight: 750; }
+        .lote-subtexto { display: block; margin-top: 3px; color: #9aa3ad; font-size: 10px; font-weight: 500; }
+        .lote-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 5px; background: #ecf9f3; border: 1px solid #c8eddd; color: #187b5a; font-size: 10px; font-weight: 700; }
+        .lote-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .btn-excluir-lote { border: 1px solid #f0caca; border-radius: 6px; padding: 7px 10px; background: #fff6f6; color: #b13b3b; font-size: 11px; font-weight: 700; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+        .btn-excluir-lote:hover { background: #ffeaea; border-color: #e9aaaa; transform: translateY(-1px); }
+        .historico-vazio { padding: 42px 20px; color: #9aa3ad; text-align: center; font-size: 12px; }
 
         .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: rgba(37, 99, 235, .16); transform: scale(0); animation: rippleEffect .5s ease-out; }
         @keyframes abaEntrar { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -365,11 +379,23 @@
         </div>
 
         <div id="tela-hist" class="aba-conteudo">
-            <div class="bloco"><h3 style="color:#374151;">Histórico geral</h3></div>
-            <div class="tabela-container">
-                <table>
-                    <thead><tr><th>Status</th><th>CTe</th><th>Notas</th><th>ROTA</th><th>Data Trabalho</th></tr></thead>
-                    <tbody id="tabelaCorpoHist"><tr><td colspan="5" style="text-align:center; padding:40px;">Registros salvos em nuvem.</td></tr></tbody>
+            <div class="bloco">
+                <h3 style="color:#374151;">Histórico de importações</h3>
+                <p style="margin-top:5px; color:#8a949e; font-size:12px;">Acompanhe os lotes importados por dia, mês e ano. Se uma planilha estiver errada, exclua o lote inteiro.</p>
+                <div class="historico-filtros" aria-label="Filtros do histórico">
+                    <select id="historicoAno" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os anos</option></select>
+                    <select id="historicoMes" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os meses</option></select>
+                    <select id="historicoDia" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os dias</option></select>
+                </div>
+                <div class="historico-resumo">
+                    <span><strong id="historicoQtdLotes">0</strong> lotes encontrados</span>
+                    <span><strong id="historicoQtdRegistros">0</strong> registros nos lotes filtrados</span>
+                </div>
+            </div>
+            <div class="tabela-container historico-tabela-container">
+                <table class="historico-tabela">
+                    <thead><tr><th>Data da Importação</th><th>Ano</th><th>Mês</th><th>Dia</th><th>Registros</th><th>Status</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaCorpoHist"><tr><td colspan="7" class="historico-vazio">Registros salvos em nuvem.</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -398,9 +424,11 @@
                 db = firebase.database().ref('patio_sao_miguel');
                 db.on('value', snap => {
                     const val = snap.val();
-                    dadosLocais = val ? Object.values(val) : [];
+                    dadosLocais = val ? Object.entries(val).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
                     atualizarOpcoesFiltros();
                     filtrarTabela();
+                    atualizarFiltrosHistorico();
+                    renderizarHistorico();
                     mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
                 }, error => {
                     console.error('Falha ao carregar dados do Firebase:', error);
@@ -428,6 +456,7 @@
                 menu.classList.add('active');
                 menu.setAttribute('aria-current', 'page');
             }
+            if (id === 'hist') renderizarHistorico();
         }
 
         function mostrarAlerta(mensagem, tipo) {
@@ -453,6 +482,27 @@
 
         function obterChaveRegistro(cte, emissao) {
             return `${String(cte)}_${String(emissao)}`;
+        }
+
+        function obterDataEmFormatoISO(valor) {
+            const texto = String(valor ?? '').trim();
+            if (/^\d{4}-\d{2}-\d{2}/.test(texto)) return texto.slice(0, 10);
+            const brasileiro = texto.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+            if (brasileiro) return `${brasileiro[3]}-${brasileiro[2]}-${brasileiro[1]}`;
+            return '';
+        }
+
+        function obterDataTrabalhoRegistro(registro) {
+            const dataSalva = obterDataEmFormatoISO(registro?.dataTrabalho || registro?.dataImportacao);
+            if (dataSalva) return dataSalva;
+            const chave = String(registro?._firebaseKey || '');
+            const dataNaChave = chave.match(/_(\d{4}-\d{2}-\d{2})$/);
+            if (dataNaChave) return dataNaChave[1];
+            return obterDataEmFormatoISO(registro?.emissao);
+        }
+
+        function obterChaveRegistroAtual(registro) {
+            return String(registro?._firebaseKey || '') || obterChaveRegistro(valorRegistro(registro, 'cte'), obterDataTrabalhoRegistro(registro) || valorRegistro(registro, 'emissao'));
         }
 
         function valorRegistro(registro, campo) {
@@ -517,6 +567,131 @@
             preencherSelect('filtroOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas ocorrências');
             preencherSelect('filtroAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas agências');
             preencherSelect('filtroTipo', dadosLocais.map(registro => registro.tipo), 'Todos tipos');
+        }
+
+        const nomesMeses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+        function criarIdentificadorLote(dataTrabalho) {
+            return `${dataTrabalho}_${Date.now()}`;
+        }
+
+        function obterPartesData(data) {
+            const partes = String(data || '').split('-');
+            return { ano: partes[0] || '', mes: partes[1] || '', dia: partes[2] || '' };
+        }
+
+        function formatarDataImportacao(data) {
+            const partes = obterPartesData(data);
+            return partes.dia && partes.mes && partes.ano ? `${partes.dia}/${partes.mes}/${partes.ano}` : (data || '-');
+        }
+
+        function preencherFiltroHistorico(id, valores, textoPadrao, formatador = valor => valor) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const valorAtual = select.value;
+            select.innerHTML = `<option value="">${textoPadrao}</option>`;
+            [...new Set(valores.filter(Boolean))].sort().forEach(valor => {
+                const option = document.createElement('option');
+                option.value = valor;
+                option.textContent = formatador(valor);
+                select.appendChild(option);
+            });
+            if ([...select.options].some(option => option.value === valorAtual)) select.value = valorAtual;
+        }
+
+        function atualizarFiltrosHistorico() {
+            const datas = dadosLocais.map(obterDataTrabalhoRegistro).filter(Boolean);
+            const partes = datas.map(obterPartesData);
+            preencherFiltroHistorico('historicoAno', partes.map(parte => parte.ano), 'Todos os anos');
+            preencherFiltroHistorico('historicoMes', partes.map(parte => parte.mes), 'Todos os meses', valor => nomesMeses[Number(valor) - 1] || valor);
+            preencherFiltroHistorico('historicoDia', partes.map(parte => parte.dia), 'Todos os dias');
+        }
+
+        function renderizarHistorico() {
+            const corpo = document.getElementById('tabelaCorpoHist');
+            if (!corpo) return;
+            const anoSelecionado = document.getElementById('historicoAno')?.value || '';
+            const mesSelecionado = document.getElementById('historicoMes')?.value || '';
+            const diaSelecionado = document.getElementById('historicoDia')?.value || '';
+            const lotes = new Map();
+
+            dadosLocais.forEach(registro => {
+                const data = obterDataTrabalhoRegistro(registro);
+                if (!data) return;
+                const partes = obterPartesData(data);
+                if (anoSelecionado && partes.ano !== anoSelecionado) return;
+                if (mesSelecionado && partes.mes !== mesSelecionado) return;
+                if (diaSelecionado && partes.dia !== diaSelecionado) return;
+
+                const loteId = valorRegistro(registro, 'loteId') || `legado_${data}`;
+                if (!lotes.has(loteId)) {
+                    lotes.set(loteId, { id: loteId, data, registros: 0, importadoEm: registro.dataImportacao || '' });
+                }
+                const lote = lotes.get(loteId);
+                lote.registros += 1;
+                if (!lote.importadoEm && registro.dataImportacao) lote.importadoEm = registro.dataImportacao;
+            });
+
+            const lista = [...lotes.values()].sort((a, b) => `${b.data}_${b.id}`.localeCompare(`${a.data}_${a.id}`));
+            const totalRegistros = lista.reduce((total, lote) => total + lote.registros, 0);
+            document.getElementById('historicoQtdLotes').textContent = lista.length;
+            document.getElementById('historicoQtdRegistros').textContent = totalRegistros;
+            corpo.innerHTML = '';
+
+            if (!lista.length) {
+                corpo.innerHTML = '<tr><td colspan="7" class="historico-vazio">Nenhum lote encontrado para os filtros selecionados.</td></tr>';
+                return;
+            }
+
+            lista.forEach(lote => {
+                const partes = obterPartesData(lote.data);
+                const linha = document.createElement('tr');
+                linha.innerHTML = `
+                    <td><span class="lote-data">${escaparHtml(formatarDataImportacao(lote.data))}</span><span class="lote-subtexto">Importação diária</span></td>
+                    <td>${escaparHtml(partes.ano || '-')}</td>
+                    <td>${escaparHtml(nomesMeses[Number(partes.mes) - 1] || partes.mes || '-')}</td>
+                    <td>${escaparHtml(partes.dia || '-')}</td>
+                    <td><strong>${lote.registros}</strong></td>
+                    <td><span class="lote-status">Importado</span></td>
+                    <td></td>
+                `;
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.className = 'btn-excluir-lote';
+                botao.textContent = 'Excluir lote';
+                botao.title = `Excluir ${lote.registros} registro(s) deste lote`;
+                botao.addEventListener('click', () => excluirLoteImportacao(lote.id, lote.data, lote.registros));
+                linha.lastElementChild.appendChild(botao);
+                corpo.appendChild(linha);
+            });
+        }
+
+        function excluirLoteImportacao(loteId, data, quantidade) {
+            if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+            const confirmacao = confirm(`Excluir o lote de ${formatarDataImportacao(data)} com ${quantidade} registro(s)? Esta ação não pode ser desfeita.`);
+            if (!confirmacao) return;
+
+            const registrosDoLote = dadosLocais.filter(registro => {
+                const idRegistro = valorRegistro(registro, 'loteId') || `legado_${obterDataTrabalhoRegistro(registro)}`;
+                return idRegistro === loteId;
+            });
+            const atualizacoes = {};
+            registrosDoLote.forEach(registro => {
+                const chave = obterChaveRegistroAtual(registro);
+                if (chave) atualizacoes[chave] = null;
+            });
+
+            if (!Object.keys(atualizacoes).length) {
+                mostrarAlerta('<b>Atenção:</b> não foram encontrados registros para excluir neste lote.', 'info');
+                return;
+            }
+
+            db.update(atualizacoes).then(() => {
+                mostrarAlerta(`<b>Status:</b> lote de ${formatarDataImportacao(data)} excluído com sucesso.`, 'sucesso');
+            }).catch(error => {
+                console.error('Erro ao excluir lote:', error);
+                mostrarAlerta('<b>Erro:</b> não foi possível excluir o lote selecionado.', 'erro');
+            });
         }
 
         function obterValorCampo(id) {
@@ -612,10 +787,10 @@
                 qtd2: document.getElementById('d-qtd-sec').value.trim()
             };
             const cte = valorRegistro(registroDepositoSelecionado, 'cte');
-            const emissao = valorRegistro(registroDepositoSelecionado, 'emissao');
-            if (!cte || !emissao) { alert('O registro localizado não possui CTe ou data de emissão para atualização.'); return; }
+            const chaveRegistro = obterChaveRegistroAtual(registroDepositoSelecionado);
+            if (!cte || !chaveRegistro) { alert('O registro localizado não possui uma chave válida para atualização.'); return; }
 
-            db.child(obterChaveRegistro(cte, emissao)).update(valores).then(() => {
+            db.child(chaveRegistro).update(valores).then(() => {
                 Object.assign(registroDepositoSelecionado, valores);
                 atualizarOpcoesFiltros();
                 filtrarTabela();
@@ -671,6 +846,8 @@
 
                 const valorCelula = (celulas, indice, padrao = '') => indice >= 0 && celulas[indice] !== undefined ? celulas[indice].trim() : padrao;
                 const pareceData = valor => /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/.test(String(valor || '').trim());
+                const loteId = criarIdentificadorLote(data);
+                const dataImportacao = new Date().toISOString();
                 const gravacoes = [];
                 for (let i = inicioDados; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
@@ -679,6 +856,9 @@
                     if (!cte || cte === '-') continue;
                     const registro = {
                         conferido: false,
+                        loteId,
+                        dataTrabalho: data,
+                        dataImportacao,
                         cte,
                         etiqueta: valorCelula(celulas, encontrarIndice(valor => valor.includes('etiqueta') || valor.includes('label'))),
                         notas: valorCelula(celulas, idxNf, '-'),
@@ -705,6 +885,8 @@
                 Promise.all(gravacoes).then(() => {
                     caixaTexto.value = '';
                     atualizarOpcoesFiltros();
+                    atualizarFiltrosHistorico();
+                    renderizarHistorico();
                     mudarAba('conf');
                     mostrarAlerta('<b>Status:</b> planilha processada com sucesso.', 'sucesso');
                 }).catch(error => {
