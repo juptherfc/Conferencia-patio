@@ -4,18 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logística Realtime - Expresso SM</title>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+
+    <!-- SDKs compatíveis com a API global usada pelo código abaixo. -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; }
-        aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-        .btn-menu { display: flex; align-items: center; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; color: #64748b; text-align: left; cursor: pointer; font-weight: 500; }
-        .btn-menu:hover { background-color: #f8fafc; color: #0f172a; }
+        aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 8px; position: relative; transition: width .28s ease, padding .28s ease; }
+        .marca { display: flex; align-items: center; gap: 10px; min-height: 36px; margin-bottom: 12px; overflow: hidden; }
+        .marca-icone { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; font-size: 12px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 6px 14px rgba(37, 99, 235, .2); }
+        .marca-texto { font-size: 18px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+        .btn-toggle-menu { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 600; transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; overflow: hidden; }
+        .btn-toggle-menu:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; transform: translateY(-1px); }
+        .btn-toggle-menu:active { transform: scale(.98); }
+        .btn-menu { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; color: #64748b; text-align: left; cursor: pointer; font-weight: 500; overflow: hidden; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+        .btn-menu::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 4px 4px 0; background: #2563eb; transform: scaleY(0); transition: transform .2s ease; }
+        .btn-menu:hover { background-color: #f8fafc; color: #0f172a; transform: translateX(3px); }
+        .btn-menu:active { transform: translateX(3px) scale(.98); }
         .btn-menu.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
+        .btn-menu.active::before { transform: scaleY(1); }
+        .btn-menu:focus-visible, .btn-toggle-menu:focus-visible { outline: 3px solid rgba(37, 99, 235, .25); outline-offset: 2px; }
+        .menu-icone, .toggle-icone { display: inline-grid; place-items: center; flex: 0 0 20px; width: 20px; font-size: 16px; line-height: 1; }
+        .menu-texto, .toggle-texto, .marca-texto { max-width: 180px; opacity: 1; transition: max-width .28s ease, opacity .2s ease; white-space: nowrap; }
+        .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: rgba(37, 99, 235, .18); transform: scale(0); animation: rippleEffect .5s ease-out; }
         main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; overflow: hidden; }
         .aba-conteudo { display: none; flex-direction: column; gap: 16px; height: 100%; overflow: hidden; }
-        .aba-conteudo.active { display: flex; }
+        .aba-conteudo.active { display: flex; animation: abaEntrar .32s ease both; }
+        .menu-recolhido aside { width: 78px; padding-left: 12px; padding-right: 12px; }
+        .menu-recolhido .marca, .menu-recolhido .btn-toggle-menu { justify-content: center; }
+        .menu-recolhido .marca-texto, .menu-recolhido .menu-texto, .menu-recolhido .toggle-texto { max-width: 0; opacity: 0; overflow: hidden; }
+        .menu-recolhido .btn-menu { justify-content: center; padding-left: 10px; padding-right: 10px; }
+        .menu-recolhido .btn-menu::before { left: -12px; }
+        @keyframes abaEntrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes rippleEffect { to { opacity: 0; transform: scale(3); } }
         .bloco { background: white; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .card { background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 85px; cursor: pointer; }
@@ -31,19 +54,47 @@
         .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; }
         .alerta-info { background-color: #fef3c7; color: #d97706; }
         .alerta-sucesso { background-color: #dcfce7; color: #15803d; }
+        .alerta-erro { background-color: #fee2e2; color: #b91c1c; }
+        @media (max-width: 800px) {
+            body { flex-direction: column; overflow: auto; }
+            aside { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+            aside > div { width: 100%; margin-bottom: 4px !important; }
+            .btn-menu { width: auto; flex: 1; justify-content: center; }
+            main { height: auto; min-height: calc(100vh - 120px); }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            body.menu-recolhido aside { width: 100%; padding: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+        }
     </style>
 </head>
 <body>
-    <aside>
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">Expresso SM</div>
-        <button id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')">📋 Painel</button>
-        <button id="menu-colar" class="btn-menu" onclick="mudarAba('colar')">📥 Carregar</button>
-        <button id="menu-dep" class="btn-menu" onclick="mudarAba('dep')">⚡ Bipar</button>
-        <button id="menu-hist" class="btn-menu" onclick="mudarAba('hist')">📂 Histórico</button>
+    <aside id="menuLateral">
+        <div class="marca">
+            <span class="marca-icone">SM</span>
+            <span class="marca-texto">Expresso SM</span>
+        </div>
+        <button type="button" id="btnToggleMenu" class="btn-toggle-menu" onclick="alternarMenuLateral()" aria-expanded="true" aria-label="Recolher menu" title="Recolher menu">
+            <span class="toggle-icone">‹</span>
+            <span class="toggle-texto">Recolher menu</span>
+        </button>
+        <button type="button" id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')" aria-current="page" title="Painel">
+            <span class="menu-icone" aria-hidden="true">📋</span><span class="menu-texto">Painel</span>
+        </button>
+        <button type="button" id="menu-colar" class="btn-menu" onclick="mudarAba('colar')" title="Carregar">
+            <span class="menu-icone" aria-hidden="true">📥</span><span class="menu-texto">Carregar</span>
+        </button>
+        <button type="button" id="menu-dep" class="btn-menu" onclick="mudarAba('dep')" title="Bipar">
+            <span class="menu-icone" aria-hidden="true">⚡</span><span class="menu-texto">Bipar</span>
+        </button>
+        <button type="button" id="menu-hist" class="btn-menu" onclick="mudarAba('hist')" title="Histórico">
+            <span class="menu-icone" aria-hidden="true">📂</span><span class="menu-texto">Histórico</span>
+        </button>
     </aside>
     <main>
         <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados...</div>
-        
+
         <div id="tela-conf" class="aba-conteudo active">
             <div class="cards-grid">
                 <div class="card" id="card-tot-box" onclick="mudarFiltroCard('todos')"><span class="card-num" id="c-tot">0</span><br><span class="card-txt">Manifestados</span></div>
@@ -67,7 +118,7 @@
                 <h3>Alimentar Painel via Colagem Direta</h3>
                 <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width: 200px;">
                 <textarea id="caixaTextoColagem" style="width:100%; height:80px; padding:8px;" placeholder="Cole as linhas da planilha aqui..."></textarea>
-                <button style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="processarTextoColado()">Processar Planilha</button>
+                <button type="button" style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="processarTextoColado()">Processar Planilha</button>
             </div>
         </div>
 
@@ -76,7 +127,7 @@
                 <h3>Conferência Física por Bipagem</h3>
                 <input type="text" id="d-cte" placeholder="Bipar CTe ou digitar Nota Fiscal" class="input-filtro">
                 <input type="text" id="d-loc" placeholder="BOX / Localização de Destino" class="input-filtro">
-                <button style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
+                <button type="button" style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
             </div>
         </div>
 
@@ -94,54 +145,347 @@
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDYdpRAq83dRXsV3_XGQWV2xOKM26MK9mk",
-            databaseURL: "https://firebaseio.com"
+            databaseURL: "https://expresso-sm-default-rtdb.firebaseio.com/"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref("patio_sao_miguel");
-        let dadosLocais = [], filtroCardAtivo = 'todos';
-        
-        db.on("value", snap => {
-            const val = snap.val(); dadosLocais = val ? Object.values(val) : [];
-            filtrarTabela();
-            mostrarAlerta("<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔", "sucesso");
-        });
 
-        function mudarAba(id) {
-            document.querySelectorAll('.aba-conteudo').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.btn-menu').forEach(m => m.classList.remove('active'));
-            const t = document.getElementById(`tela-${id}`), m = document.getElementById(`menu-${id}`);
-            if(t) t.classList.add('active'); if(m) m.classList.add('active');
-        }
-        function mostrarAlerta(m, t) { const a = document.getElementById('alertaStatus'); if(a) { a.className = `alerta alerta-${t}`; a.innerHTML = m; } }
-        function normalizarTexto(t) { return t ? t.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "").trim() : ""; }
-        
-        function processarTextoColado() {
+        let db = null;
+        let dadosLocais = [];
+        let filtroCardAtivo = 'todos';
+
+        function inicializarFirebase() {
+            if (typeof firebase === 'undefined') {
+                mostrarAlerta('<b>Erro:</b> a biblioteca do banco de dados não foi carregada.', 'erro');
+                filtrarTabela();
+                return;
+            }
+
             try {
-                const txt = document.getElementById('caixaTextoColagem').value.trim();
-                const dt = document.getElementById('dataTrabalhoImportacao').value;
-                if(!dt || !txt) { alert("Escolha a data e cole os dados."); return; }
-                const linhas = txt.split(/\r?\n/);
-                
-                // Correção definitiva dos cabeçalhos usando index zero
-                const cabecalho = linhas[0].split('\t').map(t => normalizarTexto(t));
-                let idxCte = cabecalho.findIndex(t => t.includes('cte'));
-                let idxNf = cabecalho.findIndex(t => t.includes('nota') || t.includes('nf'));
-                let idxVol = cabecalho.findIndex(t => t.includes('vol'));
-                let idxDst = cabecalho.findIndex(t => t.includes('dest') || t.includes('cliente'));
-                let idxOco = cabecalho.findIndex(t => t.includes('ocor'));
-
-                let startRow = 1;
-                if (idxCte === -1 && idxNf === -1) {
-                    idxCte = 0; idxNf = 1; idxVol = 2; idxDst = 4; idxOco = 5;
-                    startRow = 0;
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
                 }
 
-                for(let i = startRow; i < linhas.length; i++) {
-                    if(!linhas[i].trim()) continue;
-                    const cel = linhas[i].split('\t');
-                    const cVal = cel[idxCte] ? cel[idxCte].trim() : '';
-                    if(!cVal || cVal === '-') continue;
-                    
-                    db.child(cVal + "_" + dt).set({
-                        conferido: false, cte: cVal, 
-                        notas: cel[idxNf] ? cel[idxNf].trim() : '-', 
+                db = firebase.database().ref('patio_sao_miguel');
+                db.on('value', snap => {
+                    const val = snap.val();
+                    dadosLocais = val ? Object.values(val) : [];
+                    filtrarTabela();
+                    mostrarAlerta('<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔', 'sucesso');
+                }, error => {
+                    console.error('Falha ao carregar dados do Firebase:', error);
+                    mostrarAlerta('<b>Atenção:</b> não foi possível carregar os dados da nuvem.', 'erro');
+                    filtrarTabela();
+                });
+            } catch (error) {
+                console.error('Falha ao inicializar o Firebase:', error);
+                mostrarAlerta('<b>Atenção:</b> configuração do banco indisponível. Os menus continuam funcionando.', 'erro');
+                filtrarTabela();
+            }
+        }
+
+        function mudarAba(id) {
+            document.querySelectorAll('.aba-conteudo').forEach(tela => tela.classList.remove('active'));
+            document.querySelectorAll('.btn-menu').forEach(menu => {
+                menu.classList.remove('active');
+                menu.removeAttribute('aria-current');
+            });
+
+            const tela = document.getElementById(`tela-${id}`);
+            const menu = document.getElementById(`menu-${id}`);
+
+            if (tela) tela.classList.add('active');
+            if (menu) {
+                menu.classList.add('active');
+                menu.setAttribute('aria-current', 'page');
+            }
+        }
+
+        function atualizarEstadoBotaoMenu() {
+            const botao = document.getElementById('btnToggleMenu');
+            if (!botao) return;
+
+            const recolhido = document.body.classList.contains('menu-recolhido');
+            botao.setAttribute('aria-expanded', String(!recolhido));
+            botao.setAttribute('aria-label', recolhido ? 'Expandir menu' : 'Recolher menu');
+            botao.title = recolhido ? 'Expandir menu' : 'Recolher menu';
+
+            const icone = botao.querySelector('.toggle-icone');
+            const texto = botao.querySelector('.toggle-texto');
+            if (icone) icone.textContent = recolhido ? '›' : '‹';
+            if (texto) texto.textContent = recolhido ? 'Expandir menu' : 'Recolher menu';
+        }
+
+        function alternarMenuLateral() {
+            document.body.classList.toggle('menu-recolhido');
+            atualizarEstadoBotaoMenu();
+
+            try {
+                localStorage.setItem('menuRecolhido', String(document.body.classList.contains('menu-recolhido')));
+            } catch (error) {
+                console.warn('Não foi possível salvar a preferência do menu:', error);
+            }
+        }
+
+        function restaurarEstadoMenu() {
+            try {
+                if (localStorage.getItem('menuRecolhido') === 'true') {
+                    document.body.classList.add('menu-recolhido');
+                }
+            } catch (error) {
+                console.warn('Não foi possível restaurar a preferência do menu:', error);
+            }
+            atualizarEstadoBotaoMenu();
+        }
+
+        function configurarEfeitoCliqueMenu() {
+            document.querySelectorAll('.btn-menu').forEach(menu => {
+                menu.addEventListener('click', evento => {
+                    const area = menu.getBoundingClientRect();
+                    const tamanho = Math.max(area.width, area.height);
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple';
+                    ripple.style.width = `${tamanho}px`;
+                    ripple.style.height = `${tamanho}px`;
+                    ripple.style.left = `${evento.clientX - area.left - tamanho / 2}px`;
+                    ripple.style.top = `${evento.clientY - area.top - tamanho / 2}px`;
+                    menu.querySelector('.ripple')?.remove();
+                    menu.appendChild(ripple);
+                    ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+                });
+            });
+        }
+
+        function mostrarAlerta(mensagem, tipo) {
+            const alerta = document.getElementById('alertaStatus');
+            if (alerta) {
+                alerta.className = `alerta alerta-${tipo}`;
+                alerta.innerHTML = mensagem;
+            }
+        }
+
+        function normalizarTexto(texto) {
+            return texto
+                ? texto.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '').trim()
+                : '';
+        }
+
+        function escaparHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function obterChaveRegistro(cte, emissao) {
+            return `${String(cte)}_${String(emissao)}`;
+        }
+
+        function processarTextoColado() {
+            try {
+                const caixaTexto = document.getElementById('caixaTextoColagem');
+                const campoData = document.getElementById('dataTrabalhoImportacao');
+                const texto = caixaTexto.value.trim();
+                const data = campoData.value;
+
+                if (!db) {
+                    alert('O banco de dados não está disponível no momento.');
+                    return;
+                }
+                if (!data || !texto) {
+                    alert('Escolha a data e cole os dados.');
+                    return;
+                }
+
+                const linhas = texto.split(/\r?\n/);
+                const primeiraLinha = linhas[0].split('\t').map(normalizarTexto);
+                let idxCte = primeiraLinha.findIndex(valor => valor.includes('cte'));
+                let idxNf = primeiraLinha.findIndex(valor => valor.includes('nota') || valor.includes('nf'));
+                let idxVol = primeiraLinha.findIndex(valor => valor.includes('vol'));
+                let idxDst = primeiraLinha.findIndex(valor => valor.includes('dest') || valor.includes('cliente'));
+                let idxOco = primeiraLinha.findIndex(valor => valor.includes('ocor'));
+                let inicioDados = 1;
+
+                if (idxCte === -1 && idxNf === -1) {
+                    idxCte = 0;
+                    idxNf = 1;
+                    idxVol = 2;
+                    idxDst = 4;
+                    idxOco = 5;
+                    inicioDados = 0;
+                }
+
+                const gravacoes = [];
+                for (let i = inicioDados; i < linhas.length; i++) {
+                    if (!linhas[i].trim()) continue;
+
+                    const celulas = linhas[i].split('\t');
+                    const cte = celulas[idxCte] ? celulas[idxCte].trim() : '';
+                    if (!cte || cte === '-') continue;
+
+                    const registro = {
+                        conferido: false,
+                        cte,
+                        notas: celulas[idxNf] ? celulas[idxNf].trim() : '-',
+                        volumes: celulas[idxVol] ? celulas[idxVol].trim() : '1',
+                        localizacao: '',
+                        destino: celulas[idxDst] ? celulas[idxDst].trim() : '-',
+                        ocorrencia: celulas[idxOco] ? celulas[idxOco].trim() : '',
+                        emissao: data
+                    };
+
+                    gravacoes.push(db.child(obterChaveRegistro(cte, data)).set(registro));
+                }
+
+                Promise.all(gravacoes).then(() => {
+                    caixaTexto.value = '';
+                    mudarAba('conf');
+                    mostrarAlerta('<b>Status:</b> Planilha processada com sucesso.', 'sucesso');
+                }).catch(error => {
+                    console.error('Erro ao salvar planilha:', error);
+                    alert('Erro ao salvar os dados da planilha.');
+                });
+            } catch (error) {
+                console.error('Erro ao processar planilha:', error);
+                alert('Erro ao processar planilha.');
+            }
+        }
+
+        function mudarFiltroCard(filtro) {
+            filtroCardAtivo = filtro;
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('filtrado'));
+
+            const ids = {
+                todos: 'card-tot-box',
+                pendentes: 'card-pnd-box',
+                bo: 'card-bo-box',
+                entrega: 'card-ent-box'
+            };
+            const card = document.getElementById(ids[filtro]);
+            if (card) card.classList.add('filtrado');
+            filtrarTabela();
+        }
+
+        function filtrarTabela() {
+            const campoBusca = document.getElementById('buscaUnica');
+            const busca = (campoBusca ? campoBusca.value : '').toLowerCase();
+            const filtrados = dadosLocais.filter(registro => {
+                const ocorrencia = String(registro.ocorrencia || '').toUpperCase();
+                const isBo = ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM');
+                const isEntrega = ocorrencia === 'EM ENTREGA';
+                const cte = String(registro.cte || '').toLowerCase();
+                const notas = String(registro.notas || '').toLowerCase();
+                const destino = String(registro.destino || '').toLowerCase();
+
+                if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
+                if (filtroCardAtivo === 'bo' && !isBo) return false;
+                if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
+
+                return !busca || cte.includes(busca) || notas.includes(busca) || destino.includes(busca);
+            });
+
+            renderizarTabelaHtml(filtrados);
+        }
+
+        function renderizarTabelaHtml(registros) {
+            const corpo = document.getElementById('tabelaCorpo');
+            if (!corpo) return;
+
+            corpo.innerHTML = '';
+            if (!registros.length) {
+                corpo.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">Nenhum registro encontrado.</td></tr>';
+            }
+
+            registros.forEach(registro => {
+                const linha = document.createElement('tr');
+                if (registro.conferido) linha.className = 'linha-conferida';
+
+                linha.innerHTML = `
+                    <td>${registro.conferido ? '✔ OK' : '-'}</td>
+                    <td><b>${escaparHtml(registro.cte)}</b></td>
+                    <td>${escaparHtml(registro.notas || '-')}</td>
+                    <td>${escaparHtml(registro.volumes || '-')}</td>
+                    <td><input type="text" value="${escaparHtml(registro.localizacao || '')}" style="width:70px;text-align:center;"></td>
+                    <td>${escaparHtml(registro.destino || '-')}</td>
+                    <td>${escaparHtml(registro.ocorrencia || '-')}</td>
+                `;
+
+                const campoLocalizacao = linha.querySelector('input');
+                campoLocalizacao.addEventListener('change', evento => {
+                    atualizarCampoMemoria(registro.cte, registro.emissao, evento.target.value);
+                });
+                corpo.appendChild(linha);
+            });
+
+            let total = dadosLocais.length;
+            let pendentes = 0;
+            let entregas = 0;
+            let boletins = 0;
+
+            dadosLocais.forEach(registro => {
+                const ocorrencia = String(registro.ocorrencia || '').toUpperCase();
+                if (ocorrencia === 'EM ENTREGA') entregas++;
+                else if (ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM')) boletins++;
+                else pendentes++;
+            });
+
+            document.getElementById('c-tot').innerText = total;
+            document.getElementById('c-pnd').innerText = pendentes;
+            document.getElementById('c-ent').innerText = entregas;
+            document.getElementById('c-bo').innerText = boletins;
+        }
+
+        function atualizarCampoMemoria(cte, emissao, valor) {
+            if (!db) {
+                mostrarAlerta('<b>Atenção:</b> o banco de dados não está disponível.', 'erro');
+                return;
+            }
+
+            db.child(obterChaveRegistro(cte, emissao)).update({
+                localizacao: valor,
+                conferido: valor.trim() !== ''
+            }).catch(error => {
+                console.error('Erro ao atualizar localização:', error);
+                mostrarAlerta('<b>Erro:</b> não foi possível atualizar a localização.', 'erro');
+            });
+        }
+
+        function lancarFisicoAutomatico() {
+            if (!db) {
+                alert('O banco de dados não está disponível no momento.');
+                return;
+            }
+
+            const campoCte = document.getElementById('d-cte');
+            const campoLocalizacao = document.getElementById('d-loc');
+            const codigo = campoCte.value.trim();
+            const localizacao = campoLocalizacao.value.trim().toUpperCase();
+            const alvo = dadosLocais.find(registro =>
+                String(registro.cte || '').trim() === codigo || String(registro.notas || '').trim() === codigo
+            );
+
+            if (!alvo) {
+                alert('CTe ou Nota Fiscal não encontrado.');
+                return;
+            }
+
+            db.child(obterChaveRegistro(alvo.cte, alvo.emissao)).update({
+                localizacao,
+                conferido: true
+            }).then(() => {
+                campoCte.value = '';
+                campoLocalizacao.value = '';
+                mostrarAlerta('<b>Status:</b> Leitura confirmada com sucesso.', 'sucesso');
+            }).catch(error => {
+                console.error('Erro ao confirmar leitura:', error);
+                alert('Erro ao confirmar leitura.');
+            });
+        }
+
+        // Configura as melhorias de navegação antes de inicializar o banco.
+        restaurarEstadoMenu();
+        configurarEfeitoCliqueMenu();
+        inicializarFirebase();
+    </script>
+</body>
+</html>
