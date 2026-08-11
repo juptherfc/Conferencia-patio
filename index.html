@@ -3,66 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logística Realtime - Expresso SM</title>
+    <title>Conferência - Expresso SM</title>
 
-    <!-- SDKs compatíveis com a API global usada pelo código abaixo. -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #f1f5f9; color: #334155; display: flex; height: 100vh; overflow: hidden; }
-        aside { width: 240px; background: white; border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 8px; position: relative; transition: width .28s ease, padding .28s ease; }
-        .marca { display: flex; align-items: center; gap: 10px; min-height: 36px; margin-bottom: 12px; overflow: hidden; }
-        .marca-icone { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; font-size: 12px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 6px 14px rgba(37, 99, 235, .2); }
-        .marca-texto { font-size: 18px; font-weight: 700; color: #0f172a; white-space: nowrap; }
-        .btn-toggle-menu { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 8px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 600; transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; overflow: hidden; }
-        .btn-toggle-menu:hover { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; transform: translateY(-1px); }
-        .btn-toggle-menu:active { transform: scale(.98); }
-        .btn-menu { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px; background: none; border: none; border-radius: 8px; font-size: 14px; color: #64748b; text-align: left; cursor: pointer; font-weight: 500; overflow: hidden; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
-        .btn-menu::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 4px 4px 0; background: #2563eb; transform: scaleY(0); transition: transform .2s ease; }
-        .btn-menu:hover { background-color: #f8fafc; color: #0f172a; transform: translateX(3px); }
-        .btn-menu:active { transform: translateX(3px) scale(.98); }
-        .btn-menu.active { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
+        :root {
+            --azul: #2563eb;
+            --azul-escuro: #172554;
+            --azul-claro: #eef4ff;
+            --texto: #334155;
+            --texto-fraco: #7b8794;
+            --borda: #e5e7eb;
+            --fundo: #f7f8fa;
+            --branco: #ffffff;
+            --verde: #159a70;
+            --vermelho: #c43b3b;
+            --roxo: #7045a8;
+            --sombra: 0 1px 3px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .035);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        html, body { min-height: 100%; }
+        body { background: var(--fundo); color: var(--texto); display: flex; height: 100vh; overflow: hidden; font-size: 13px; }
+        button, input, select, textarea { font: inherit; }
+        button { cursor: pointer; }
+
+        aside {
+            width: 228px;
+            flex: 0 0 228px;
+            background: var(--branco);
+            border-right: 1px solid var(--borda);
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            z-index: 5;
+            transition: width .28s ease, flex-basis .28s ease, padding .28s ease;
+        }
+
+        .marca { display: flex; align-items: center; gap: 10px; padding: 2px 8px 18px; border-bottom: 1px solid #f0f1f3; overflow: hidden; }
+        .marca-icone { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 11px; background: #172033; color: white; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+        .marca-texto { min-width: 0; color: #1f2937; font-size: 14px; font-weight: 750; white-space: nowrap; }
+        .marca-subtexto { display: block; margin-top: 2px; color: #9ca3af; font-size: 10px; font-weight: 500; }
+        .marca-textos { max-width: 160px; opacity: 1; transition: max-width .28s ease, opacity .2s ease; overflow: hidden; white-space: nowrap; }
+
+        .menu-navegacao { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
+        .btn-menu { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 9px 10px; background: transparent; border: 0; border-radius: 7px; color: #66717e; text-align: left; font-size: 13px; font-weight: 500; overflow: hidden; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+        .btn-menu::before { content: ''; position: absolute; left: 0; top: 7px; bottom: 7px; width: 3px; border-radius: 0 4px 4px 0; background: var(--azul); transform: scaleY(0); transition: transform .2s ease; }
+        .btn-menu:hover { background: #f7f9fc; color: #172033; transform: translateX(2px); }
+        .btn-menu:active { transform: translateX(2px) scale(.985); }
+        .btn-menu.active { background: #eef2f7; color: #172033; font-weight: 650; }
         .btn-menu.active::before { transform: scaleY(1); }
-        .btn-menu:focus-visible, .btn-toggle-menu:focus-visible { outline: 3px solid rgba(37, 99, 235, .25); outline-offset: 2px; }
-        .menu-icone, .toggle-icone { display: inline-grid; place-items: center; flex: 0 0 20px; width: 20px; font-size: 16px; line-height: 1; }
-        .menu-texto, .toggle-texto, .marca-texto { max-width: 180px; opacity: 1; transition: max-width .28s ease, opacity .2s ease; white-space: nowrap; }
-        .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: rgba(37, 99, 235, .18); transform: scale(0); animation: rippleEffect .5s ease-out; }
-        main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; height: 100vh; overflow: hidden; }
-        .aba-conteudo { display: none; flex-direction: column; gap: 16px; height: 100%; overflow: hidden; }
-        .aba-conteudo.active { display: flex; animation: abaEntrar .32s ease both; }
-        .menu-recolhido aside { width: 78px; padding-left: 12px; padding-right: 12px; }
-        .menu-recolhido .marca, .menu-recolhido .btn-toggle-menu { justify-content: center; }
-        .menu-recolhido .marca-texto, .menu-recolhido .menu-texto, .menu-recolhido .toggle-texto { max-width: 0; opacity: 0; overflow: hidden; }
-        .menu-recolhido .btn-menu { justify-content: center; padding-left: 10px; padding-right: 10px; }
-        .menu-recolhido .btn-menu::before { left: -12px; }
-        @keyframes abaEntrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .menu-icone { display: inline-grid; place-items: center; flex: 0 0 19px; width: 19px; color: #768395; font-size: 15px; line-height: 1; }
+        .btn-menu.active .menu-icone { color: var(--azul); }
+        .menu-texto { opacity: 1; max-width: 170px; overflow: hidden; white-space: nowrap; transition: max-width .28s ease, opacity .2s ease; }
+        .btn-menu:focus-visible, .btn-toggle-menu:focus-visible, .input-filtro:focus-visible, .select-filtro:focus-visible { outline: 3px solid rgba(37, 99, 235, .18); outline-offset: 2px; }
+
+        .sidebar-rodape { margin-top: auto; border-top: 1px solid #f0f1f3; padding: 14px 8px 2px; color: #9ca3af; font-size: 10px; line-height: 1.45; }
+        .btn-toggle-menu { display: none; }
+
+        main { flex: 1; min-width: 0; height: 100vh; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
+        .topbar-titulo { color: #1f2937; font-size: 20px; font-weight: 760; letter-spacing: -.02em; }
+        .topbar-subtitulo { margin-top: 3px; color: #9aa3ad; font-size: 11px; }
+        .topbar-direita { display: flex; align-items: center; gap: 12px; }
+        .topbar-data { color: #8a949e; font-size: 12px; }
+        .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e6edf9; color: #3563b6; font-size: 12px; font-weight: 750; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(5, minmax(145px, 1fr)); gap: 12px; }
+        .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
+        .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
+        .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
+        .card-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #7c8792; font-size: 11px; font-weight: 550; }
+        .card-icone { color: #8d98a4; font-size: 14px; }
+        .card-num { display: block; margin-top: 7px; color: #1f2937; font-size: 22px; font-weight: 750; line-height: 1; }
+        .card-indicador { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #a6b1bd; vertical-align: middle; }
+        .indicador-azul { background: #3b82f6; }
+        .indicador-verde { background: #20a275; }
+        .indicador-vermelho { background: #e25757; }
+        .indicador-roxo { background: #9468c7; }
+        .indicador-amarelo { background: #d8a642; }
+
+        .alerta { padding: 9px 12px; border: 1px solid transparent; border-radius: 8px; font-size: 11px; font-weight: 600; }
+        .alerta-info { background: #fff8e8; border-color: #f6e5bd; color: #aa751d; }
+        .alerta-sucesso { background: #ecf9f3; border-color: #c8eddd; color: #187b5a; }
+        .alerta-erro { background: #fff0f0; border-color: #f4cccc; color: #b13b3b; }
+
+        .aba-conteudo { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 12px; overflow: hidden; }
+        .aba-conteudo.active { display: flex; animation: abaEntrar .26s ease both; }
+        .bloco { background: var(--branco); padding: 18px; border: 1px solid var(--borda); border-radius: 12px; box-shadow: var(--sombra); }
+
+        .filtros-card { flex: 0 0 auto; padding: 14px 16px 16px; border: 1px solid var(--borda); border-radius: 12px; background: var(--branco); box-shadow: var(--sombra); }
+        .filtros-titulo { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #495463; font-size: 13px; font-weight: 700; }
+        .filtros-titulo-icone { color: #7c8792; font-size: 16px; }
+        .filtros-grid { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 1fr) minmax(150px, .85fr) minmax(150px, 1fr); gap: 10px; }
+        .filtros-grid + .filtros-grid { margin-top: 10px; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(130px, .55fr); }
+        .campo-filtro { position: relative; min-width: 0; }
+        .campo-filtro-icone { position: absolute; left: 11px; top: 50%; z-index: 1; color: #9aa3ad; font-size: 13px; transform: translateY(-50%); pointer-events: none; }
+        .input-filtro, .select-filtro { width: 100%; height: 34px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #5c6672; padding: 0 11px; font-size: 12px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
+        .input-filtro::placeholder { color: #a0a8b1; }
+        .input-filtro:focus, .select-filtro:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+        .campo-filtro .input-filtro { padding-left: 32px; }
+        .select-filtro { cursor: pointer; }
+
+        .tabela-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+        .tabela-titulo { color: #495463; font-size: 13px; font-weight: 700; }
+        .tabela-contador { color: #9aa3ad; font-size: 11px; }
+        .tabela-container { flex: 1; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: auto; border: 1px solid var(--borda); border-radius: 10px; background: var(--branco); overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #aeb7c2 #f1f3f5; }
+        .tabela-container::-webkit-scrollbar { width: 10px; height: 10px; }
+        .tabela-container::-webkit-scrollbar-track { background: #f1f3f5; border-radius: 8px; }
+        .tabela-container::-webkit-scrollbar-thumb { background: #aeb7c2; border: 2px solid #f1f3f5; border-radius: 8px; }
+        .tabela-container::-webkit-scrollbar-thumb:hover { background: #8995a2; }
+        table { width: max-content; min-width: 100%; border-collapse: collapse; table-layout: auto; font-size: 11px; text-align: left; white-space: nowrap; }
+        .tabela-painel { min-width: 1800px; }
+        th { position: sticky; top: 0; z-index: 2; padding: 12px 10px; background: #fbfcfd; border-bottom: 1px solid #e8ebee; color: #7c8792; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid #f0f2f4; color: #65717d; vertical-align: middle; }
+        tbody tr:hover td { background: #fbfcff; }
+        tbody tr:last-child td { border-bottom: 0; }
+        td:first-child, th:first-child { padding-left: 12px; }
+        td:nth-child(1), th:nth-child(1) { min-width: 80px; }
+        td:nth-child(8), th:nth-child(8), td:nth-child(9), th:nth-child(9), td:nth-child(10), th:nth-child(10) { min-width: 190px; }
+        td:nth-child(11), th:nth-child(11) { min-width: 145px; }
+        td:nth-child(15), th:nth-child(15), td:nth-child(16), th:nth-child(16) { min-width: 170px; }
+        td:nth-child(18), th:nth-child(18) { min-width: 200px; }
+        td:nth-child(2) { color: #344052; font-weight: 700; }
+        td:nth-child(6) { color: #3d6ebd; font-weight: 650; }
+        tr.linha-conferida td { background-color: #f2fbf7 !important; }
+
+        .ocorrencia-badge { display: inline-flex; align-items: center; gap: 6px; max-width: 260px; padding: 4px 8px; border: 1px solid transparent; border-radius: 5px; font-size: 10px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+        .ocorrencia-badge .badge-dot { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .badge-azul { background: #eaf5fb; border-color: #c8e5f2; color: #258bb8; }
+        .badge-verde { background: #eaf8f1; border-color: #c7ead8; color: #16845e; }
+        .badge-vermelho { background: #fff0ef; border-color: #f4d0ce; color: #bd4743; }
+        .badge-roxo { background: #f4edfa; border-color: #e2d5ed; color: #7045a8; }
+        .badge-amarelo { background: #fff8e8; border-color: #f1e0b6; color: #a7771d; }
+
+        .botoes-acao { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-principal { border: 0; border-radius: 7px; padding: 10px 15px; background: var(--azul); color: #fff; font-weight: 700; transition: background .2s ease, transform .2s ease; }
+        .btn-principal:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-principal:active { transform: scale(.98); }
+        .btn-secundario { border: 1px solid #d9e0e7; border-radius: 7px; padding: 10px 15px; background: #fff; color: #5e6b78; font-weight: 650; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+        .btn-secundario:hover { background: #f8fafc; border-color: #b9c5d1; transform: translateY(-1px); }
+        .deposito-card { max-width: 980px; }
+        .deposito-buscas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+        .busca-deposito { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 7px 6px 11px; border: 1px solid #e0e4e8; border-radius: 8px; background: #fff; transition: border-color .2s ease, box-shadow .2s ease; }
+        .busca-deposito:focus-within { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+        .busca-deposito-icone { flex: 0 0 auto; color: #8b97a4; font-size: 14px; }
+        .busca-deposito input { min-width: 0; width: 100%; height: 30px; border: 0; outline: 0; color: #4b5563; font-size: 12px; }
+        .busca-deposito input::placeholder { color: #a0a8b1; }
+        .btn-buscar-deposito { flex: 0 0 auto; border: 0; border-radius: 6px; padding: 8px 10px; background: #eef4ff; color: #2563eb; font-size: 11px; font-weight: 750; transition: background .2s ease, transform .2s ease; }
+        .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
+        .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
+        .deposito-resultado.visivel { display: block; animation: abaEntrar .24s ease both; }
+        .resultado-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+        .resultado-titulo { color: #374151; font-size: 13px; font-weight: 750; }
+        .resultado-detalhes { margin-top: 4px; color: #8a949e; font-size: 11px; }
+        .resultado-chave { color: #2563eb; font-weight: 700; }
+        .deposito-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .campo-edicao label { display: block; margin: 0 0 6px 2px; color: #7c8792; font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+        .campo-edicao input, .campo-edicao select { width: 100%; height: 36px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #4b5563; padding: 0 10px; outline: none; font-size: 12px; }
+        .campo-edicao input:focus, .campo-edicao select:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+        .deposito-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .deposito-vazio { margin-top: 18px; padding: 14px; border-radius: 8px; background: #f8fafc; color: #8a949e; font-size: 11px; }
+        .deposito-vazio.oculto { display: none; }
+
+        .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: rgba(37, 99, 235, .16); transform: scale(0); animation: rippleEffect .5s ease-out; }
+        @keyframes abaEntrar { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes rippleEffect { to { opacity: 0; transform: scale(3); } }
-        .bloco { background: white; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .card { background: white; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 85px; cursor: pointer; }
-        .card.filtrado { border-color: #2563eb; background-color: #f0f4ff; }
-        .card-num { font-size: 22px; font-weight: 700; color: #0f172a; }
-        .card-txt { font-size: 11px; color: #64748b; }
-        .input-filtro { width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; }
-        .tabela-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: auto; flex: 1; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; white-space: nowrap; }
-        th { background: #f8fafc; padding: 10px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; }
-        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
-        tr.linha-conferida td { background-color: #f0fdf4 !important; }
-        .alerta { padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; }
-        .alerta-info { background-color: #fef3c7; color: #d97706; }
-        .alerta-sucesso { background-color: #dcfce7; color: #15803d; }
-        .alerta-erro { background-color: #fee2e2; color: #b91c1c; }
-        @media (max-width: 800px) {
-            body { flex-direction: column; overflow: auto; }
-            aside { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 12px; }
-            aside > div { width: 100%; margin-bottom: 4px !important; }
-            .btn-menu { width: auto; flex: 1; justify-content: center; }
-            main { height: auto; min-height: calc(100vh - 120px); }
-            .cards-grid { grid-template-columns: repeat(2, 1fr); }
-            body.menu-recolhido aside { width: 100%; padding: 12px; }
+
+        @media (max-width: 1100px) {
+            main { padding-left: 18px; padding-right: 18px; }
+            .cards-grid { grid-template-columns: repeat(3, minmax(145px, 1fr)); }
+            .filtros-grid, .filtros-grid + .filtros-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+            .deposito-buscas { grid-template-columns: 1fr; }
+            .deposito-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 760px) {
+            body { display: block; height: auto; min-height: 100vh; overflow: auto; }
+            aside { width: 100%; height: auto; min-height: 0; padding: 10px; border-right: 0; border-bottom: 1px solid var(--borda); }
+            .marca { padding-bottom: 10px; }
+            .menu-navegacao { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+            .btn-menu { justify-content: center; padding: 8px 5px; }
+            .btn-menu::before { top: auto; bottom: 0; left: 20%; right: 20%; width: auto; height: 3px; transform: scaleX(0); }
+            .btn-menu.active::before { transform: scaleX(1); }
+            .menu-texto { max-width: 110px; font-size: 11px; text-align: center; }
+            .sidebar-rodape { display: none; }
+            main { height: auto; min-height: calc(100vh - 118px); padding: 14px 12px 18px; overflow: visible; }
+            .topbar-direita { display: none; }
+            .topbar-titulo { font-size: 18px; }
+            .cards-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+            .filtros-grid, .filtros-grid + .filtros-grid { grid-template-columns: 1fr; }
+            .deposito-campos { grid-template-columns: 1fr; }
+            .deposito-acoes { justify-content: stretch; }
+            .deposito-acoes button { flex: 1; }
+            .aba-conteudo { overflow: visible; }
+            .tabela-container { max-height: 62vh; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
@@ -73,69 +211,164 @@
     <aside id="menuLateral">
         <div class="marca">
             <span class="marca-icone">SM</span>
-            <span class="marca-texto">Expresso SM</span>
+            <div class="marca-textos">
+                <span class="marca-texto">Conferência</span>
+                <span class="marca-subtexto">Entregas</span>
+            </div>
         </div>
-        <button type="button" id="btnToggleMenu" class="btn-toggle-menu" onclick="alternarMenuLateral()" aria-expanded="true" aria-label="Recolher menu" title="Recolher menu">
-            <span class="toggle-icone">‹</span>
-            <span class="toggle-texto">Recolher menu</span>
-        </button>
-        <button type="button" id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')" aria-current="page" title="Painel">
-            <span class="menu-icone" aria-hidden="true">📋</span><span class="menu-texto">Painel</span>
-        </button>
-        <button type="button" id="menu-colar" class="btn-menu" onclick="mudarAba('colar')" title="Carregar">
-            <span class="menu-icone" aria-hidden="true">📥</span><span class="menu-texto">Carregar</span>
-        </button>
-        <button type="button" id="menu-dep" class="btn-menu" onclick="mudarAba('dep')" title="Bipar">
-            <span class="menu-icone" aria-hidden="true">⚡</span><span class="menu-texto">Bipar</span>
-        </button>
-        <button type="button" id="menu-hist" class="btn-menu" onclick="mudarAba('hist')" title="Histórico">
-            <span class="menu-icone" aria-hidden="true">📂</span><span class="menu-texto">Histórico</span>
-        </button>
+
+        <nav class="menu-navegacao" aria-label="Navegação principal">
+            <button type="button" id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')" aria-current="page" title="Conferência">
+                <span class="menu-icone" aria-hidden="true">▣</span><span class="menu-texto">Conferência</span>
+            </button>
+            <button type="button" id="menu-dep" class="btn-menu" onclick="mudarAba('dep')" title="Conf. Depósito">
+                <span class="menu-icone" aria-hidden="true">⌗</span><span class="menu-texto">Conf. Depósito</span>
+            </button>
+            <button type="button" id="menu-colar" class="btn-menu" onclick="mudarAba('colar')" title="Importar">
+                <span class="menu-icone" aria-hidden="true">⇩</span><span class="menu-texto">Importar</span>
+            </button>
+            <button type="button" id="menu-hist" class="btn-menu" onclick="mudarAba('hist')" title="Histórico">
+                <span class="menu-icone" aria-hidden="true">◷</span><span class="menu-texto">Histórico</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-rodape">Expresso SM<br>Controle logístico em tempo real</div>
     </aside>
+
     <main>
+        <header class="topbar">
+            <div>
+                <h1 class="topbar-titulo">Conferência</h1>
+                <p class="topbar-subtitulo">Acompanhamento de entregas e ocorrências</p>
+            </div>
+            <div class="topbar-direita">
+                <span class="topbar-data" id="dataAtual"></span>
+                <span class="avatar">SM</span>
+            </div>
+        </header>
+
+        <section class="cards-grid" aria-label="Resumo da operação">
+            <div class="card filtrado" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-amarelo"></i>Total Pendentes</span><span class="card-icone">◷</span></div>
+                <span class="card-num" id="c-pnd">0</span>
+            </div>
+            <div class="card" id="card-ent-box" onclick="mudarFiltroCard('entrega')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-verde"></i>Em Entrega</span><span class="card-icone">↗</span></div>
+                <span class="card-num" id="c-ent">0</span>
+            </div>
+            <div class="card" id="card-atrasados-box" onclick="mudarFiltroCard('atrasados')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-vermelho"></i>Atrasados</span><span class="card-icone">!</span></div>
+                <span class="card-num" id="c-atrasados">0</span>
+            </div>
+            <div class="card" id="card-bo-box" onclick="mudarFiltroCard('bo')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-roxo"></i>Com B.O</span><span class="card-icone">●</span></div>
+                <span class="card-num" id="c-bo">0</span>
+            </div>
+            <div class="card" id="card-aguardando-box" onclick="mudarFiltroCard('aguardando')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-azul"></i>Aguardando</span><span class="card-icone">…</span></div>
+                <span class="card-num" id="c-aguardando">0</span>
+            </div>
+        </section>
+
         <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados...</div>
 
         <div id="tela-conf" class="aba-conteudo active">
-            <div class="cards-grid">
-                <div class="card" id="card-tot-box" onclick="mudarFiltroCard('todos')"><span class="card-num" id="c-tot">0</span><br><span class="card-txt">Manifestados</span></div>
-                <div class="card" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')"><span class="card-num" id="c-pnd">0</span><br><span class="card-txt">Pendentes</span></div>
-                <div class="card" id="card-bo-box" onclick="mudarFiltroCard('bo')"><span class="card-num" id="c-bo">0</span><br><span class="card-txt">Com B.O</span></div>
-                <div class="card" id="card-ent-box" onclick="mudarFiltroCard('entrega')"><span class="card-num" id="c-ent">0</span><br><span class="card-txt">Em Entrega</span></div>
+            <section class="filtros-card" aria-label="Filtros da conferência">
+                <div class="filtros-titulo"><span class="filtros-titulo-icone">⌕</span>Filtros</div>
+                <div class="filtros-grid">
+                    <div class="campo-filtro"><span class="campo-filtro-icone">⌕</span><input type="text" id="buscaUnica" placeholder="Buscar CTE, cliente, ROTA, NF..." class="input-filtro" oninput="filtrarTabela()"></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">▤</span><input type="text" id="buscaNf" placeholder="Nº da NF" class="input-filtro" oninput="filtrarTabela()"></div>
+                    <select id="filtroRota" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas as rotas</option></select>
+                    <select id="filtroOcorrencia" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas ocorrências</option></select>
+                </div>
+                <div class="filtros-grid">
+                    <div class="campo-filtro"><span class="campo-filtro-icone">♙</span><input type="text" id="filtroRemetente" placeholder="Cliente remetente" class="input-filtro" oninput="filtrarTabela()"></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">♙</span><input type="text" id="filtroDestino" placeholder="Cliente destino" class="input-filtro" oninput="filtrarTabela()"></div>
+                    <select id="filtroAgencia" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas agências</option></select>
+                    <select id="filtroTipo" class="select-filtro" onchange="filtrarTabela()"><option value="">Todos tipos</option></select>
+                </div>
+            </section>
+
+            <div class="tabela-cabecalho">
+                <span class="tabela-titulo">Registros de conferência</span>
+                <span class="tabela-contador" id="contadorTabela">0 registros</span>
             </div>
-            <div class="bloco"><input type="text" id="buscaUnica" placeholder="Buscar por CTe, Nota Fiscal..." class="input-filtro" oninput="filtrarTabela()"></div>
             <div class="tabela-container">
-                <table>
+                <table class="tabela-painel">
                     <thead>
-                        <tr><th>Status</th><th>CTe</th><th>Notas</th><th>Volumes</th><th>Localização</th><th>Cliente Destino</th><th>Ocorrência</th></tr>
+                        <tr>
+                            <th>CTe</th><th>Notas</th><th>Vol.</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec.</th><th>Remetente</th><th>Destino</th><th>Agência</th><th>Emissão</th><th>Prev. Agência</th><th>Prev. Entrega</th><th>Data Ocorr.</th><th>Ocorrência</th><th>Dias Atraso</th><th>Últ. Ocorrência</th>
+                        </tr>
                     </thead>
-                    <tbody id="tabelaCorpo"><tr><td colspan="7" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
+                    <tbody id="tabelaCorpo"><tr><td colspan="17" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
                 </table>
             </div>
         </div>
 
         <div id="tela-colar" class="aba-conteudo">
-            <div class="bloco" style="display: flex; flex-direction: column; gap: 12px;">
-                <h3>Alimentar Painel via Colagem Direta</h3>
-                <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width: 200px;">
-                <textarea id="caixaTextoColagem" style="width:100%; height:80px; padding:8px;" placeholder="Cole as linhas da planilha aqui..."></textarea>
-                <button type="button" style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="processarTextoColado()">Processar Planilha</button>
+            <div class="bloco">
+                <h3 style="margin-bottom:12px; color:#374151;">Importar planilha</h3>
+                <p style="margin-bottom:16px; color:#8a949e; font-size:12px;">Cole as linhas da planilha mantendo a ordem dos cabeçalhos originais.</p>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width:220px;">
+                    <textarea id="caixaTextoColagem" style="width:100%; min-height:120px; padding:11px; border:1px solid #e0e4e8; border-radius:7px; resize:vertical; outline:none;" placeholder="Cole as linhas da planilha aqui..."></textarea>
+                    <div class="botoes-acao"><button type="button" class="btn-principal" onclick="processarTextoColado()">Processar planilha</button></div>
+                </div>
             </div>
         </div>
 
         <div id="tela-dep" class="aba-conteudo">
-            <div class="bloco" style="display:flex; flex-direction:column; gap:12px;">
-                <h3>Conferência Física por Bipagem</h3>
-                <input type="text" id="d-cte" placeholder="Bipar CTe ou digitar Nota Fiscal" class="input-filtro">
-                <input type="text" id="d-loc" placeholder="BOX / Localização de Destino" class="input-filtro">
-                <button type="button" style="background:#2563eb; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;" onclick="lancarFisicoAutomatico()">Confirmar Leitura</button>
+            <div class="bloco deposito-card">
+                <h3 style="margin-bottom:6px; color:#374151;">Conf. Depósito</h3>
+                <p style="color:#8a949e; font-size:12px;">Busque o registro por uma das chaves abaixo. Depois, informe os valores que devem ser atualizados na planilha.</p>
+
+                <div class="deposito-buscas" aria-label="Busca de registro">
+                    <div class="busca-deposito">
+                        <span class="busca-deposito-icone" aria-hidden="true">▣</span>
+                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
+                    </div>
+                    <div class="busca-deposito">
+                        <span class="busca-deposito-icone" aria-hidden="true">#</span>
+                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'cte')">
+                        <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('cte')">Buscar</button>
+                    </div>
+                    <div class="busca-deposito">
+                        <span class="busca-deposito-icone" aria-hidden="true">▤</span>
+                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'nf')">
+                        <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('nf')">Buscar</button>
+                    </div>
+                </div>
+
+                <div id="depositoVazio" class="deposito-vazio">Nenhum registro selecionado. Use uma das três buscas acima.</div>
+
+                <div id="depositoResultado" class="deposito-resultado">
+                    <div class="resultado-cabecalho">
+                        <div>
+                            <div class="resultado-titulo">Registro localizado</div>
+                            <div class="resultado-detalhes" id="depositoDetalhes"></div>
+                        </div>
+                        <span class="resultado-chave" id="depositoChave"></span>
+                    </div>
+                    <div class="deposito-campos">
+                        <div class="campo-edicao"><label for="d-qtd">Qtd</label><input type="text" id="d-qtd" placeholder="Qtd"></div>
+                        <div class="campo-edicao"><label for="d-rota">ROTA</label><input type="text" id="d-rota" placeholder="ROTA"></div>
+                        <div class="campo-edicao"><label for="d-tipo">Tipo</label><input type="text" id="d-tipo" placeholder="Tipo"></div>
+                        <div class="campo-edicao"><label for="d-qtd-sec">Qtd Sec</label><input type="text" id="d-qtd-sec" placeholder="Qtd Sec"></div>
+                    </div>
+                    <div class="deposito-acoes">
+                        <button type="button" class="btn-secundario" onclick="limparRegistroDeposito()">Limpar</button>
+                        <button type="button" class="btn-principal" onclick="salvarAtualizacaoDeposito()">Atualizar registro</button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div id="tela-hist" class="aba-conteudo">
-            <div class="bloco"><h3>Histórico Geral do Banco</h3></div>
+            <div class="bloco"><h3 style="color:#374151;">Histórico geral</h3></div>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Status</th><th>CTe</th><th>Notas</th><th>BOX / Loc</th><th>Data Trabalho</th></tr></thead>
+                    <thead><tr><th>Status</th><th>CTe</th><th>Notas</th><th>ROTA</th><th>Data Trabalho</th></tr></thead>
                     <tbody id="tabelaCorpoHist"><tr><td colspan="5" style="text-align:center; padding:40px;">Registros salvos em nuvem.</td></tr></tbody>
                 </table>
             </div>
@@ -145,12 +378,13 @@
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDYdpRAq83dRXsV3_XGQWV2xOKM26MK9mk",
-            databaseURL: "https://expresso-sm-default-rtdb.firebaseio.com/"
+            databaseURL: "https://firebaseio.com"
         };
 
         let db = null;
         let dadosLocais = [];
-        let filtroCardAtivo = 'todos';
+        let filtroCardAtivo = 'pendentes';
+        let registroDepositoSelecionado = null;
 
         function inicializarFirebase() {
             if (typeof firebase === 'undefined') {
@@ -160,24 +394,23 @@
             }
 
             try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 db = firebase.database().ref('patio_sao_miguel');
                 db.on('value', snap => {
                     const val = snap.val();
                     dadosLocais = val ? Object.values(val) : [];
+                    atualizarOpcoesFiltros();
                     filtrarTabela();
-                    mostrarAlerta('<b>Status:</b> Conectado em Tempo Real com a nuvem Expresso SM ✔', 'sucesso');
+                    mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
                 }, error => {
                     console.error('Falha ao carregar dados do Firebase:', error);
                     mostrarAlerta('<b>Atenção:</b> não foi possível carregar os dados da nuvem.', 'erro');
+                    atualizarOpcoesFiltros();
                     filtrarTabela();
                 });
             } catch (error) {
                 console.error('Falha ao inicializar o Firebase:', error);
-                mostrarAlerta('<b>Atenção:</b> configuração do banco indisponível. Os menus continuam funcionando.', 'erro');
+                mostrarAlerta('<b>Atenção:</b> configuração do banco indisponível. A navegação continua funcionando.', 'erro');
                 filtrarTabela();
             }
         }
@@ -188,10 +421,8 @@
                 menu.classList.remove('active');
                 menu.removeAttribute('aria-current');
             });
-
             const tela = document.getElementById(`tela-${id}`);
             const menu = document.getElementById(`menu-${id}`);
-
             if (tela) tela.classList.add('active');
             if (menu) {
                 menu.classList.add('active');
@@ -199,41 +430,389 @@
             }
         }
 
-        function atualizarEstadoBotaoMenu() {
-            const botao = document.getElementById('btnToggleMenu');
-            if (!botao) return;
-
-            const recolhido = document.body.classList.contains('menu-recolhido');
-            botao.setAttribute('aria-expanded', String(!recolhido));
-            botao.setAttribute('aria-label', recolhido ? 'Expandir menu' : 'Recolher menu');
-            botao.title = recolhido ? 'Expandir menu' : 'Recolher menu';
-
-            const icone = botao.querySelector('.toggle-icone');
-            const texto = botao.querySelector('.toggle-texto');
-            if (icone) icone.textContent = recolhido ? '›' : '‹';
-            if (texto) texto.textContent = recolhido ? 'Expandir menu' : 'Recolher menu';
-        }
-
-        function alternarMenuLateral() {
-            document.body.classList.toggle('menu-recolhido');
-            atualizarEstadoBotaoMenu();
-
-            try {
-                localStorage.setItem('menuRecolhido', String(document.body.classList.contains('menu-recolhido')));
-            } catch (error) {
-                console.warn('Não foi possível salvar a preferência do menu:', error);
+        function mostrarAlerta(mensagem, tipo) {
+            const alerta = document.getElementById('alertaStatus');
+            if (alerta) {
+                alerta.className = `alerta alerta-${tipo}`;
+                alerta.innerHTML = mensagem;
             }
         }
 
-        function restaurarEstadoMenu() {
+        function normalizarTexto(texto) {
+            return texto ? texto.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '').trim() : '';
+        }
+
+        function escaparHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function obterChaveRegistro(cte, emissao) {
+            return `${String(cte)}_${String(emissao)}`;
+        }
+
+        function valorRegistro(registro, campo) {
+            return String(registro?.[campo] ?? '').trim();
+        }
+
+        function valorNumerico(valor) {
+            const numero = Number(String(valor ?? '').replace(',', '.').replace(/[^0-9.-]/g, ''));
+            return Number.isFinite(numero) ? numero : 0;
+        }
+
+        function estaAtrasado(registro) {
+            return valorNumerico(registro.diasAtraso) > 0;
+        }
+
+        function estaAguardando(registro) {
+            return valorRegistro(registro, 'ocorrencia').toUpperCase().includes('AGUARDANDO');
+        }
+
+        function classeOcorrencia(texto) {
+            const ocorrencia = String(texto || '').toUpperCase();
+            if (ocorrencia.includes('CLIENTE RETIRA')) return 'badge-roxo';
+            if (ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM') || ocorrencia.includes('ERRO') || ocorrencia.includes('ENDEREÇO') || ocorrencia.includes('ENDERECO')) return 'badge-vermelho';
+            if (ocorrencia === 'EM ENTREGA') return 'badge-verde';
+            if (ocorrencia.includes('AGUARDANDO')) return 'badge-azul';
+            return 'badge-amarelo';
+        }
+
+        function renderizarOcorrencia(texto) {
+            const valor = texto || '-';
+            return `<span class="ocorrencia-badge ${classeOcorrencia(valor)}" title="${escaparHtml(valor)}"><span class="badge-dot"></span>${escaparHtml(valor)}</span>`;
+        }
+
+        function formatarData(valor) {
+            const texto = String(valor ?? '').trim();
+            if (!texto) return '-';
+            if (/^\d{4}-\d{2}-\d{2}/.test(texto)) {
+                const data = texto.slice(0, 10).split('-');
+                return `${data[2]}/${data[1]}/${data[0]}`;
+            }
+            return texto.split(' ')[0];
+        }
+
+        function preencherSelect(id, valores, textoPadrao) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const valorAtual = select.value;
+            select.innerHTML = `<option value="">${textoPadrao}</option>`;
+            [...new Set(valores.map(valor => String(valor || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+                .forEach(valor => {
+                    const option = document.createElement('option');
+                    option.value = valor;
+                    option.textContent = valor;
+                    select.appendChild(option);
+                });
+            if ([...select.options].some(option => option.value === valorAtual)) select.value = valorAtual;
+        }
+
+        function atualizarOpcoesFiltros() {
+            preencherSelect('filtroRota', dadosLocais.map(registro => registro.rota), 'Todas as rotas');
+            preencherSelect('filtroOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas ocorrências');
+            preencherSelect('filtroAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas agências');
+            preencherSelect('filtroTipo', dadosLocais.map(registro => registro.tipo), 'Todos tipos');
+        }
+
+        function obterValorCampo(id) {
+            const campo = document.getElementById(id);
+            return campo ? campo.value.trim().toLowerCase() : '';
+        }
+
+        function obterEtiquetaRegistro(registro) {
+            return valorRegistro(registro, 'etiqueta') || valorRegistro(registro, 'label') || valorRegistro(registro, 'codigoEtiqueta') || valorRegistro(registro, 'codigo');
+        }
+
+        function acionarBuscaDeposito(evento, tipo) {
+            if (evento.key === 'Enter') {
+                evento.preventDefault();
+                buscarRegistroDeposito(tipo);
+            }
+        }
+
+        function buscarRegistroDeposito(tipo) {
+            const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
+            const campo = document.getElementById(ids[tipo]);
+            const termo = campo ? campo.value.trim() : '';
+            if (!termo) {
+                mostrarAlerta(`<b>Atenção:</b> informe um valor para buscar por ${tipo.toUpperCase()}.`, 'info');
+                campo?.focus();
+                return;
+            }
+
+            const termoNormalizado = normalizarTexto(termo);
+            let encontrados = dadosLocais.filter(registro => {
+                let valor = '';
+                if (tipo === 'etiqueta') valor = obterEtiquetaRegistro(registro);
+                if (tipo === 'cte') valor = valorRegistro(registro, 'cte');
+                if (tipo === 'nf') valor = valorRegistro(registro, 'notas');
+                return normalizarTexto(valor) === termoNormalizado;
+            });
+
+            if (!encontrados.length) {
+                encontrados = dadosLocais.filter(registro => {
+                    let valor = '';
+                    if (tipo === 'etiqueta') valor = obterEtiquetaRegistro(registro);
+                    if (tipo === 'cte') valor = valorRegistro(registro, 'cte');
+                    if (tipo === 'nf') valor = valorRegistro(registro, 'notas');
+                    return normalizarTexto(valor).includes(termoNormalizado);
+                });
+            }
+
+            if (!encontrados.length) {
+                limparRegistroDeposito(false);
+                mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}".`, 'erro');
+                return;
+            }
+
+            if (encontrados.length > 1) {
+                mostrarAlerta(`<b>Atenção:</b> ${encontrados.length} registros encontrados. O primeiro resultado foi selecionado.`, 'info');
+            } else {
+                mostrarAlerta('<b>Status:</b> registro localizado. Revise os quatro campos e atualize.', 'sucesso');
+            }
+            preencherRegistroDeposito(encontrados[0]);
+        }
+
+        function preencherRegistroDeposito(registro) {
+            registroDepositoSelecionado = registro;
+            document.getElementById('d-qtd').value = valorRegistro(registro, 'qtd');
+            document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
+            document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
+            document.getElementById('d-qtd-sec').value = valorRegistro(registro, 'qtd2');
+            document.getElementById('depositoChave').textContent = `CTe ${valorRegistro(registro, 'cte') || '-'}`;
+            document.getElementById('depositoDetalhes').textContent = `NF ${valorRegistro(registro, 'notas') || '-'} · ${valorRegistro(registro, 'destino') || 'Destino não informado'}`;
+            document.getElementById('depositoResultado').classList.add('visivel');
+            document.getElementById('depositoVazio').classList.add('oculto');
+        }
+
+        function limparRegistroDeposito(mostrarMensagem = true) {
+            registroDepositoSelecionado = null;
+            ['d-qtd', 'd-rota', 'd-tipo', 'd-qtd-sec'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+            document.getElementById('depositoResultado')?.classList.remove('visivel');
+            document.getElementById('depositoVazio')?.classList.remove('oculto');
+            if (mostrarMensagem) mostrarAlerta('<b>Status:</b> seleção limpa.', 'info');
+        }
+
+        function salvarAtualizacaoDeposito() {
+            if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+            if (!registroDepositoSelecionado) { alert('Busque um registro antes de atualizar.'); return; }
+
+            const valores = {
+                qtd: document.getElementById('d-qtd').value.trim(),
+                rota: document.getElementById('d-rota').value.trim().toUpperCase(),
+                tipo: document.getElementById('d-tipo').value.trim(),
+                qtd2: document.getElementById('d-qtd-sec').value.trim()
+            };
+            const cte = valorRegistro(registroDepositoSelecionado, 'cte');
+            const emissao = valorRegistro(registroDepositoSelecionado, 'emissao');
+            if (!cte || !emissao) { alert('O registro localizado não possui CTe ou data de emissão para atualização.'); return; }
+
+            db.child(obterChaveRegistro(cte, emissao)).update(valores).then(() => {
+                Object.assign(registroDepositoSelecionado, valores);
+                atualizarOpcoesFiltros();
+                filtrarTabela();
+                mostrarAlerta('<b>Status:</b> Qtd, ROTA, Tipo e Qtd Sec atualizados com sucesso.', 'sucesso');
+            }).catch(error => {
+                console.error('Erro ao atualizar registro:', error);
+                mostrarAlerta('<b>Erro:</b> não foi possível atualizar os quatro campos.', 'erro');
+            });
+        }
+
+        function processarTextoColado() {
             try {
-                if (localStorage.getItem('menuRecolhido') === 'true') {
-                    document.body.classList.add('menu-recolhido');
+                const caixaTexto = document.getElementById('caixaTextoColagem');
+                const campoData = document.getElementById('dataTrabalhoImportacao');
+                const texto = caixaTexto.value.trim();
+                const data = campoData.value;
+                if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+                if (!data || !texto) { alert('Escolha a data e cole os dados.'); return; }
+
+                const linhas = texto.split(/\r?\n/);
+                const primeiraLinha = linhas[0].split('\t').map(normalizarTexto);
+                const encontrarIndice = (predicado, ocorrencia = 0) => {
+                    const encontrados = primeiraLinha.map((valor, indice) => predicado(valor) ? indice : -1).filter(indice => indice !== -1);
+                    return encontrados[ocorrencia] ?? -1;
+                };
+                const indicePorNome = nome => encontrarIndice(valor => valor === nome || valor.includes(nome));
+
+                let idxCte = indicePorNome('cte');
+                let idxNf = encontrarIndice(valor => valor.includes('nota') || valor === 'nf');
+                let idxVol = indicePorNome('vol');
+                let idxQtd = encontrarIndice(valor => valor === 'qtd' || valor.includes('qtd'));
+                let idxQtd2 = encontrarIndice(valor => valor === 'qtd' || valor.includes('qtd'), 1);
+                let idxRota = indicePorNome('rota');
+                let idxTipo = indicePorNome('tipo');
+                let idxRemetente = encontrarIndice(valor => valor.includes('remetente'));
+                let idxDst = encontrarIndice(valor => valor.includes('destino'));
+                let idxAgencia = encontrarIndice(valor => valor.includes('agencia'));
+                let idxEmissao = encontrarIndice(valor => valor.includes('emissao'));
+                let idxPrevAgencia = encontrarIndice(valor => valor.includes('previsaoagencia'));
+                let idxPrevEntrega = encontrarIndice(valor => valor.includes('previsaoentrega'));
+                let idxDataOcorrencia = encontrarIndice(valor => valor.includes('dataocorrencia'));
+                let idxOco = indicePorNome('ocor');
+                let idxDiasAtraso = encontrarIndice(valor => valor.includes('diasatraso') || valor.includes('dias_atraso'));
+                let idxDataUltOcorrencia = encontrarIndice(valor => valor.includes('dataultocorrencia') || valor.includes('data_ult_ocorrencia'));
+                let inicioDados = 1;
+
+                if (idxCte === -1 && idxNf === -1) {
+                    [idxCte, idxNf, idxVol, idxQtd, idxRota, idxTipo, idxQtd2, idxRemetente, idxDst, idxAgencia, idxEmissao, idxPrevAgencia, idxPrevEntrega, idxDataOcorrencia, idxOco, idxDiasAtraso, idxDataUltOcorrencia] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+                    inicioDados = 0;
                 }
+
+                const valorCelula = (celulas, indice, padrao = '') => indice >= 0 && celulas[indice] !== undefined ? celulas[indice].trim() : padrao;
+                const gravacoes = [];
+                for (let i = inicioDados; i < linhas.length; i++) {
+                    if (!linhas[i].trim()) continue;
+                    const celulas = linhas[i].split('\t');
+                    const cte = valorCelula(celulas, idxCte);
+                    if (!cte || cte === '-') continue;
+                    const registro = {
+                        conferido: false,
+                        cte,
+                        etiqueta: valorCelula(celulas, encontrarIndice(valor => valor.includes('etiqueta') || valor.includes('label'))),
+                        notas: valorCelula(celulas, idxNf, '-'),
+                        volumes: valorCelula(celulas, idxVol, '1'),
+                        qtd: valorCelula(celulas, idxQtd),
+                        rota: valorCelula(celulas, idxRota),
+                        tipo: valorCelula(celulas, idxTipo),
+                        qtd2: valorCelula(celulas, idxQtd2),
+                        clienteRemetente: valorCelula(celulas, idxRemetente, '-'),
+                        destino: valorCelula(celulas, idxDst, '-'),
+                        agenciaRemetente: valorCelula(celulas, idxAgencia),
+                        emissao: valorCelula(celulas, idxEmissao, data) || data,
+                        previsaoAgencia: valorCelula(celulas, idxPrevAgencia),
+                        previsaoEntrega: valorCelula(celulas, idxPrevEntrega),
+                        dataOcorrencia: valorCelula(celulas, idxDataOcorrencia),
+                        ocorrencia: valorCelula(celulas, idxOco),
+                        diasAtraso: valorCelula(celulas, idxDiasAtraso),
+                        dataUltOcorrencia: valorCelula(celulas, idxDataUltOcorrencia)
+                    };
+                    gravacoes.push(db.child(obterChaveRegistro(cte, data)).set(registro));
+                }
+
+                Promise.all(gravacoes).then(() => {
+                    caixaTexto.value = '';
+                    atualizarOpcoesFiltros();
+                    mudarAba('conf');
+                    mostrarAlerta('<b>Status:</b> planilha processada com sucesso.', 'sucesso');
+                }).catch(error => {
+                    console.error('Erro ao salvar planilha:', error);
+                    alert('Erro ao salvar os dados da planilha.');
+                });
             } catch (error) {
-                console.warn('Não foi possível restaurar a preferência do menu:', error);
+                console.error('Erro ao processar planilha:', error);
+                alert('Erro ao processar planilha.');
             }
-            atualizarEstadoBotaoMenu();
+        }
+
+        function mudarFiltroCard(filtro) {
+            filtroCardAtivo = filtro;
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('filtrado'));
+            const ids = {
+                todos: 'card-pnd-box', pendentes: 'card-pnd-box', entrega: 'card-ent-box', bo: 'card-bo-box', atrasados: 'card-atrasados-box', aguardando: 'card-aguardando-box'
+            };
+            const card = document.getElementById(ids[filtro]);
+            if (card) card.classList.add('filtrado');
+            filtrarTabela();
+        }
+
+        function filtrarTabela() {
+            const busca = obterValorCampo('buscaUnica');
+            const buscaNf = obterValorCampo('buscaNf');
+            const rota = obterValorCampo('filtroRota');
+            const ocorrenciaFiltro = obterValorCampo('filtroOcorrencia');
+            const remetente = obterValorCampo('filtroRemetente');
+            const destino = obterValorCampo('filtroDestino');
+            const agencia = obterValorCampo('filtroAgencia');
+            const tipo = obterValorCampo('filtroTipo');
+
+            const filtrados = dadosLocais.filter(registro => {
+                const ocorrencia = valorRegistro(registro, 'ocorrencia').toUpperCase();
+                const isBo = ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM');
+                const isEntrega = ocorrencia === 'EM ENTREGA';
+                const isAtrasado = estaAtrasado(registro);
+                const isAguardando = estaAguardando(registro);
+                const textoCompleto = [
+                    registro.cte, registro.notas, registro.volumes, registro.qtd, registro.rota, registro.tipo, registro.qtd2,
+                    registro.clienteRemetente, registro.destino, registro.agenciaRemetente, registro.emissao, registro.previsaoAgencia,
+                    registro.previsaoEntrega, registro.dataOcorrencia, registro.ocorrencia, registro.diasAtraso, registro.dataUltOcorrencia
+                ].map(valor => String(valor || '').toLowerCase()).join(' ');
+
+                if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
+                if (filtroCardAtivo === 'bo' && !isBo) return false;
+                if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
+                if (filtroCardAtivo === 'atrasados' && !isAtrasado) return false;
+                if (filtroCardAtivo === 'aguardando' && !isAguardando) return false;
+                if (busca && !textoCompleto.includes(busca)) return false;
+                if (buscaNf && !valorRegistro(registro, 'notas').toLowerCase().includes(buscaNf)) return false;
+                if (rota && valorRegistro(registro, 'rota').toLowerCase() !== rota) return false;
+                if (ocorrenciaFiltro && valorRegistro(registro, 'ocorrencia').toLowerCase() !== ocorrenciaFiltro) return false;
+                if (remetente && !valorRegistro(registro, 'clienteRemetente').toLowerCase().includes(remetente)) return false;
+                if (destino && !valorRegistro(registro, 'destino').toLowerCase().includes(destino)) return false;
+                if (agencia && valorRegistro(registro, 'agenciaRemetente').toLowerCase() !== agencia) return false;
+                if (tipo && valorRegistro(registro, 'tipo').toLowerCase() !== tipo) return false;
+                return true;
+            });
+
+            renderizarTabelaHtml(filtrados);
+        }
+
+        function renderizarTabelaHtml(registros) {
+            const corpo = document.getElementById('tabelaCorpo');
+            if (!corpo) return;
+            corpo.innerHTML = '';
+            if (!registros.length) corpo.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:40px; color:#9aa3ad;">Nenhum registro encontrado.</td></tr>';
+
+            registros.forEach(registro => {
+                const linha = document.createElement('tr');
+                if (registro.conferido) linha.className = 'linha-conferida';
+                linha.innerHTML = `
+                    <td><b>${escaparHtml(registro.cte || '-')}</b></td>
+                    <td>${escaparHtml(registro.notas || '-')}</td>
+                    <td>${escaparHtml(registro.volumes || '-')}</td>
+                    <td>${escaparHtml(registro.qtd || '-')}</td>
+                    <td>${escaparHtml(registro.rota || '-')}</td>
+                    <td>${escaparHtml(registro.tipo || '-')}</td>
+                    <td>${escaparHtml(registro.qtd2 || '-')}</td>
+                    <td title="${escaparHtml(registro.clienteRemetente || '')}">${escaparHtml(registro.clienteRemetente || '-')}</td>
+                    <td title="${escaparHtml(registro.destino || '')}">${escaparHtml(registro.destino || '-')}</td>
+                    <td>${escaparHtml(registro.agenciaRemetente || '-')}</td>
+                    <td>${formatarData(registro.emissao)}</td>
+                    <td>${formatarData(registro.previsaoAgencia)}</td>
+                    <td>${formatarData(registro.previsaoEntrega)}</td>
+                    <td>${formatarData(registro.dataOcorrencia)}</td>
+                    <td>${renderizarOcorrencia(registro.ocorrencia)}</td>
+                    <td>${escaparHtml(registro.diasAtraso || '-')}</td>
+                    <td>${formatarData(registro.dataUltOcorrencia)}</td>
+                `;
+                corpo.appendChild(linha);
+            });
+
+            const total = dadosLocais.length;
+            const pendentes = dadosLocais.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
+            const entregas = dadosLocais.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
+            const boletins = dadosLocais.filter(registro => { const valor = valorRegistro(registro, 'ocorrencia').toUpperCase(); return valor.includes('B.O') || valor.includes('BOLETIM'); }).length;
+            const atrasados = dadosLocais.filter(estaAtrasado).length;
+            const aguardando = dadosLocais.filter(estaAguardando).length;
+
+            document.getElementById('c-pnd').innerText = pendentes;
+            document.getElementById('c-ent').innerText = entregas;
+            document.getElementById('c-bo').innerText = boletins;
+            document.getElementById('c-atrasados').innerText = atrasados;
+            document.getElementById('c-aguardando').innerText = aguardando;
+            document.getElementById('contadorTabela').innerText = `${registros.length} de ${total} registro${total === 1 ? '' : 's'}`;
+        }
+
+        function lancarFisicoAutomatico() {
+            salvarAtualizacaoDeposito();
         }
 
         function configurarEfeitoCliqueMenu() {
@@ -254,236 +833,12 @@
             });
         }
 
-        function mostrarAlerta(mensagem, tipo) {
-            const alerta = document.getElementById('alertaStatus');
-            if (alerta) {
-                alerta.className = `alerta alerta-${tipo}`;
-                alerta.innerHTML = mensagem;
-            }
+        function atualizarDataAtual() {
+            const campo = document.getElementById('dataAtual');
+            if (campo) campo.textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date());
         }
 
-        function normalizarTexto(texto) {
-            return texto
-                ? texto.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '').trim()
-                : '';
-        }
-
-        function escaparHtml(valor) {
-            return String(valor ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function obterChaveRegistro(cte, emissao) {
-            return `${String(cte)}_${String(emissao)}`;
-        }
-
-        function processarTextoColado() {
-            try {
-                const caixaTexto = document.getElementById('caixaTextoColagem');
-                const campoData = document.getElementById('dataTrabalhoImportacao');
-                const texto = caixaTexto.value.trim();
-                const data = campoData.value;
-
-                if (!db) {
-                    alert('O banco de dados não está disponível no momento.');
-                    return;
-                }
-                if (!data || !texto) {
-                    alert('Escolha a data e cole os dados.');
-                    return;
-                }
-
-                const linhas = texto.split(/\r?\n/);
-                const primeiraLinha = linhas[0].split('\t').map(normalizarTexto);
-                let idxCte = primeiraLinha.findIndex(valor => valor.includes('cte'));
-                let idxNf = primeiraLinha.findIndex(valor => valor.includes('nota') || valor.includes('nf'));
-                let idxVol = primeiraLinha.findIndex(valor => valor.includes('vol'));
-                let idxDst = primeiraLinha.findIndex(valor => valor.includes('dest') || valor.includes('cliente'));
-                let idxOco = primeiraLinha.findIndex(valor => valor.includes('ocor'));
-                let inicioDados = 1;
-
-                if (idxCte === -1 && idxNf === -1) {
-                    idxCte = 0;
-                    idxNf = 1;
-                    idxVol = 2;
-                    idxDst = 4;
-                    idxOco = 5;
-                    inicioDados = 0;
-                }
-
-                const gravacoes = [];
-                for (let i = inicioDados; i < linhas.length; i++) {
-                    if (!linhas[i].trim()) continue;
-
-                    const celulas = linhas[i].split('\t');
-                    const cte = celulas[idxCte] ? celulas[idxCte].trim() : '';
-                    if (!cte || cte === '-') continue;
-
-                    const registro = {
-                        conferido: false,
-                        cte,
-                        notas: celulas[idxNf] ? celulas[idxNf].trim() : '-',
-                        volumes: celulas[idxVol] ? celulas[idxVol].trim() : '1',
-                        localizacao: '',
-                        destino: celulas[idxDst] ? celulas[idxDst].trim() : '-',
-                        ocorrencia: celulas[idxOco] ? celulas[idxOco].trim() : '',
-                        emissao: data
-                    };
-
-                    gravacoes.push(db.child(obterChaveRegistro(cte, data)).set(registro));
-                }
-
-                Promise.all(gravacoes).then(() => {
-                    caixaTexto.value = '';
-                    mudarAba('conf');
-                    mostrarAlerta('<b>Status:</b> Planilha processada com sucesso.', 'sucesso');
-                }).catch(error => {
-                    console.error('Erro ao salvar planilha:', error);
-                    alert('Erro ao salvar os dados da planilha.');
-                });
-            } catch (error) {
-                console.error('Erro ao processar planilha:', error);
-                alert('Erro ao processar planilha.');
-            }
-        }
-
-        function mudarFiltroCard(filtro) {
-            filtroCardAtivo = filtro;
-            document.querySelectorAll('.card').forEach(card => card.classList.remove('filtrado'));
-
-            const ids = {
-                todos: 'card-tot-box',
-                pendentes: 'card-pnd-box',
-                bo: 'card-bo-box',
-                entrega: 'card-ent-box'
-            };
-            const card = document.getElementById(ids[filtro]);
-            if (card) card.classList.add('filtrado');
-            filtrarTabela();
-        }
-
-        function filtrarTabela() {
-            const campoBusca = document.getElementById('buscaUnica');
-            const busca = (campoBusca ? campoBusca.value : '').toLowerCase();
-            const filtrados = dadosLocais.filter(registro => {
-                const ocorrencia = String(registro.ocorrencia || '').toUpperCase();
-                const isBo = ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM');
-                const isEntrega = ocorrencia === 'EM ENTREGA';
-                const cte = String(registro.cte || '').toLowerCase();
-                const notas = String(registro.notas || '').toLowerCase();
-                const destino = String(registro.destino || '').toLowerCase();
-
-                if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
-                if (filtroCardAtivo === 'bo' && !isBo) return false;
-                if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
-
-                return !busca || cte.includes(busca) || notas.includes(busca) || destino.includes(busca);
-            });
-
-            renderizarTabelaHtml(filtrados);
-        }
-
-        function renderizarTabelaHtml(registros) {
-            const corpo = document.getElementById('tabelaCorpo');
-            if (!corpo) return;
-
-            corpo.innerHTML = '';
-            if (!registros.length) {
-                corpo.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px;">Nenhum registro encontrado.</td></tr>';
-            }
-
-            registros.forEach(registro => {
-                const linha = document.createElement('tr');
-                if (registro.conferido) linha.className = 'linha-conferida';
-
-                linha.innerHTML = `
-                    <td>${registro.conferido ? '✔ OK' : '-'}</td>
-                    <td><b>${escaparHtml(registro.cte)}</b></td>
-                    <td>${escaparHtml(registro.notas || '-')}</td>
-                    <td>${escaparHtml(registro.volumes || '-')}</td>
-                    <td><input type="text" value="${escaparHtml(registro.localizacao || '')}" style="width:70px;text-align:center;"></td>
-                    <td>${escaparHtml(registro.destino || '-')}</td>
-                    <td>${escaparHtml(registro.ocorrencia || '-')}</td>
-                `;
-
-                const campoLocalizacao = linha.querySelector('input');
-                campoLocalizacao.addEventListener('change', evento => {
-                    atualizarCampoMemoria(registro.cte, registro.emissao, evento.target.value);
-                });
-                corpo.appendChild(linha);
-            });
-
-            let total = dadosLocais.length;
-            let pendentes = 0;
-            let entregas = 0;
-            let boletins = 0;
-
-            dadosLocais.forEach(registro => {
-                const ocorrencia = String(registro.ocorrencia || '').toUpperCase();
-                if (ocorrencia === 'EM ENTREGA') entregas++;
-                else if (ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM')) boletins++;
-                else pendentes++;
-            });
-
-            document.getElementById('c-tot').innerText = total;
-            document.getElementById('c-pnd').innerText = pendentes;
-            document.getElementById('c-ent').innerText = entregas;
-            document.getElementById('c-bo').innerText = boletins;
-        }
-
-        function atualizarCampoMemoria(cte, emissao, valor) {
-            if (!db) {
-                mostrarAlerta('<b>Atenção:</b> o banco de dados não está disponível.', 'erro');
-                return;
-            }
-
-            db.child(obterChaveRegistro(cte, emissao)).update({
-                localizacao: valor,
-                conferido: valor.trim() !== ''
-            }).catch(error => {
-                console.error('Erro ao atualizar localização:', error);
-                mostrarAlerta('<b>Erro:</b> não foi possível atualizar a localização.', 'erro');
-            });
-        }
-
-        function lancarFisicoAutomatico() {
-            if (!db) {
-                alert('O banco de dados não está disponível no momento.');
-                return;
-            }
-
-            const campoCte = document.getElementById('d-cte');
-            const campoLocalizacao = document.getElementById('d-loc');
-            const codigo = campoCte.value.trim();
-            const localizacao = campoLocalizacao.value.trim().toUpperCase();
-            const alvo = dadosLocais.find(registro =>
-                String(registro.cte || '').trim() === codigo || String(registro.notas || '').trim() === codigo
-            );
-
-            if (!alvo) {
-                alert('CTe ou Nota Fiscal não encontrado.');
-                return;
-            }
-
-            db.child(obterChaveRegistro(alvo.cte, alvo.emissao)).update({
-                localizacao,
-                conferido: true
-            }).then(() => {
-                campoCte.value = '';
-                campoLocalizacao.value = '';
-                mostrarAlerta('<b>Status:</b> Leitura confirmada com sucesso.', 'sucesso');
-            }).catch(error => {
-                console.error('Erro ao confirmar leitura:', error);
-                alert('Erro ao confirmar leitura.');
-            });
-        }
-
-        // Configura as melhorias de navegação antes de inicializar o banco.
-        restaurarEstadoMenu();
+        atualizarDataAtual();
         configurarEfeitoCliqueMenu();
         inicializarFirebase();
     </script>
