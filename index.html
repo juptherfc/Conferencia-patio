@@ -78,6 +78,8 @@
         .btn-sair:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
         .tela-acesso.oculta { display: none; }
+        .oculto-permissao { display: none !important; }
+        [disabled] { cursor: not-allowed; opacity: .58; }
         .acesso-card { width: min(100%, 390px); padding: 28px; border: 1px solid var(--borda); border-radius: 14px; background: #fff; box-shadow: 0 18px 50px rgba(15, 23, 42, .12); }
         .acesso-marca { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
         .acesso-marca-icone { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: #172033; color: #fff; font-size: 12px; font-weight: 800; }
@@ -327,7 +329,7 @@
             <button type="button" id="menu-dep" class="btn-menu" onclick="mudarAba('dep')" title="Conf. Depósito">
                 <span class="menu-icone" aria-hidden="true">⌗</span><span class="menu-texto">Conf. Depósito</span>
             </button>
-            <button type="button" id="menu-colar" class="btn-menu" onclick="mudarAba('colar')" title="Importar">
+            <button type="button" id="menu-colar" class="btn-menu" data-permissao="importar" onclick="mudarAba('colar')" title="Importar">
                 <span class="menu-icone" aria-hidden="true">⇩</span><span class="menu-texto">Importar</span>
             </button>
             <button type="button" id="menu-hist" class="btn-menu" onclick="mudarAba('hist')" title="Histórico">
@@ -433,7 +435,7 @@
                 <div style="display:flex; flex-direction:column; gap:12px;">
                     <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width:220px;">
                     <textarea id="caixaTextoColagem" style="width:100%; min-height:120px; padding:11px; border:1px solid #e0e4e8; border-radius:7px; resize:vertical; outline:none;" placeholder="Cole as linhas da planilha aqui..."></textarea>
-                    <div class="botoes-acao"><button type="button" class="btn-principal" onclick="processarTextoColado()">Processar planilha</button></div>
+                    <div class="botoes-acao"><button type="button" class="btn-principal" data-permissao="importar" onclick="processarTextoColado()">Processar planilha</button></div>
                 </div>
             </div>
         </div>
@@ -468,7 +470,7 @@
                     <div class="sugestoes-subtitulo" id="sugestoesSubtitulo">Confira antes de selecionar um registro ou cadastrar uma sobra.</div>
                     <div id="sugestoesLista" class="sugestoes-lista"></div>
                     <div class="sugestoes-acoes">
-                        <button type="button" class="btn-secundario" onclick="abrirCadastroSobraAPartirDaBusca()">Cadastrar como sobra</button>
+                        <button type="button" class="btn-secundario" data-permissao="cadastrarSobra" onclick="abrirCadastroSobraAPartirDaBusca()">Cadastrar como sobra</button>
                         <button type="button" class="btn-secundario" onclick="limparSugestoesDeposito()">Fechar opções</button>
                     </div>
                 </div>
@@ -489,11 +491,11 @@
                     </div>
                     <div class="deposito-acoes">
                         <button type="button" class="btn-secundario" onclick="limparRegistroDeposito()">Limpar</button>
-                        <button type="button" class="btn-principal" onclick="salvarAtualizacaoDeposito()">Atualizar registro</button>
+                        <button type="button" class="btn-principal" data-permissao="editarDeposito" onclick="salvarAtualizacaoDeposito()">Atualizar registro</button>
                     </div>
                 </div>
 
-                <div id="sobraCadastro" class="sobra-cadastro">
+                <div id="sobraCadastro" class="sobra-cadastro" data-permissao="cadastrarSobra">
                     <div class="sobra-cabecalho">
                         <div>
                             <div class="sobra-titulo">Cadastrar sobra</div>
@@ -514,7 +516,7 @@
                     </div>
                     <div class="sobra-acoes">
                         <button type="button" class="btn-secundario" onclick="limparCadastroSobra()">Cancelar</button>
-                        <button type="button" class="btn-principal" onclick="salvarCadastroSobra()">Cadastrar sobra</button>
+                        <button type="button" class="btn-principal" data-permissao="cadastrarSobra" onclick="salvarCadastroSobra()">Cadastrar sobra</button>
                     </div>
                 </div>
 
@@ -602,9 +604,10 @@
             const email = document.getElementById('usuarioSessao');
             const avatar = document.getElementById('avatarSessao');
             const botaoSair = document.getElementById('btnSair');
-            if (email) email.textContent = perfil.nome || user.email || '';
+                if (email) email.textContent = `${perfil.nome || user.email || ''} · ${String(perfil.perfil || '').toLowerCase()}`;
             if (avatar) avatar.textContent = String(perfil.nome || user.email || 'SM').replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 2).toUpperCase() || 'SM';
-            if (botaoSair) botaoSair.hidden = false;
+                if (botaoSair) botaoSair.hidden = false;
+                aplicarPermissoesInterface();
         }
 
         function limparSessaoPainel() {
@@ -616,12 +619,35 @@
             document.getElementById('usuarioSessao').textContent = '';
             document.getElementById('avatarSessao').textContent = 'SM';
             document.getElementById('btnSair').hidden = true;
+            aplicarPermissoesInterface();
             atualizarOpcoesFiltros();
             filtrarTabela();
         }
 
         function temAcessoAutorizado() {
-            return Boolean(usuarioAutenticado && perfilAutorizado && perfilAutorizado.ativo === true);
+            return Boolean(usuarioAutenticado && perfilAutorizado && perfilAutorizado.ativo === true && ['adm', 'auditor'].includes(String(perfilAutorizado.perfil || '').toLowerCase()));
+        }
+
+        function temPermissao(permissao) {
+            const perfil = String(perfilAutorizado?.perfil || '').toLowerCase();
+            if (!temAcessoAutorizado()) return false;
+            if (perfil === 'adm') return true;
+            return perfil === 'auditor' && ['verConferencia', 'verHistorico'].includes(permissao);
+        }
+
+        function exigirPermissao(permissao) {
+            if (temPermissao(permissao)) return true;
+            mostrarAlerta('<b>Acesso negado:</b> seu perfil não possui permissão para esta operação.', 'erro');
+            return false;
+        }
+
+        function aplicarPermissoesInterface() {
+            document.querySelectorAll('[data-permissao]').forEach(elemento => {
+                const permitido = temPermissao(elemento.dataset.permissao);
+                elemento.classList.toggle('oculto-permissao', !permitido);
+                elemento.setAttribute('aria-hidden', String(!permitido));
+                if (elemento.matches('button, input, textarea, select')) elemento.disabled = !permitido;
+            });
         }
 
         function exigirAcessoAutorizado() {
@@ -668,7 +694,8 @@
             definirMensagemAcesso('Validando autorização...', false);
             firebase.database().ref(`usuariosAutorizados/${user.uid}`).once('value').then(snapshot => {
                 const perfil = snapshot.val();
-                if (!perfil || perfil.ativo !== true) {
+                const perfilNormalizado = String(perfil?.perfil || '').toLowerCase();
+                if (!perfil || perfil.ativo !== true || !['adm', 'auditor'].includes(perfilNormalizado)) {
                     mensagemAcessoPendente = 'Esta conta não está autorizada pelo administrador.';
                     return auth.signOut();
                 }
@@ -930,19 +957,26 @@
                     <td><span class="lote-status">Importado</span></td>
                     <td></td>
                 `;
-                const botao = document.createElement('button');
-                botao.type = 'button';
-                botao.className = 'btn-excluir-lote';
-                botao.textContent = 'Excluir lote';
-                botao.title = `Excluir ${lote.registros} registro(s) deste lote`;
-                botao.addEventListener('click', () => excluirLoteImportacao(lote.id, lote.data, lote.registros));
-                linha.lastElementChild.appendChild(botao);
+                if (temPermissao('excluirLote')) {
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'btn-excluir-lote';
+                    botao.textContent = 'Excluir lote';
+                    botao.title = `Excluir ${lote.registros} registro(s) deste lote`;
+                    botao.addEventListener('click', () => excluirLoteImportacao(lote.id, lote.data, lote.registros));
+                    linha.lastElementChild.appendChild(botao);
+                } else {
+                    linha.lastElementChild.textContent = 'Somente adm';
+                    linha.lastElementChild.style.color = '#9aa3ad';
+                    linha.lastElementChild.style.fontSize = '10px';
+                    linha.lastElementChild.style.fontWeight = '700';
+                }
                 corpo.appendChild(linha);
             });
         }
 
         function excluirLoteImportacao(loteId, data, quantidade) {
-            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('excluirLote')) return;
             const confirmacao = confirm(`Excluir o lote de ${formatarDataImportacao(data)} com ${quantidade} registro(s)? Esta ação não pode ser desfeita.`);
             if (!confirmacao) return;
 
@@ -1196,6 +1230,7 @@
         }
 
         function abrirCadastroSobraAPartirDaBusca() {
+            if (!exigirPermissao('cadastrarSobra')) return;
             limparRegistroDeposito(false);
             mostrarFormularioSobra(contextoBuscaDeposito.tipo, contextoBuscaDeposito.termo);
             mostrarAlerta('<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
@@ -1209,6 +1244,7 @@
         }
 
         function mostrarFormularioSobra(tipo, termo) {
+            if (!exigirPermissao('cadastrarSobra')) return;
             contextoBuscaDeposito = { tipo, termo };
             const campoCte = document.getElementById('sobra-cte');
             const campoNf = document.getElementById('sobra-nf');
@@ -1232,7 +1268,7 @@
         }
 
         function salvarCadastroSobra() {
-            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('cadastrarSobra')) return;
             const ids = ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
             const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
             const obrigatorios = {
@@ -1328,7 +1364,7 @@
         }
 
         function salvarAtualizacaoDeposito() {
-            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('editarDeposito')) return;
             if (!registroDepositoSelecionado) { alert('Busque um registro antes de atualizar.'); return; }
 
             const valores = {
@@ -1358,7 +1394,7 @@
                 const campoData = document.getElementById('dataTrabalhoImportacao');
                 const texto = caixaTexto.value.trim();
                 const data = campoData.value;
-                if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
+                if (!db || !exigirAcessoAutorizado() || !exigirPermissao('importar')) return;
                 if (!data || !texto) { alert('Escolha a data e cole os dados.'); return; }
 
                 const linhas = texto.split(/\r?\n/);
