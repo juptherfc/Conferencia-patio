@@ -300,6 +300,142 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
         }
+        /* Refinamento visual e responsivo */
+        :root {
+            --azul: #1d66d1;
+            --azul-escuro: #163b72;
+            --azul-claro: #edf5ff;
+            --texto: #243447;
+            --texto-fraco: #738197;
+            --borda: #e3eaf3;
+            --fundo: #f3f6fb;
+            --branco: #ffffff;
+            --sombra: 0 2px 7px rgba(30, 55, 90, .05), 0 14px 32px rgba(30, 55, 90, .055);
+        }
+
+        body { background: linear-gradient(135deg, #f7f9fc 0%, #eef3f9 100%); color: var(--texto); }
+        aside { background: rgba(255, 255, 255, .96); border-right-color: #dfe7f1; box-shadow: 4px 0 24px rgba(33, 58, 94, .045); }
+        .marca { padding: 4px 8px 20px; border-bottom-color: #edf1f6; }
+        .marca-icone, .acesso-marca-icone { background: linear-gradient(145deg, #162f57, #235b9e); box-shadow: 0 6px 14px rgba(29, 82, 145, .2); }
+        .btn-menu { min-height: 40px; border-radius: 9px; color: #68778c; }
+        .btn-menu:hover { background: #f1f6fc; color: #173c70; }
+        .btn-menu.active { background: #eaf2fc; color: #173c70; box-shadow: inset 0 0 0 1px rgba(54, 112, 190, .06); }
+        .btn-menu.active::before { background: #2874d6; }
+        main { padding: 22px clamp(16px, 3vw, 38px) 28px; gap: 18px; }
+        .topbar { min-height: 46px; }
+        .topbar-titulo { color: #18355e; font-size: clamp(21px, 2vw, 27px); letter-spacing: -.035em; }
+        .topbar-subtitulo { color: #8090a5; font-size: 12px; }
+        .topbar-direita { gap: 10px; }
+        .topbar-data { color: #7b8ba0; }
+        .avatar { background: #e6f0ff; color: #2364ae; box-shadow: inset 0 0 0 1px #d5e5fb; }
+        .btn-sair { border-color: #d7e1ec; border-radius: 9px; background: #fff; }
+        .cards-grid { gap: 14px; }
+        .card { min-height: 86px; padding: 17px 18px; border-color: #e1e8f1; border-radius: 14px; box-shadow: var(--sombra); }
+        .card:hover { border-color: #bdd2ec; box-shadow: 0 10px 25px rgba(34, 75, 126, .11); }
+        .card.filtrado { border-color: #8db7eb; background: linear-gradient(145deg, #f7fbff, #edf5ff); }
+        .card-cabecalho { color: #718096; font-size: 11px; }
+        .card-num { color: #1b3558; font-size: 25px; }
+        .alerta { border-radius: 10px; padding: 11px 14px; }
+        .aba-conteudo { gap: 14px; }
+        .bloco, .filtros-card { border-color: #e1e8f1; border-radius: 15px; box-shadow: var(--sombra); }
+        .filtros-card { padding: 16px 18px 18px; }
+        .filtros-cabecalho { margin-bottom: 14px; }
+        .filtros-titulo { color: #354a66; font-size: 14px; }
+        .btn-alternar-filtros, .btn-limpar-filtros { border-color: #d7e1ec; border-radius: 8px; }
+        .input-filtro, .select-filtro { height: 38px; border-color: #dbe4ee; border-radius: 9px; color: #41536b; }
+        .input-filtro:focus, .select-filtro:focus { border-color: #77a9e4; box-shadow: 0 0 0 4px rgba(47, 115, 201, .1); }
+        .tabela-cabecalho { min-height: 34px; }
+        .tabela-titulo { color: #354a66; font-size: 14px; }
+        .tabela-contador { color: #8190a3; }
+        .tabela-container { border-color: #dfe7f1; border-radius: 13px; box-shadow: 0 3px 14px rgba(32, 57, 91, .045); }
+        th { padding: 13px 11px; background: #f8fbff; color: #6e7f94; }
+        td { padding: 11px; color: #607086; }
+        tbody tr:hover td { background: #f6faff; }
+        .btn-principal { min-height: 39px; border-radius: 9px; padding: 10px 16px; background: linear-gradient(135deg, #236ed3, #1b5db6); box-shadow: 0 5px 12px rgba(29, 102, 209, .18); }
+        .btn-principal:hover { background: linear-gradient(135deg, #1f63bf, #174e9d); }
+        .btn-secundario { min-height: 39px; border-color: #d7e1ec; border-radius: 9px; }
+        .deposito-card { max-width: 1060px; }
+        .busca-deposito { min-height: 44px; border-color: #dbe4ee; border-radius: 10px; }
+        .btn-buscar-deposito { border-radius: 8px; background: #eaf3ff; }
+        .campo-edicao input, .campo-edicao select, .sobra-campo input { height: 40px; border-color: #dbe4ee; border-radius: 9px; }
+        .sugestao-linha { border-color: #e2eaf3; border-radius: 9px; }
+        .sobra-cadastro, .deposito-sugestoes { border-top-color: #e3eaf3; }
+        .sobra-badge, .lote-status { border-radius: 7px; }
+        .historico-tabela-container, .sobras-tabela-container { border-color: #e1e8f1; border-radius: 10px; }
+        .tela-acesso { background: radial-gradient(circle at 50% 20%, rgba(231, 241, 255, .95), rgba(247, 249, 252, .98) 62%); }
+        .acesso-card { border-color: #dfe8f2; border-radius: 18px; box-shadow: 0 22px 70px rgba(24, 57, 100, .14); }
+        .acesso-campo input { height: 42px; border-color: #dbe4ee; border-radius: 9px; }
+
+        @media (max-width: 1100px) {
+            main { padding-left: 20px; padding-right: 20px; }
+            .cards-grid { gap: 10px; }
+            .card { padding: 14px; }
+        }
+
+        @media (max-width: 760px) {
+            body { min-width: 0; background: #f5f8fc; }
+            aside { position: sticky; top: 0; z-index: 20; width: 100%; padding: 10px 10px 8px; border-bottom-color: #dce5ef; box-shadow: 0 4px 16px rgba(32, 57, 91, .08); }
+            .marca { padding: 0 4px 10px; }
+            .marca-icone { width: 34px; height: 34px; }
+            .menu-navegacao { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding-top: 8px; }
+            .btn-menu { min-height: 42px; gap: 4px; padding: 7px 4px; border-radius: 8px; font-size: 10px; }
+            .menu-icone { flex-basis: 16px; width: 16px; font-size: 13px; }
+            .menu-texto { max-width: 100%; font-size: 10px; text-overflow: ellipsis; }
+            main { width: 100%; height: auto; min-height: calc(100vh - 110px); padding: 15px 11px 22px; gap: 12px; overflow: visible; }
+            .topbar { align-items: flex-start; min-height: 40px; }
+            .topbar-titulo { font-size: 20px; }
+            .topbar-subtitulo { font-size: 11px; }
+            .topbar-direita { display: flex; gap: 7px; }
+            .topbar-data, .topbar-usuario { display: none; }
+            .avatar { width: 30px; height: 30px; }
+            .btn-sair { min-height: 34px; padding: 7px 9px; }
+            .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .card { min-height: 74px; padding: 12px 11px; border-radius: 12px; }
+            .card-cabecalho { font-size: 10px; }
+            .card-num { margin-top: 6px; font-size: 21px; }
+            .alerta { padding: 10px 11px; line-height: 1.4; }
+            .filtros-card { padding: 12px; border-radius: 13px; }
+            .filtros-titulo { font-size: 13px; }
+            .btn-alternar-filtros { height: 32px; padding: 0 9px; font-size: 10px; }
+            .filtros-grid, .filtros-grid + .filtros-grid, .filtros-datas { grid-template-columns: 1fr; gap: 8px; }
+            .filtros-grid + .filtros-grid, .filtros-datas { margin-top: 8px; }
+            .input-filtro, .select-filtro { height: 40px; }
+            .btn-limpar-filtros { width: 100%; height: 40px; }
+            .documento-historico { padding: 11px; border-radius: 11px; }
+            .documento-historico-cabecalho, .resultado-cabecalho, .sobra-cabecalho { align-items: flex-start; flex-direction: column; }
+            .documento-historico-grupo { min-width: 100%; }
+            .tabela-cabecalho { min-height: 30px; }
+            .tabela-titulo { font-size: 13px; }
+            .tabela-container { max-height: calc(100vh - 330px); min-height: 220px; border-radius: 11px; -webkit-overflow-scrolling: touch; }
+            .tabela-painel { min-width: 1500px; }
+            th { padding: 11px 9px; font-size: 9px; }
+            td { padding: 10px 9px; font-size: 10px; }
+            .deposito-card { max-width: none; padding: 14px 12px; }
+            .deposito-buscas { gap: 8px; margin-top: 14px; }
+            .busca-deposito { min-height: 44px; }
+            .deposito-campos, .sobra-campos { grid-template-columns: 1fr; gap: 8px; }
+            .deposito-acoes, .sobra-acoes { width: 100%; justify-content: stretch; }
+            .deposito-acoes button, .sobra-acoes button { flex: 1; }
+            .sugestao-linha { grid-template-columns: 1fr; gap: 7px; }
+            .sugestoes-acoes { flex-direction: column; }
+            .sugestoes-acoes button { width: 100%; }
+            .sobras-cabecalho { align-items: stretch; flex-direction: column; gap: 8px; }
+            .btn-ver-sobras { width: 100%; }
+            .sobras-tabela-container { max-height: 260px; -webkit-overflow-scrolling: touch; }
+            .historico-filtros { grid-template-columns: 1fr; gap: 8px; }
+            .historico-resumo { align-items: flex-start; flex-direction: column; gap: 4px; }
+            .historico-tabela-container { max-height: calc(100vh - 275px); -webkit-overflow-scrolling: touch; }
+            .historico-tabela { min-width: 720px; }
+            .bloco { padding: 14px 12px; border-radius: 13px; }
+            .acesso-card { padding: 23px 18px; border-radius: 16px; }
+        }
+
+        @media (max-width: 380px) {
+            .menu-texto { font-size: 9px; }
+            .card-cabecalho { font-size: 9px; }
+            .card-num { font-size: 19px; }
+            .topbar-titulo { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
