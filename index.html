@@ -244,7 +244,7 @@
         .sugestoes-titulo { color: #9a6b16; font-size: 12px; font-weight: 750; }
         .sugestoes-subtitulo { margin-top: 4px; color: #8a949e; font-size: 11px; }
         .sugestoes-lista { display: flex; flex-direction: column; gap: 7px; margin-top: 12px; max-height: 240px; overflow-y: auto; }
-        .sugestao-linha { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(130px, 1fr) minmax(100px, .7fr) minmax(100px, .7fr) auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #eceff2; border-radius: 7px; background: #fff; color: #65717d; font-size: 11px; }
+        .sugestao-linha { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(130px, 1fr) minmax(100px, .7fr) minmax(145px, .9fr) minmax(145px, .9fr) auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #eceff2; border-radius: 7px; background: #fff; color: #65717d; font-size: 11px; }
         .sugestao-linha strong { color: #374151; }
         .sugestao-linha small { display: block; margin-top: 2px; color: #9aa3ad; font-size: 10px; }
         .btn-selecionar-sugestao { border: 1px solid #cdddfb; border-radius: 6px; padding: 7px 9px; background: #eef4ff; color: #2563eb; font-size: 10px; font-weight: 750; }
@@ -598,17 +598,17 @@
                 <div class="deposito-buscas" aria-label="Busca de registro">
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
-                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" oninput="agendarBuscaDeposito('etiqueta')" onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">#</span>
-                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'cte')">
+                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off" oninput="agendarBuscaDeposito('cte')" onkeydown="acionarBuscaDeposito(event, 'cte')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('cte')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▤</span>
-                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off" onkeydown="acionarBuscaDeposito(event, 'nf')">
+                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off" oninput="agendarBuscaDeposito('nf')" onkeydown="acionarBuscaDeposito(event, 'nf')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('nf')">Buscar</button>
                     </div>
                 </div>
@@ -1298,9 +1298,25 @@
             return valorRegistro(registro, 'etiqueta') || valorRegistro(registro, 'label') || valorRegistro(registro, 'codigoEtiqueta') || valorRegistro(registro, 'codigo');
         }
 
+        let temporizadorBuscaDeposito = null;
+
+        function agendarBuscaDeposito(tipo) {
+            clearTimeout(temporizadorBuscaDeposito);
+            const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
+            const campo = document.getElementById(ids[tipo]);
+            const termo = campo ? campo.value.trim() : '';
+            if (!termo) {
+                if (contextoBuscaDeposito.tipo === tipo) limparRegistroDeposito(false);
+                return;
+            }
+            if (termo.length < 2) return;
+            temporizadorBuscaDeposito = setTimeout(() => buscarRegistroDeposito(tipo, { silenciosa: true }), 260);
+        }
+
         function acionarBuscaDeposito(evento, tipo) {
             if (evento.key === 'Enter') {
                 evento.preventDefault();
+                clearTimeout(temporizadorBuscaDeposito);
                 buscarRegistroDeposito(tipo);
             }
         }
@@ -1312,12 +1328,14 @@
             return '';
         }
 
-        function buscarRegistroDeposito(tipo) {
+        function buscarRegistroDeposito(tipo, opcoes = {}) {
+            const silenciosa = opcoes.silenciosa === true;
+            clearTimeout(temporizadorBuscaDeposito);
             const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
             const campo = document.getElementById(ids[tipo]);
             const termo = campo ? campo.value.trim() : '';
             if (!termo) {
-                mostrarAlerta(`<b>Atenção:</b> informe um valor para buscar por ${tipo.toUpperCase()}.`, 'info');
+                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> informe um valor para buscar por ${tipo.toUpperCase()}.`, 'info');
                 campo?.focus();
                 return;
             }
@@ -1325,18 +1343,19 @@
             contextoBuscaDeposito = { tipo, termo };
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
+            contextoBuscaDeposito = { tipo, termo };
             const termoNormalizado = normalizarTexto(termo);
             const exatos = dadosLocais.filter(registro => normalizarTexto(obterValorBuscaDeposito(registro, tipo)) === termoNormalizado);
 
             if (exatos.length === 1) {
-                mostrarAlerta('<b>Status:</b> registro localizado exatamente. Revise os quatro campos e atualize.', 'sucesso');
+                if (!silenciosa) mostrarAlerta('<b>Status:</b> registro localizado exatamente. Revise os quatro campos e atualize.', 'sucesso');
                 preencherRegistroDeposito(exatos[0]);
                 return;
             }
 
             if (exatos.length > 1) {
                 mostrarSugestoesDeposito(exatos, tipo, termo, true);
-                mostrarAlerta(`<b>Atenção:</b> existem ${exatos.length} registros com o mesmo valor. Selecione o correto ou cadastre uma sobra.`, 'info');
+                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> existem ${exatos.length} registros com o mesmo valor. Selecione o correto ou cadastre uma sobra.`, 'info');
                 return;
             }
 
@@ -1348,13 +1367,13 @@
             if (semelhantes.length) {
                 limparRegistroDeposito(false);
                 mostrarSugestoesDeposito(semelhantes, tipo, termo, false);
-                mostrarAlerta(`<b>Atenção:</b> encontramos ${semelhantes.length} registro(s) parecido(s), mas nenhum corresponde exatamente a "${escaparHtml(termo)}".`, 'info');
+                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> encontramos ${semelhantes.length} registro(s) parecido(s), mas nenhum corresponde exatamente a "${escaparHtml(termo)}".`, 'info');
                 return;
             }
 
             limparRegistroDeposito(false);
             mostrarFormularioSobra(tipo, termo);
-            mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
+            if (!silenciosa) mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
         }
 
         function mostrarSugestoesDeposito(registros, tipo, termo, exato = false) {
@@ -1370,6 +1389,7 @@
                     <div><strong>CTe ${escaparHtml(valorRegistro(registro, 'cte') || '-')}</strong><small>NF ${escaparHtml(valorRegistro(registro, 'notas') || '-')}</small></div>
                     <div>ROTA <strong>${escaparHtml(valorRegistro(registro, 'rota') || '-')}</strong><small>${escaparHtml(valorRegistro(registro, 'tipo') || 'Tipo não informado')}</small></div>
                     <div>Agência <strong>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</strong></div>
+                    <div>Dia de trabalho <strong>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</strong><small>${escaparHtml(obterDataTrabalhoRegistro(registro) || 'Não informado')}</small></div>
                     <div>Emissão <strong>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</strong></div>
                     <button type="button" class="btn-selecionar-sugestao" onclick="selecionarSugestaoDeposito(${indice})">Selecionar</button>
                 `;
@@ -1503,8 +1523,9 @@
             document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
             document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
             document.getElementById('d-qtd-sec').value = valorRegistro(registro, 'qtd2');
-            document.getElementById('depositoChave').textContent = `CTe ${valorRegistro(registro, 'cte') || '-'}`;
-            document.getElementById('depositoDetalhes').textContent = `NF ${valorRegistro(registro, 'notas') || '-'} · ${valorRegistro(registro, 'destino') || 'Destino não informado'}`;
+            const diaTrabalho = obterDataTrabalhoRegistro(registro);
+            document.getElementById('depositoChave').textContent = `CTe ${valorRegistro(registro, 'cte') || '-'} · Dia ${formatarDataImportacao(diaTrabalho)}`;
+            document.getElementById('depositoDetalhes').textContent = `NF ${valorRegistro(registro, 'notas') || '-'} · ${valorRegistro(registro, 'destino') || 'Destino não informado'} · Chave ${obterChaveRegistroAtual(registro)}`;
             document.getElementById('depositoResultado').classList.add('visivel');
             document.getElementById('depositoVazio').classList.add('oculto');
         }
@@ -1532,15 +1553,16 @@
                 tipo: document.getElementById('d-tipo').value.trim(),
                 qtd2: document.getElementById('d-qtd-sec').value.trim()
             };
-            const cte = valorRegistro(registroDepositoSelecionado, 'cte');
+            const identificador = valorRegistro(registroDepositoSelecionado, 'cte') || valorRegistro(registroDepositoSelecionado, 'notas');
+            const diaTrabalho = obterDataTrabalhoRegistro(registroDepositoSelecionado);
             const chaveRegistro = obterChaveRegistroAtual(registroDepositoSelecionado);
-            if (!cte || !chaveRegistro) { alert('O registro localizado não possui uma chave válida para atualização.'); return; }
+            if (!identificador || !chaveRegistro) { alert('O registro localizado não possui identificador ou chave válida para atualização.'); return; }
 
             db.child(chaveRegistro).update(valores).then(() => {
                 Object.assign(registroDepositoSelecionado, valores);
                 atualizarOpcoesFiltros();
                 filtrarTabela();
-                mostrarAlerta('<b>Status:</b> Qtd, ROTA, Tipo e Qtd Sec atualizados com sucesso.', 'sucesso');
+                mostrarAlerta(`<b>Status:</b> registro do dia de trabalho ${formatarDataImportacao(diaTrabalho)} atualizado. Qtd, ROTA, Tipo e Qtd Sec foram salvos.`, 'sucesso');
             }).catch(error => {
                 console.error('Erro ao atualizar registro:', error);
                 mostrarAlerta('<b>Erro:</b> não foi possível atualizar os quatro campos.', 'erro');
