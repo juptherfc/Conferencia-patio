@@ -119,8 +119,14 @@
         .bloco { background: var(--branco); padding: 18px; border: 1px solid var(--borda); border-radius: 12px; box-shadow: var(--sombra); }
 
         .filtros-card { flex: 0 0 auto; padding: 14px 16px 16px; border: 1px solid var(--borda); border-radius: 12px; background: var(--branco); box-shadow: var(--sombra); }
-        .filtros-titulo { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #495463; font-size: 13px; font-weight: 700; }
+        .filtros-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .filtros-titulo { display: flex; align-items: center; gap: 8px; color: #495463; font-size: 13px; font-weight: 700; }
         .filtros-titulo-icone { color: #7c8792; font-size: 16px; }
+        .btn-alternar-filtros { display: inline-flex; align-items: center; gap: 6px; height: 30px; border: 1px solid #d9e0e7; border-radius: 7px; padding: 0 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-alternar-filtros:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
+        .filtros-card.recolhido { padding-bottom: 12px; }
+        .filtros-conteudo { display: block; }
+        .filtros-card.recolhido .filtros-conteudo { display: none; }
         .filtros-grid { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 1fr) minmax(150px, .85fr) minmax(150px, 1fr); gap: 10px; }
         .filtros-grid + .filtros-grid { margin-top: 10px; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(130px, .55fr); }
         .filtros-datas { grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; align-items: center; }
@@ -381,7 +387,11 @@
 
         <div id="tela-conf" class="aba-conteudo active">
             <section class="filtros-card" aria-label="Filtros da conferência">
-                <div class="filtros-titulo"><span class="filtros-titulo-icone">⌕</span>Filtros</div>
+                <div class="filtros-cabecalho">
+                    <div class="filtros-titulo"><span class="filtros-titulo-icone">⌕</span>Filtros</div>
+                    <button type="button" id="btnAlternarFiltros" class="btn-alternar-filtros" aria-expanded="true" aria-controls="filtrosConteudo" onclick="alternarFiltros()"><span aria-hidden="true">⌃</span> Ocultar filtros</button>
+                </div>
+                <div id="filtrosConteudo" class="filtros-conteudo">
                 <div class="filtros-grid">
                     <div class="campo-filtro"><span class="campo-filtro-icone">⌕</span><input type="text" id="buscaUnica" placeholder="Buscar CTE, cliente, ROTA, NF..." class="input-filtro" oninput="filtrarTabela()"></div>
                     <div class="campo-filtro"><span class="campo-filtro-icone">▤</span><input type="text" id="buscaNf" placeholder="Nº da NF" class="input-filtro" oninput="filtrarTabela()"></div>
@@ -398,6 +408,7 @@
                     <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataInicial" class="input-filtro" aria-label="Data inicial" onchange="filtrarTabela()"></div>
                     <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataFinal" class="input-filtro" aria-label="Data final" onchange="filtrarTabela()"></div>
                     <button type="button" class="btn-limpar-filtros" onclick="limparFiltroDatas()">Limpar período</button>
+                </div>
                 </div>
             </section>
 
@@ -1601,6 +1612,29 @@
             salvarAtualizacaoDeposito();
         }
 
+        function aplicarEstadoFiltros(recolhido, salvar = true) {
+            const card = document.querySelector('.filtros-card');
+            const botao = document.getElementById('btnAlternarFiltros');
+            if (!card || !botao) return;
+            card.classList.toggle('recolhido', recolhido);
+            botao.setAttribute('aria-expanded', String(!recolhido));
+            botao.innerHTML = `<span aria-hidden="true">${recolhido ? '⌄' : '⌃'}</span> ${recolhido ? 'Mostrar filtros' : 'Ocultar filtros'}`;
+            if (salvar) {
+                try { localStorage.setItem('expresso-sm-filtros-recolhidos', String(recolhido)); } catch (erro) { console.warn('Não foi possível salvar a preferência dos filtros.', erro); }
+            }
+        }
+
+        function alternarFiltros() {
+            const card = document.querySelector('.filtros-card');
+            aplicarEstadoFiltros(!card?.classList.contains('recolhido'));
+        }
+
+        function inicializarEstadoFiltros() {
+            let recolhido = false;
+            try { recolhido = localStorage.getItem('expresso-sm-filtros-recolhidos') === 'true'; } catch (erro) { console.warn('Não foi possível ler a preferência dos filtros.', erro); }
+            aplicarEstadoFiltros(recolhido, false);
+        }
+
         function configurarEfeitoCliqueMenu() {
             document.querySelectorAll('.btn-menu').forEach(menu => {
                 menu.addEventListener('click', evento => {
@@ -1624,6 +1658,7 @@
             if (campo) campo.textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date());
         }
 
+        inicializarEstadoFiltros();
         atualizarDataAtual();
         configurarEfeitoCliqueMenu();
         inicializarFirebase();
