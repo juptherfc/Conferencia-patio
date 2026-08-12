@@ -102,6 +102,10 @@
         .filtros-titulo-icone { color: #7c8792; font-size: 16px; }
         .filtros-grid { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(150px, 1fr) minmax(150px, .85fr) minmax(150px, 1fr); gap: 10px; }
         .filtros-grid + .filtros-grid { margin-top: 10px; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(130px, .55fr); }
+        .filtros-datas { grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; align-items: center; }
+        .filtros-datas .campo-filtro .input-filtro { padding-left: 32px; }
+        .btn-limpar-filtros { height: 34px; border: 1px solid #d9e0e7; border-radius: 7px; padding: 0 12px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
+        .btn-limpar-filtros:hover { background: #f8fafc; border-color: #b9c5d1; }
         .campo-filtro { position: relative; min-width: 0; }
         .campo-filtro-icone { position: absolute; left: 11px; top: 50%; z-index: 1; color: #9aa3ad; font-size: 13px; transform: translateY(-50%); pointer-events: none; }
         .input-filtro, .select-filtro { width: 100%; height: 34px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #5c6672; padding: 0 11px; font-size: 12px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
@@ -337,6 +341,11 @@
                     <div class="campo-filtro"><span class="campo-filtro-icone">♙</span><input type="text" id="filtroDestino" placeholder="Cliente destino" class="input-filtro" oninput="filtrarTabela()"></div>
                     <select id="filtroAgencia" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas agências</option></select>
                     <select id="filtroTipo" class="select-filtro" onchange="filtrarTabela()"><option value="">Todos tipos</option></select>
+                </div>
+                <div class="filtros-grid filtros-datas">
+                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataInicial" class="input-filtro" aria-label="Data inicial" onchange="filtrarTabela()"></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataFinal" class="input-filtro" aria-label="Data final" onchange="filtrarTabela()"></div>
+                    <button type="button" class="btn-limpar-filtros" onclick="limparFiltroDatas()">Limpar período</button>
                 </div>
             </section>
 
@@ -834,6 +843,27 @@
             return campo ? campo.value.trim().toLowerCase() : '';
         }
 
+        function obterDataRegistroParaFiltro(registro) {
+            return obterDataEmFormatoISO(registro?.emissao);
+        }
+
+        function registroDentroPeriodo(registro, dataInicial, dataFinal) {
+            if (!dataInicial && !dataFinal) return true;
+            const dataEmissao = obterDataRegistroParaFiltro(registro);
+            if (!dataEmissao) return false;
+            if (dataInicial && dataEmissao < dataInicial) return false;
+            if (dataFinal && dataEmissao > dataFinal) return false;
+            return true;
+        }
+
+        function limparFiltroDatas() {
+            const inicial = document.getElementById('filtroDataInicial');
+            const final = document.getElementById('filtroDataFinal');
+            if (inicial) inicial.value = '';
+            if (final) final.value = '';
+            filtrarTabela();
+        }
+
         function obterEtiquetaRegistro(registro) {
             return valorRegistro(registro, 'etiqueta') || valorRegistro(registro, 'label') || valorRegistro(registro, 'codigoEtiqueta') || valorRegistro(registro, 'codigo');
         }
@@ -1203,6 +1233,14 @@
             const destino = obterValorCampo('filtroDestino');
             const agencia = obterValorCampo('filtroAgencia');
             const tipo = obterValorCampo('filtroTipo');
+            const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
+            const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
+
+            if (dataInicial && dataFinal && dataInicial > dataFinal) {
+                mostrarAlerta('<b>Atenção:</b> a data inicial não pode ser posterior à data final.', 'info');
+                renderizarTabelaHtml([]);
+                return;
+            }
 
             const filtrados = dadosLocais.filter(registro => {
                 const ocorrencia = valorRegistro(registro, 'ocorrencia').toUpperCase();
@@ -1210,6 +1248,7 @@
                 const isEntrega = ocorrencia === 'EM ENTREGA';
                 const isAtrasado = estaAtrasado(registro);
                 const isAguardando = estaAguardando(registro);
+                if (!registroDentroPeriodo(registro, dataInicial, dataFinal)) return false;
                 const textoCompleto = [
                     registro.cte, registro.notas, registro.volumes, registro.qtd, registro.rota, registro.tipo, registro.qtd2,
                     registro.clienteRemetente, registro.destino, registro.agenciaRemetente, registro.emissao, registro.previsaoAgencia,
@@ -1266,12 +1305,15 @@
                 corpo.appendChild(linha);
             });
 
-            const total = dadosLocais.length;
-            const pendentes = dadosLocais.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
-            const entregas = dadosLocais.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
-            const boletins = dadosLocais.filter(registro => { const valor = valorRegistro(registro, 'ocorrencia').toUpperCase(); return valor.includes('B.O') || valor.includes('BOLETIM'); }).length;
-            const atrasados = dadosLocais.filter(estaAtrasado).length;
-            const aguardando = dadosLocais.filter(estaAguardando).length;
+            const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
+            const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
+            const registrosPeriodo = dadosLocais.filter(registro => registroDentroPeriodo(registro, dataInicial, dataFinal));
+            const total = registrosPeriodo.length;
+            const pendentes = registrosPeriodo.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
+            const entregas = registrosPeriodo.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
+            const boletins = registrosPeriodo.filter(registro => { const valor = valorRegistro(registro, 'ocorrencia').toUpperCase(); return valor.includes('B.O') || valor.includes('BOLETIM'); }).length;
+            const atrasados = registrosPeriodo.filter(estaAtrasado).length;
+            const aguardando = registrosPeriodo.filter(estaAguardando).length;
 
             document.getElementById('c-pnd').innerText = pendentes;
             document.getElementById('c-ent').innerText = entregas;
