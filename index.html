@@ -103,7 +103,7 @@
         .btn-alternar-dashboard { display: inline-flex; align-items: center; gap: 6px; height: 30px; border: 1px solid #d9e0e7; border-radius: 7px; padding: 0 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; transition: background .2s ease, border-color .2s ease, color .2s ease; }
         .btn-alternar-dashboard:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .dashboard-conferencia.oculto { display: none; }
-        .cards-grid { display: grid; grid-template-columns: repeat(5, minmax(145px, 1fr)); gap: 12px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(4, minmax(145px, 1fr)); gap: 12px; }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
         .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
         .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
@@ -525,17 +525,13 @@
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-verde"></i>Em Entrega</span><span class="card-icone">↗</span></div>
                 <span class="card-num" id="c-ent">0</span>
             </div>
-            <div class="card" id="card-atrasados-box" onclick="mudarFiltroCard('atrasados')">
-                <div class="card-cabecalho"><span><i class="card-indicador indicador-vermelho"></i>Atrasados</span><span class="card-icone">!</span></div>
-                <span class="card-num" id="c-atrasados">0</span>
-            </div>
             <div class="card" id="card-bo-box" onclick="mudarFiltroCard('bo')">
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-roxo"></i>Com B.O</span><span class="card-icone">●</span></div>
                 <span class="card-num" id="c-bo">0</span>
             </div>
-            <div class="card" id="card-aguardando-box" onclick="mudarFiltroCard('aguardando')">
-                <div class="card-cabecalho"><span><i class="card-indicador indicador-azul"></i>Aguardando</span><span class="card-icone">…</span></div>
-                <span class="card-num" id="c-aguardando">0</span>
+            <div class="card" id="card-total-box" onclick="mudarFiltroCard('todos')">
+                <div class="card-cabecalho"><span><i class="card-indicador indicador-azul"></i>Total</span><span class="card-icone">Σ</span></div>
+                <span class="card-num" id="c-total">0</span>
             </div>
             </section>
         </div>
@@ -570,17 +566,6 @@
                 </div>
             </section>
 
-            <div id="historicoDocumento" class="documento-historico" aria-live="polite">
-                <div class="documento-historico-cabecalho">
-                    <div>
-                        <div class="documento-historico-titulo">Dias de presença nas planilhas importadas</div>
-                        <div id="historicoDocumentoResumo" class="documento-historico-resumo"></div>
-                    </div>
-                    <button type="button" class="btn-limpar-documento" onclick="limparBuscaDocumento()">Limpar consulta</button>
-                </div>
-                <div id="historicoDocumentoGrupos" class="documento-historico-grupos"></div>
-            </div>
-
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
                 <span class="tabela-contador" id="contadorTabela">0 registros</span>
@@ -589,10 +574,10 @@
                 <table class="tabela-painel">
                     <thead>
                         <tr>
-                            <th>CTe</th><th>Notas</th><th>Vol.</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec.</th><th>Remetente</th><th>Destino</th><th>Agência</th><th>Emissão</th><th>Prev. Agência</th><th>Prev. Entrega</th><th>Data Ocorr.</th><th>Ocorrência</th><th>Dias Atraso</th><th>Últ. Ocorrência</th>
+                            <th>CTe</th><th>Notas</th><th>Vol.</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec.</th><th>Remetente</th><th>Destino</th><th>Agência</th><th>Dia Trabalho</th><th>Emissão</th><th>Prev. Agência</th><th>Prev. Entrega</th><th>Data Ocorr.</th><th>Ocorrência</th><th>Dias Atraso</th><th>Últ. Ocorrência</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaCorpo"><tr><td colspan="17" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
+                    <tbody id="tabelaCorpo"><tr><td colspan="18" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -1693,7 +1678,7 @@
             filtroCardAtivo = filtro;
             document.querySelectorAll('.card').forEach(card => card.classList.remove('filtrado'));
             const ids = {
-                todos: 'card-pnd-box', pendentes: 'card-pnd-box', entrega: 'card-ent-box', bo: 'card-bo-box', atrasados: 'card-atrasados-box', aguardando: 'card-aguardando-box'
+                todos: 'card-total-box', pendentes: 'card-pnd-box', entrega: 'card-ent-box', bo: 'card-bo-box'
             };
             const card = document.getElementById(ids[filtro]);
             if (card) card.classList.add('filtrado');
@@ -1710,7 +1695,6 @@
             const agencia = obterValorCampo('filtroAgencia');
             const tipo = obterValorCampo('filtroTipo');
             const diaTrabalho = obterValorCampo('filtroDiaTrabalho');
-            atualizarHistoricoDocumento(busca, buscaNf);
             const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
             const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
 
@@ -1731,14 +1715,13 @@
                 const textoCompleto = [
                     registro.cte, registro.notas, registro.volumes, registro.qtd, registro.rota, registro.tipo, registro.qtd2,
                     registro.clienteRemetente, registro.destino, registro.agenciaRemetente, registro.emissao, registro.previsaoAgencia,
-                    registro.previsaoEntrega, registro.dataOcorrencia, registro.ocorrencia, registro.diasAtraso, registro.dataUltOcorrencia
+                    registro.previsaoEntrega, registro.dataOcorrencia, registro.ocorrencia, registro.diasAtraso, registro.dataUltOcorrencia,
+                    obterDataTrabalhoRegistro(registro)
                 ].map(valor => String(valor || '').toLowerCase()).join(' ');
 
                 if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
                 if (filtroCardAtivo === 'bo' && !isBo) return false;
                 if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
-                if (filtroCardAtivo === 'atrasados' && !isAtrasado) return false;
-                if (filtroCardAtivo === 'aguardando' && !isAguardando) return false;
                 if (busca && !textoCompleto.includes(busca)) return false;
                 if (buscaNf && !valorRegistro(registro, 'notas').toLowerCase().includes(buscaNf)) return false;
                 if (rota && valorRegistro(registro, 'rota').toLowerCase() !== rota) return false;
@@ -1757,7 +1740,7 @@
             const corpo = document.getElementById('tabelaCorpo');
             if (!corpo) return;
             corpo.innerHTML = '';
-            if (!registros.length) corpo.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:40px; color:#9aa3ad;">Nenhum registro encontrado.</td></tr>';
+            if (!registros.length) corpo.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:40px; color:#9aa3ad;">Nenhum registro encontrado.</td></tr>';
 
             registros.forEach(registro => {
                 const linha = document.createElement('tr');
@@ -1773,6 +1756,7 @@
                     <td title="${escaparHtml(registro.clienteRemetente || '')}">${escaparHtml(registro.clienteRemetente || '-')}</td>
                     <td title="${escaparHtml(registro.destino || '')}">${escaparHtml(registro.destino || '-')}</td>
                     <td>${escaparHtml(registro.agenciaRemetente || '-')}</td>
+                    <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
                     <td>${formatarData(registro.emissao)}</td>
                     <td>${formatarData(registro.previsaoAgencia)}</td>
                     <td>${formatarData(registro.previsaoEntrega)}</td>
@@ -1795,14 +1779,10 @@
             const pendentes = registrosPeriodo.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
             const entregas = registrosPeriodo.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
             const boletins = registrosPeriodo.filter(registro => { const valor = valorRegistro(registro, 'ocorrencia').toUpperCase(); return valor.includes('B.O') || valor.includes('BOLETIM'); }).length;
-            const atrasados = registrosPeriodo.filter(estaAtrasado).length;
-            const aguardando = registrosPeriodo.filter(estaAguardando).length;
-
             document.getElementById('c-pnd').innerText = pendentes;
             document.getElementById('c-ent').innerText = entregas;
             document.getElementById('c-bo').innerText = boletins;
-            document.getElementById('c-atrasados').innerText = atrasados;
-            document.getElementById('c-aguardando').innerText = aguardando;
+            document.getElementById('c-total').innerText = total;
             document.getElementById('contadorTabela').innerText = `${registros.length} de ${total} registro${total === 1 ? '' : 's'}`;
         }
 
