@@ -7,6 +7,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
         :root {
@@ -72,6 +73,24 @@
         .topbar-direita { display: flex; align-items: center; gap: 12px; }
         .topbar-data { color: #8a949e; font-size: 12px; }
         .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e6edf9; color: #3563b6; font-size: 12px; font-weight: 750; }
+        .topbar-usuario { color: #64748b; font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-sair { border: 1px solid #d9e0e7; border-radius: 7px; padding: 7px 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
+        .btn-sair:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
+        .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
+        .tela-acesso.oculta { display: none; }
+        .acesso-card { width: min(100%, 390px); padding: 28px; border: 1px solid var(--borda); border-radius: 14px; background: #fff; box-shadow: 0 18px 50px rgba(15, 23, 42, .12); }
+        .acesso-marca { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+        .acesso-marca-icone { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: #172033; color: #fff; font-size: 12px; font-weight: 800; }
+        .acesso-titulo { color: #1f2937; font-size: 19px; font-weight: 760; }
+        .acesso-subtitulo { margin-top: 4px; color: #8a949e; font-size: 11px; }
+        .acesso-campo { margin-top: 13px; }
+        .acesso-campo label { display: block; margin-bottom: 6px; color: #64748b; font-size: 11px; font-weight: 700; }
+        .acesso-campo input { width: 100%; height: 38px; border: 1px solid #dfe4e9; border-radius: 7px; padding: 0 11px; color: #334155; outline: none; font-size: 12px; }
+        .acesso-campo input:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+        .acesso-erro { min-height: 18px; margin-top: 12px; color: #b13b3b; font-size: 11px; line-height: 1.4; }
+        .acesso-botao { width: 100%; margin-top: 4px; }
+        .acesso-ajuda { margin-top: 16px; color: #9aa3ad; font-size: 10px; line-height: 1.5; text-align: center; }
+        @media (max-width: 760px) { .topbar-usuario { display: none; } .btn-sair { padding: 6px 8px; } }
 
         .dashboard-conferencia.oculto { display: none; }
         .cards-grid { display: grid; grid-template-columns: repeat(5, minmax(145px, 1fr)); gap: 12px; }
@@ -276,6 +295,22 @@
     </style>
 </head>
 <body>
+    <div id="telaAcesso" class="tela-acesso" role="dialog" aria-modal="true" aria-labelledby="acessoTitulo">
+        <form class="acesso-card" onsubmit="entrarNoPainel(event)">
+            <div class="acesso-marca">
+                <span class="acesso-marca-icone">SM</span>
+                <div>
+                    <div id="acessoTitulo" class="acesso-titulo">Acesso restrito</div>
+                    <div class="acesso-subtitulo">Conferência - Expresso SM</div>
+                </div>
+            </div>
+            <div class="acesso-campo"><label for="acessoEmail">E-mail</label><input type="email" id="acessoEmail" autocomplete="username" required></div>
+            <div class="acesso-campo"><label for="acessoSenha">Senha</label><input type="password" id="acessoSenha" autocomplete="current-password" required></div>
+            <div id="acessoMensagem" class="acesso-erro" role="alert"></div>
+            <button type="submit" id="btnEntrar" class="btn-principal acesso-botao">Entrar</button>
+            <div class="acesso-ajuda">O acesso é liberado somente para usuários cadastrados e autorizados pelo administrador.</div>
+        </form>
+    </div>
     <aside id="menuLateral">
         <div class="marca">
             <span class="marca-icone">SM</span>
@@ -311,7 +346,9 @@
             </div>
             <div class="topbar-direita">
                 <span class="topbar-data" id="dataAtual"></span>
-                <span class="avatar">SM</span>
+                <span class="topbar-usuario" id="usuarioSessao"></span>
+                <span class="avatar" id="avatarSessao">SM</span>
+                <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
             </div>
         </header>
 
@@ -530,42 +567,152 @@
         };
 
         let db = null;
+        let auth = null;
+        let usuarioAutenticado = null;
+        let perfilAutorizado = null;
         let dadosLocais = [];
         let filtroCardAtivo = 'pendentes';
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
         let sugestoesDeposito = [];
         let sobrasListaVisivel = false;
+        let mensagemAcessoPendente = '';
 
-        function inicializarFirebase() {
-            if (typeof firebase === 'undefined') {
-                mostrarAlerta('<b>Erro:</b> a biblioteca do banco de dados não foi carregada.', 'erro');
-                filtrarTabela();
+        function definirMensagemAcesso(mensagem, erro = true) {
+            const campo = document.getElementById('acessoMensagem');
+            if (campo) {
+                campo.textContent = mensagem || '';
+                campo.style.color = erro ? '#b13b3b' : '#187b5a';
+            }
+        }
+
+        function mostrarTelaAcesso(mensagem = '') {
+            const tela = document.getElementById('telaAcesso');
+            const botao = document.getElementById('btnEntrar');
+            if (tela) tela.classList.remove('oculta');
+            if (botao) { botao.disabled = false; botao.textContent = 'Entrar'; }
+            definirMensagemAcesso(mensagem || mensagemAcessoPendente, Boolean(mensagem || mensagemAcessoPendente));
+            mensagemAcessoPendente = '';
+        }
+
+        function liberarPainel(user, perfil) {
+            usuarioAutenticado = user;
+            perfilAutorizado = perfil;
+            document.getElementById('telaAcesso')?.classList.add('oculta');
+            const email = document.getElementById('usuarioSessao');
+            const avatar = document.getElementById('avatarSessao');
+            const botaoSair = document.getElementById('btnSair');
+            if (email) email.textContent = perfil.nome || user.email || '';
+            if (avatar) avatar.textContent = String(perfil.nome || user.email || 'SM').replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 2).toUpperCase() || 'SM';
+            if (botaoSair) botaoSair.hidden = false;
+        }
+
+        function limparSessaoPainel() {
+            if (db && typeof db.off === 'function') db.off();
+            db = null;
+            usuarioAutenticado = null;
+            perfilAutorizado = null;
+            dadosLocais = [];
+            document.getElementById('usuarioSessao').textContent = '';
+            document.getElementById('avatarSessao').textContent = 'SM';
+            document.getElementById('btnSair').hidden = true;
+            atualizarOpcoesFiltros();
+            filtrarTabela();
+        }
+
+        function temAcessoAutorizado() {
+            return Boolean(usuarioAutenticado && perfilAutorizado && perfilAutorizado.ativo === true);
+        }
+
+        function exigirAcessoAutorizado() {
+            if (temAcessoAutorizado()) return true;
+            mostrarTelaAcesso('Faça login com uma conta autorizada para continuar.');
+            return false;
+        }
+
+        function traduzirErroLogin(error) {
+            const mensagens = {
+                'auth/invalid-credential': 'E-mail ou senha incorretos.',
+                'auth/user-disabled': 'Este usuário foi desativado pelo administrador.',
+                'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+                'auth/network-request-failed': 'Não foi possível conectar ao serviço de autenticação.'
+            };
+            return mensagens[error?.code] || 'Não foi possível realizar o login.';
+        }
+
+        function entrarNoPainel(evento) {
+            evento.preventDefault();
+            if (!auth) { definirMensagemAcesso('O serviço de autenticação não está disponível.'); return; }
+            const email = document.getElementById('acessoEmail')?.value.trim() || '';
+            const senha = document.getElementById('acessoSenha')?.value || '';
+            const botao = document.getElementById('btnEntrar');
+            if (botao) { botao.disabled = true; botao.textContent = 'Verificando...'; }
+            definirMensagemAcesso('');
+            auth.signInWithEmailAndPassword(email, senha).catch(error => {
+                console.error('Falha no login:', error);
+                if (botao) { botao.disabled = false; botao.textContent = 'Entrar'; }
+                definirMensagemAcesso(traduzirErroLogin(error));
+            });
+        }
+
+        function sairDoPainel() {
+            if (auth) auth.signOut();
+        }
+
+        function gerenciarSessao(user) {
+            if (!user) {
+                limparSessaoPainel();
+                mostrarTelaAcesso();
                 return;
             }
+            definirMensagemAcesso('Validando autorização...', false);
+            firebase.database().ref(`usuariosAutorizados/${user.uid}`).once('value').then(snapshot => {
+                const perfil = snapshot.val();
+                if (!perfil || perfil.ativo !== true) {
+                    mensagemAcessoPendente = 'Esta conta não está autorizada pelo administrador.';
+                    return auth.signOut();
+                }
+                liberarPainel(user, perfil);
+                inicializarBancoAutorizado();
+            }).catch(error => {
+                console.error('Falha ao verificar autorização:', error);
+                mensagemAcessoPendente = 'Não foi possível validar a autorização. Tente novamente.';
+                if (auth) return auth.signOut();
+            });
+        }
 
+        function inicializarBancoAutorizado() {
+            if (db) return;
+            db = firebase.database().ref('patio_sao_miguel');
+            db.on('value', snap => {
+                const val = snap.val();
+                dadosLocais = val ? Object.entries(val).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
+                atualizarOpcoesFiltros();
+                filtrarTabela();
+                atualizarFiltrosHistorico();
+                renderizarHistorico();
+                renderizarSobras();
+                mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
+            }, error => {
+                console.error('Falha ao carregar dados do Firebase:', error);
+                mostrarAlerta('<b>Atenção:</b> não foi possível carregar os dados da nuvem.', 'erro');
+                atualizarOpcoesFiltros();
+                filtrarTabela();
+            });
+        }
+
+        function inicializarFirebase() {
+            if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
+                definirMensagemAcesso('A biblioteca de autenticação não foi carregada.');
+                return;
+            }
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                db = firebase.database().ref('patio_sao_miguel');
-                db.on('value', snap => {
-                    const val = snap.val();
-                    dadosLocais = val ? Object.entries(val).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
-                    atualizarOpcoesFiltros();
-                    filtrarTabela();
-                    atualizarFiltrosHistorico();
-                    renderizarHistorico();
-                    renderizarSobras();
-                    mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
-                }, error => {
-                    console.error('Falha ao carregar dados do Firebase:', error);
-                    mostrarAlerta('<b>Atenção:</b> não foi possível carregar os dados da nuvem.', 'erro');
-                    atualizarOpcoesFiltros();
-                    filtrarTabela();
-                });
+                auth = firebase.auth();
+                auth.onAuthStateChanged(gerenciarSessao);
             } catch (error) {
-                console.error('Falha ao inicializar o Firebase:', error);
-                mostrarAlerta('<b>Atenção:</b> configuração do banco indisponível. A navegação continua funcionando.', 'erro');
-                filtrarTabela();
+                console.error('Falha ao inicializar o Firebase Auth:', error);
+                definirMensagemAcesso('A configuração do serviço de autenticação está indisponível.');
             }
         }
 
@@ -795,7 +942,7 @@
         }
 
         function excluirLoteImportacao(loteId, data, quantidade) {
-            if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
             const confirmacao = confirm(`Excluir o lote de ${formatarDataImportacao(data)} com ${quantidade} registro(s)? Esta ação não pode ser desfeita.`);
             if (!confirmacao) return;
 
@@ -1085,7 +1232,7 @@
         }
 
         function salvarCadastroSobra() {
-            if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
             const ids = ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
             const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
             const obrigatorios = {
@@ -1181,7 +1328,7 @@
         }
 
         function salvarAtualizacaoDeposito() {
-            if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+            if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
             if (!registroDepositoSelecionado) { alert('Busque um registro antes de atualizar.'); return; }
 
             const valores = {
@@ -1211,7 +1358,7 @@
                 const campoData = document.getElementById('dataTrabalhoImportacao');
                 const texto = caixaTexto.value.trim();
                 const data = campoData.value;
-                if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
+                if (!db || !exigirAcessoAutorizado()) { alert('É necessário estar autenticado e autorizado para executar esta operação.'); return; }
                 if (!data || !texto) { alert('Escolha a data e cole os dados.'); return; }
 
                 const linhas = texto.split(/\r?\n/);
