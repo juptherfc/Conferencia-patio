@@ -104,6 +104,17 @@
         .btn-alternar-dashboard:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .dashboard-conferencia.oculto { display: none; }
         .cards-grid { display: grid; grid-template-columns: repeat(4, minmax(145px, 1fr)); gap: 12px; }
+        .filtros-principais { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+        .tabela-cabecalho-acoes { display: flex; align-items: center; gap: 12px; }
+        .btn-limpar-cabecalho { border: 1px solid #d9e0e7; border-radius: 7px; padding: 6px 9px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
+        .btn-limpar-cabecalho:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
+        .cabecalho-coluna { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 100%; }
+        .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 96px; height: 28px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 7px; background: #fff; color: #53657a; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
+        .filtro-coluna-input:focus, .filtro-coluna-select:focus { border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
+        .tabela-painel th:nth-child(1), .tabela-painel td:nth-child(1) { min-width: 112px; }
+        .tabela-painel th:nth-child(2), .tabela-painel td:nth-child(2) { min-width: 80px; }
+        .tabela-painel th:nth-child(9), .tabela-painel td:nth-child(9), .tabela-painel th:nth-child(10), .tabela-painel td:nth-child(10), .tabela-painel th:nth-child(11), .tabela-painel td:nth-child(11) { min-width: 190px; }
+        .tabela-painel th:nth-child(12), .tabela-painel td:nth-child(12) { min-width: 145px; }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
         .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
         .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
@@ -178,8 +189,8 @@
         tbody tr:last-child td { border-bottom: 0; }
         td:first-child, th:first-child { padding-left: 12px; }
         td:nth-child(1), th:nth-child(1) { min-width: 80px; }
-        td:nth-child(8), th:nth-child(8), td:nth-child(9), th:nth-child(9), td:nth-child(10), th:nth-child(10) { min-width: 190px; }
-        td:nth-child(11), th:nth-child(11) { min-width: 145px; }
+        td:nth-child(9), th:nth-child(9), td:nth-child(10), th:nth-child(10), td:nth-child(11), th:nth-child(11) { min-width: 190px; }
+        td:nth-child(12), th:nth-child(12) { min-width: 145px; }
         td:nth-child(15), th:nth-child(15), td:nth-child(16), th:nth-child(16) { min-width: 170px; }
         td:nth-child(18), th:nth-child(18) { min-width: 200px; }
         td:nth-child(2) { color: #344052; font-weight: 700; }
@@ -545,36 +556,43 @@
                     <button type="button" id="btnAlternarFiltros" class="btn-alternar-filtros" aria-expanded="true" aria-controls="filtrosConteudo" onclick="alternarFiltros()"><span aria-hidden="true">⌃</span> Ocultar filtros</button>
                 </div>
                 <div id="filtrosConteudo" class="filtros-conteudo">
-                <div class="filtros-grid">
-                    <div class="campo-filtro"><span class="campo-filtro-icone">⌕</span><input type="text" id="buscaUnica" placeholder="Buscar CTE, cliente, ROTA, NF..." class="input-filtro" oninput="filtrarTabela()"></div>
-                    <div class="campo-filtro"><span class="campo-filtro-icone">▤</span><input type="text" id="buscaNf" placeholder="Nº da NF" class="input-filtro" oninput="filtrarTabela()"></div>
-                    <select id="filtroRota" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas as rotas</option></select>
-                    <select id="filtroOcorrencia" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas ocorrências</option></select>
-                </div>
-                <div class="filtros-grid">
-                    <div class="campo-filtro"><span class="campo-filtro-icone">♙</span><input type="text" id="filtroRemetente" placeholder="Cliente remetente" class="input-filtro" oninput="filtrarTabela()"></div>
-                    <div class="campo-filtro"><span class="campo-filtro-icone">♙</span><input type="text" id="filtroDestino" placeholder="Cliente destino" class="input-filtro" oninput="filtrarTabela()"></div>
-                    <select id="filtroAgencia" class="select-filtro" onchange="filtrarTabela()"><option value="">Todas agências</option></select>
-                    <select id="filtroTipo" class="select-filtro" onchange="filtrarTabela()"><option value="">Todos tipos</option></select>
-                </div>
-                <div class="filtros-grid filtros-datas">
-                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><select id="filtroDiaTrabalho" class="select-filtro" aria-label="Dia de trabalho" onchange="filtrarTabela()"><option value="">Todos os dias de trabalho</option></select></div>
-                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataInicial" class="input-filtro" aria-label="Data inicial de emissão" onchange="filtrarTabela()"></div>
-                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataFinal" class="input-filtro" aria-label="Data final de emissão" onchange="filtrarTabela()"></div>
-                    <button type="button" class="btn-limpar-filtros" onclick="limparFiltroDatas()">Limpar período</button>
-                </div>
+                    <div class="filtros-grid filtros-principais">
+                        <div class="campo-filtro"><span class="campo-filtro-icone">#</span><input type="text" id="buscaUnica" placeholder="Buscar CTe" class="input-filtro"></div>
+                        <div class="campo-filtro"><span class="campo-filtro-icone">▤</span><input type="text" id="buscaNf" placeholder="Buscar NF" class="input-filtro"></div>
+                        <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><select id="filtroDiaTrabalho" class="select-filtro" aria-label="Dia de trabalho" onchange="filtrarTabela()"><option value="">Todos os dias de trabalho</option></select></div>
+                    </div>
                 </div>
             </section>
 
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
-                <span class="tabela-contador" id="contadorTabela">0 registros</span>
+                <div class="tabela-cabecalho-acoes">
+                    <button type="button" class="btn-limpar-cabecalho" onclick="limparFiltrosCabecalho()">Limpar filtros</button>
+                    <span class="tabela-contador" id="contadorTabela">0 registros</span>
+                </div>
             </div>
             <div class="tabela-container">
                 <table class="tabela-painel">
                     <thead>
                         <tr>
-                            <th>CTe</th><th>Notas</th><th>Vol.</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec.</th><th>Remetente</th><th>Destino</th><th>Agência</th><th>Dia Trabalho</th><th>Emissão</th><th>Prev. Agência</th><th>Prev. Entrega</th><th>Data Ocorr.</th><th>Ocorrência</th><th>Dias Atraso</th><th>Últ. Ocorrência</th>
+                            <th><span class="cabecalho-coluna">Dia Trabalho</span></th>
+                            <th><span class="cabecalho-coluna">CTe</span></th>
+                            <th><span class="cabecalho-coluna">Notas</span></th>
+                            <th><span class="cabecalho-coluna">Vol.</span></th>
+                            <th><span class="cabecalho-coluna">Qtd</span></th>
+                            <th><div class="cabecalho-coluna"><span>ROTA</span><select id="filtroCabecalhoRota" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Tipo</span><select id="filtroCabecalhoTipo" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
+                            <th><span class="cabecalho-coluna">Qtd Sec.</span></th>
+                            <th><div class="cabecalho-coluna"><span>Remetente</span><input id="filtroCabecalhoRemetente" class="filtro-coluna-input" placeholder="Filtrar" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Destino</span><input id="filtroCabecalhoDestino" class="filtro-coluna-input" placeholder="Filtrar" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Agência</span><select id="filtroCabecalhoAgencia" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Emissão</span><input type="date" id="filtroCabecalhoDataInicial" class="filtro-coluna-input" aria-label="Data inicial de emissão" onchange="filtrarTabela()"><input type="date" id="filtroCabecalhoDataFinal" class="filtro-coluna-input" aria-label="Data final de emissão" onchange="filtrarTabela()"></div></th>
+                            <th><span class="cabecalho-coluna">Prev. Agência</span></th>
+                            <th><span class="cabecalho-coluna">Prev. Entrega</span></th>
+                            <th><span class="cabecalho-coluna">Data Ocorr.</span></th>
+                            <th><div class="cabecalho-coluna"><span>Ocorrência</span><select id="filtroCabecalhoOcorrencia" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><span class="cabecalho-coluna">Dias Atraso</span></th>
+                            <th><span class="cabecalho-coluna">Últ. Ocorrência</span></th>
                         </tr>
                     </thead>
                     <tbody id="tabelaCorpo"><tr><td colspan="18" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
@@ -1020,19 +1038,25 @@
         }
 
         function atualizarOpcoesFiltros() {
-            preencherSelect('filtroRota', dadosLocais.map(registro => registro.rota), 'Todas as rotas');
-            preencherSelect('filtroOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas ocorrências');
-            preencherSelect('filtroAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas agências');
-            preencherSelect('filtroTipo', dadosLocais.map(registro => registro.tipo), 'Todos tipos');
-            const diasTrabalho = [...new Set(dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean))]
+            preencherSelect('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
+            preencherSelect('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
+            preencherSelect('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
+            preencherSelect('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
+            const dataAtual = obterDataAtualLocalISO();
+            const diasTrabalho = [...new Set([...dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean), dataAtual])]
                 .sort((a, b) => b.localeCompare(a));
             const selectDia = document.getElementById('filtroDiaTrabalho');
-            const diaAtual = selectDia?.value || '';
+            const diaDesejado = selectDia?.dataset.manual === 'true' ? (selectDia.value || '') : dataAtual;
             preencherSelect('filtroDiaTrabalho', diasTrabalho, 'Todos os dias de trabalho');
-            if (selectDia && diaAtual && [...selectDia.options].some(option => option.value === diaAtual)) selectDia.value = diaAtual;
+            if (selectDia && [...selectDia.options].some(option => option.value === diaDesejado)) selectDia.value = diaDesejado;
             [...(selectDia?.options || [])].forEach(option => {
                 if (option.value) option.textContent = `${formatarDataImportacao(option.value)} — ${option.value}`;
             });
+        }
+
+        function registrarSelecaoDiaTrabalho(select) {
+            if (select) select.dataset.manual = 'true';
+            filtrarTabela();
         }
 
         const nomesMeses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -1226,10 +1250,20 @@
         }
 
         function limparFiltroDatas() {
-            const inicial = document.getElementById('filtroDataInicial');
-            const final = document.getElementById('filtroDataFinal');
+            const inicial = document.getElementById('filtroCabecalhoDataInicial');
+            const final = document.getElementById('filtroCabecalhoDataFinal');
             if (inicial) inicial.value = '';
             if (final) final.value = '';
+            filtrarTabela();
+        }
+
+        function limparFiltrosCabecalho() {
+            ['filtroCabecalhoRota', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoAgencia', 'filtroCabecalhoTipo', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoDataInicial', 'filtroCabecalhoDataFinal'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+            const dia = document.getElementById('filtroDiaTrabalho');
+            if (dia) { dia.value = ''; dia.dataset.manual = 'true'; }
             filtrarTabela();
         }
 
@@ -1688,15 +1722,15 @@
         function filtrarTabela() {
             const busca = obterValorCampo('buscaUnica');
             const buscaNf = obterValorCampo('buscaNf');
-            const rota = obterValorCampo('filtroRota');
-            const ocorrenciaFiltro = obterValorCampo('filtroOcorrencia');
-            const remetente = obterValorCampo('filtroRemetente');
-            const destino = obterValorCampo('filtroDestino');
-            const agencia = obterValorCampo('filtroAgencia');
-            const tipo = obterValorCampo('filtroTipo');
+            const rota = obterValorCampo('filtroCabecalhoRota');
+            const ocorrenciaFiltro = obterValorCampo('filtroCabecalhoOcorrencia');
+            const remetente = obterValorCampo('filtroCabecalhoRemetente');
+            const destino = obterValorCampo('filtroCabecalhoDestino');
+            const agencia = obterValorCampo('filtroCabecalhoAgencia');
+            const tipo = obterValorCampo('filtroCabecalhoTipo');
             const diaTrabalho = obterValorCampo('filtroDiaTrabalho');
-            const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
-            const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
+            const dataInicial = document.getElementById('filtroCabecalhoDataInicial')?.value || '';
+            const dataFinal = document.getElementById('filtroCabecalhoDataFinal')?.value || '';
 
             if (dataInicial && dataFinal && dataInicial > dataFinal) {
                 mostrarAlerta('<b>Atenção:</b> a data inicial não pode ser posterior à data final.', 'info');
@@ -1712,17 +1746,10 @@
                 const isAguardando = estaAguardando(registro);
                 if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
                 if (!registroDentroPeriodo(registro, dataInicial, dataFinal)) return false;
-                const textoCompleto = [
-                    registro.cte, registro.notas, registro.volumes, registro.qtd, registro.rota, registro.tipo, registro.qtd2,
-                    registro.clienteRemetente, registro.destino, registro.agenciaRemetente, registro.emissao, registro.previsaoAgencia,
-                    registro.previsaoEntrega, registro.dataOcorrencia, registro.ocorrencia, registro.diasAtraso, registro.dataUltOcorrencia,
-                    obterDataTrabalhoRegistro(registro)
-                ].map(valor => String(valor || '').toLowerCase()).join(' ');
-
                 if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
                 if (filtroCardAtivo === 'bo' && !isBo) return false;
                 if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
-                if (busca && !textoCompleto.includes(busca)) return false;
+                if (busca && !valorRegistro(registro, 'cte').toLowerCase().includes(busca)) return false;
                 if (buscaNf && !valorRegistro(registro, 'notas').toLowerCase().includes(buscaNf)) return false;
                 if (rota && valorRegistro(registro, 'rota').toLowerCase() !== rota) return false;
                 if (ocorrenciaFiltro && valorRegistro(registro, 'ocorrencia').toLowerCase() !== ocorrenciaFiltro) return false;
@@ -1746,6 +1773,7 @@
                 const linha = document.createElement('tr');
                 if (registro.conferido) linha.className = 'linha-conferida';
                 linha.innerHTML = `
+                    <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
                     <td><b>${escaparHtml(registro.cte || '-')}</b></td>
                     <td>${escaparHtml(registro.notas || '-')}</td>
                     <td>${escaparHtml(registro.volumes || '-')}</td>
@@ -1756,7 +1784,6 @@
                     <td title="${escaparHtml(registro.clienteRemetente || '')}">${escaparHtml(registro.clienteRemetente || '-')}</td>
                     <td title="${escaparHtml(registro.destino || '')}">${escaparHtml(registro.destino || '-')}</td>
                     <td>${escaparHtml(registro.agenciaRemetente || '-')}</td>
-                    <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
                     <td>${formatarData(registro.emissao)}</td>
                     <td>${formatarData(registro.previsaoAgencia)}</td>
                     <td>${formatarData(registro.previsaoEntrega)}</td>
@@ -1769,8 +1796,8 @@
             });
 
             const diaTrabalho = document.getElementById('filtroDiaTrabalho')?.value || '';
-            const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
-            const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
+            const dataInicial = document.getElementById('filtroCabecalhoDataInicial')?.value || '';
+            const dataFinal = document.getElementById('filtroCabecalhoDataFinal')?.value || '';
             const registrosPeriodo = dadosLocais.filter(registro => {
                 if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
                 return registroDentroPeriodo(registro, dataInicial, dataFinal);
