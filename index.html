@@ -77,6 +77,8 @@
         .btn-sair { border: 1px solid #d9e0e7; border-radius: 7px; padding: 7px 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
         .btn-sair:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
+        .tela-acesso.inicializando .acesso-card { visibility: hidden; opacity: 0; }
+        .tela-acesso.inicializando::after { content: 'Verificando sessão...'; position: absolute; left: 50%; top: 50%; color: #64748b; font-size: 12px; font-weight: 700; transform: translate(-50%, -50%); }
         .tela-acesso.oculta { display: none; }
         .oculto-permissao { display: none !important; }
         [disabled] { cursor: not-allowed; opacity: .58; }
@@ -94,6 +96,12 @@
         .acesso-ajuda { margin-top: 16px; color: #9aa3ad; font-size: 10px; line-height: 1.5; text-align: center; }
         @media (max-width: 760px) { .topbar-usuario { display: none; } .btn-sair { padding: 6px 8px; } }
 
+        .dashboard-area { display: flex; flex-direction: column; gap: 10px; flex: 0 0 auto; }
+        .dashboard-area.oculto { display: none; }
+        .dashboard-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 26px; }
+        .dashboard-titulo { color: #6f7e91; font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+        .btn-alternar-dashboard { display: inline-flex; align-items: center; gap: 6px; height: 30px; border: 1px solid #d9e0e7; border-radius: 7px; padding: 0 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-alternar-dashboard:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .dashboard-conferencia.oculto { display: none; }
         .cards-grid { display: grid; grid-template-columns: repeat(5, minmax(145px, 1fr)); gap: 12px; }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
@@ -391,6 +399,8 @@
             .topbar-data, .topbar-usuario { display: none; }
             .avatar { width: 30px; height: 30px; }
             .btn-sair { min-height: 34px; padding: 7px 9px; }
+            .dashboard-cabecalho { min-height: 24px; }
+            .btn-alternar-dashboard { height: 32px; padding: 0 9px; font-size: 10px; }
             .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
             .card { min-height: 74px; padding: 12px 11px; border-radius: 12px; }
             .card-cabecalho { font-size: 10px; }
@@ -441,7 +451,7 @@
     </style>
 </head>
 <body>
-    <div id="telaAcesso" class="tela-acesso" role="dialog" aria-modal="true" aria-labelledby="acessoTitulo">
+    <div id="telaAcesso" class="tela-acesso inicializando" role="dialog" aria-modal="true" aria-labelledby="acessoTitulo">
         <form class="acesso-card" onsubmit="entrarNoPainel(event)">
             <div class="acesso-marca">
                 <span class="acesso-marca-icone">SM</span>
@@ -498,7 +508,12 @@
             </div>
         </header>
 
-        <section id="dashboardConferencia" class="dashboard-conferencia cards-grid" aria-label="Resumo da operação">
+        <div id="dashboardArea" class="dashboard-area">
+            <div class="dashboard-cabecalho">
+                <span class="dashboard-titulo">Resumo da operação</span>
+                <button type="button" id="btnAlternarDashboard" class="btn-alternar-dashboard" aria-expanded="true" aria-controls="dashboardConferencia" onclick="alternarDashboard()"><span aria-hidden="true">⌃</span> Ocultar dashboard</button>
+            </div>
+            <section id="dashboardConferencia" class="dashboard-conferencia cards-grid" aria-label="Resumo da operação">
             <div class="card filtrado" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')">
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-amarelo"></i>Total Pendentes</span><span class="card-icone">◷</span></div>
                 <span class="card-num" id="c-pnd">0</span>
@@ -519,7 +534,8 @@
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-azul"></i>Aguardando</span><span class="card-icone">…</span></div>
                 <span class="card-num" id="c-aguardando">0</span>
             </div>
-        </section>
+            </section>
+        </div>
 
         <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados...</div>
 
@@ -741,7 +757,7 @@
         function mostrarTelaAcesso(mensagem = '') {
             const tela = document.getElementById('telaAcesso');
             const botao = document.getElementById('btnEntrar');
-            if (tela) tela.classList.remove('oculta');
+            if (tela) { tela.classList.remove('oculta'); tela.classList.remove('inicializando'); }
             if (botao) { botao.disabled = false; botao.textContent = 'Entrar'; }
             definirMensagemAcesso(mensagem || mensagemAcessoPendente, Boolean(mensagem || mensagemAcessoPendente));
             mensagemAcessoPendente = '';
@@ -751,6 +767,7 @@
             usuarioAutenticado = user;
             perfilAutorizado = perfil;
             document.getElementById('telaAcesso')?.classList.add('oculta');
+            document.getElementById('telaAcesso')?.classList.remove('inicializando');
             const email = document.getElementById('usuarioSessao');
             const avatar = document.getElementById('avatarSessao');
             const botaoSair = document.getElementById('btnSair');
@@ -901,8 +918,8 @@
             });
             const tela = document.getElementById(`tela-${id}`);
             const menu = document.getElementById(`menu-${id}`);
-            const dashboard = document.getElementById('dashboardConferencia');
-            if (dashboard) dashboard.classList.toggle('oculto', id !== 'conf');
+            const dashboardArea = document.getElementById('dashboardArea');
+            if (dashboardArea) dashboardArea.classList.toggle('oculto', id !== 'conf');
             if (tela) tela.classList.add('active');
             if (menu) {
                 menu.classList.add('active');
@@ -1829,12 +1846,47 @@
             });
         }
 
+        function obterDataAtualLocalISO() {
+            const agora = new Date();
+            const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000);
+            return local.toISOString().slice(0, 10);
+        }
+
+        function definirDataTrabalhoPadrao() {
+            const campo = document.getElementById('dataTrabalhoImportacao');
+            if (campo && !campo.value) campo.value = obterDataAtualLocalISO();
+        }
+
+        function alternarDashboard() {
+            const dashboard = document.getElementById('dashboardConferencia');
+            const botao = document.getElementById('btnAlternarDashboard');
+            if (!dashboard || !botao) return;
+            const oculto = !dashboard.classList.contains('oculto');
+            dashboard.classList.toggle('oculto', oculto);
+            botao.setAttribute('aria-expanded', String(!oculto));
+            botao.innerHTML = `<span aria-hidden="true">${oculto ? '⌄' : '⌃'}</span> ${oculto ? 'Mostrar dashboard' : 'Ocultar dashboard'}`;
+            try { localStorage.setItem('expresso-sm-dashboard-oculto', String(oculto)); } catch (erro) { console.warn('Não foi possível salvar a preferência do dashboard.', erro); }
+        }
+
+        function inicializarEstadoDashboard() {
+            let oculto = false;
+            try { oculto = localStorage.getItem('expresso-sm-dashboard-oculto') === 'true'; } catch (erro) { console.warn('Não foi possível ler a preferência do dashboard.', erro); }
+            const dashboard = document.getElementById('dashboardConferencia');
+            const botao = document.getElementById('btnAlternarDashboard');
+            if (!dashboard || !botao) return;
+            dashboard.classList.toggle('oculto', oculto);
+            botao.setAttribute('aria-expanded', String(!oculto));
+            botao.innerHTML = `<span aria-hidden="true">${oculto ? '⌄' : '⌃'}</span> ${oculto ? 'Mostrar dashboard' : 'Ocultar dashboard'}`;
+        }
+
         function atualizarDataAtual() {
             const campo = document.getElementById('dataAtual');
             if (campo) campo.textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date());
         }
 
+        inicializarEstadoDashboard();
         inicializarEstadoFiltros();
+        definirDataTrabalhoPadrao();
         atualizarDataAtual();
         configurarEfeitoCliqueMenu();
         inicializarFirebase();
