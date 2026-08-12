@@ -340,6 +340,8 @@
         .bloco, .filtros-card { border-color: #e1e8f1; border-radius: 15px; box-shadow: var(--sombra); }
         .filtros-card { padding: 16px 18px 18px; }
         .filtros-cabecalho { margin-bottom: 14px; }
+        .filtros-datas { grid-template-columns: minmax(220px, 1.15fr) minmax(180px, 1fr) minmax(180px, 1fr) auto; }
+        #filtroDiaTrabalho { padding-left: 32px; }
         .filtros-titulo { color: #354a66; font-size: 14px; }
         .btn-alternar-filtros, .btn-limpar-filtros { border-color: #d7e1ec; border-radius: 8px; }
         .input-filtro, .select-filtro { height: 38px; border-color: #dbe4ee; border-radius: 9px; color: #41536b; }
@@ -541,8 +543,9 @@
                     <select id="filtroTipo" class="select-filtro" onchange="filtrarTabela()"><option value="">Todos tipos</option></select>
                 </div>
                 <div class="filtros-grid filtros-datas">
-                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataInicial" class="input-filtro" aria-label="Data inicial" onchange="filtrarTabela()"></div>
-                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataFinal" class="input-filtro" aria-label="Data final" onchange="filtrarTabela()"></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><select id="filtroDiaTrabalho" class="select-filtro" aria-label="Dia de trabalho" onchange="filtrarTabela()"><option value="">Todos os dias de trabalho</option></select></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataInicial" class="input-filtro" aria-label="Data inicial de emissão" onchange="filtrarTabela()"></div>
+                    <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><input type="date" id="filtroDataFinal" class="input-filtro" aria-label="Data final de emissão" onchange="filtrarTabela()"></div>
                     <button type="button" class="btn-limpar-filtros" onclick="limparFiltroDatas()">Limpar período</button>
                 </div>
                 </div>
@@ -1016,6 +1019,15 @@
             preencherSelect('filtroOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas ocorrências');
             preencherSelect('filtroAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas agências');
             preencherSelect('filtroTipo', dadosLocais.map(registro => registro.tipo), 'Todos tipos');
+            const diasTrabalho = [...new Set(dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean))]
+                .sort((a, b) => b.localeCompare(a));
+            const selectDia = document.getElementById('filtroDiaTrabalho');
+            const diaAtual = selectDia?.value || '';
+            preencherSelect('filtroDiaTrabalho', diasTrabalho, 'Todos os dias de trabalho');
+            if (selectDia && diaAtual && [...selectDia.options].some(option => option.value === diaAtual)) selectDia.value = diaAtual;
+            [...(selectDia?.options || [])].forEach(option => {
+                if (option.value) option.textContent = `${formatarDataImportacao(option.value)} — ${option.value}`;
+            });
         }
 
         const nomesMeses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -1653,6 +1665,7 @@
             const destino = obterValorCampo('filtroDestino');
             const agencia = obterValorCampo('filtroAgencia');
             const tipo = obterValorCampo('filtroTipo');
+            const diaTrabalho = obterValorCampo('filtroDiaTrabalho');
             atualizarHistoricoDocumento(busca, buscaNf);
             const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
             const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
@@ -1669,6 +1682,7 @@
                 const isEntrega = ocorrencia === 'EM ENTREGA';
                 const isAtrasado = estaAtrasado(registro);
                 const isAguardando = estaAguardando(registro);
+                if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
                 if (!registroDentroPeriodo(registro, dataInicial, dataFinal)) return false;
                 const textoCompleto = [
                     registro.cte, registro.notas, registro.volumes, registro.qtd, registro.rota, registro.tipo, registro.qtd2,
@@ -1726,9 +1740,13 @@
                 corpo.appendChild(linha);
             });
 
+            const diaTrabalho = document.getElementById('filtroDiaTrabalho')?.value || '';
             const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
             const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
-            const registrosPeriodo = dadosLocais.filter(registro => registroDentroPeriodo(registro, dataInicial, dataFinal));
+            const registrosPeriodo = dadosLocais.filter(registro => {
+                if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
+                return registroDentroPeriodo(registro, dataInicial, dataFinal);
+            });
             const total = registrosPeriodo.length;
             const pendentes = registrosPeriodo.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
             const entregas = registrosPeriodo.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
