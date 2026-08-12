@@ -195,7 +195,30 @@
         .sobra-campo input { width: 100%; height: 36px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #4b5563; padding: 0 10px; outline: none; font-size: 12px; }
         .sobra-campo input:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
         .sobra-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
-        @media (max-width: 1100px) { .sobra-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .deposito-sugestoes { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
+        .deposito-sugestoes.visivel { display: block; animation: abaEntrar .24s ease both; }
+        .sugestoes-titulo { color: #9a6b16; font-size: 12px; font-weight: 750; }
+        .sugestoes-subtitulo { margin-top: 4px; color: #8a949e; font-size: 11px; }
+        .sugestoes-lista { display: flex; flex-direction: column; gap: 7px; margin-top: 12px; max-height: 240px; overflow-y: auto; }
+        .sugestao-linha { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(130px, 1fr) minmax(100px, .7fr) minmax(100px, .7fr) auto; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid #eceff2; border-radius: 7px; background: #fff; color: #65717d; font-size: 11px; }
+        .sugestao-linha strong { color: #374151; }
+        .sugestao-linha small { display: block; margin-top: 2px; color: #9aa3ad; font-size: 10px; }
+        .btn-selecionar-sugestao { border: 1px solid #cdddfb; border-radius: 6px; padding: 7px 9px; background: #eef4ff; color: #2563eb; font-size: 10px; font-weight: 750; }
+        .sugestoes-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+        .sobras-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #edf0f2; }
+        .sobras-titulo { color: #374151; font-size: 13px; font-weight: 750; }
+        .sobras-subtitulo { margin-top: 3px; color: #8a949e; font-size: 11px; }
+        .sobras-lista { display: none; margin-top: 12px; }
+        .sobras-lista.visivel { display: block; animation: abaEntrar .24s ease both; }
+        .btn-ver-sobras { border: 1px solid #d9e0e7; border-radius: 7px; padding: 8px 11px; background: #fff; color: #2563eb; font-size: 11px; font-weight: 750; }
+        .btn-ver-sobras:hover { background: #eef4ff; border-color: #cdddfb; }
+        .sobras-contador { margin-bottom: 8px; color: #8a949e; font-size: 11px; }
+        .sobras-tabela-container { max-height: 300px; overflow: auto; border: 1px solid #edf0f2; border-radius: 8px; }
+        .sobras-tabela { min-width: 920px; }
+        .sobras-tabela th, .sobras-tabela td { padding: 9px 10px; }
+        .sobras-tabela th { position: sticky; top: 0; z-index: 1; background: #fbfcfd; }
+        @media (max-width: 1100px) { .sobra-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sugestao-linha { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 760px) { .sobra-campos { grid-template-columns: 1fr; } .sobra-acoes { justify-content: stretch; } .sobra-acoes button { flex: 1; } .sugestao-linha { grid-template-columns: 1fr; } .sugestoes-acoes { justify-content: stretch; } .sugestoes-acoes button { flex: 1; } .sobras-cabecalho { align-items: flex-start; flex-direction: column; } }
         @media (max-width: 760px) { .sobra-campos { grid-template-columns: 1fr; } .sobra-acoes { justify-content: stretch; } .sobra-acoes button { flex: 1; } }
 
         .ripple { position: absolute; border-radius: 50%; pointer-events: none; background: rgba(37, 99, 235, .16); transform: scale(0); animation: rippleEffect .5s ease-out; }
@@ -370,6 +393,16 @@
 
                 <div id="depositoVazio" class="deposito-vazio">Nenhum registro selecionado. Use uma das três buscas acima.</div>
 
+                <div id="depositoSugestoes" class="deposito-sugestoes">
+                    <div class="sugestoes-titulo" id="sugestoesTitulo">Encontramos registros semelhantes</div>
+                    <div class="sugestoes-subtitulo" id="sugestoesSubtitulo">Confira antes de selecionar um registro ou cadastrar uma sobra.</div>
+                    <div id="sugestoesLista" class="sugestoes-lista"></div>
+                    <div class="sugestoes-acoes">
+                        <button type="button" class="btn-secundario" onclick="abrirCadastroSobraAPartirDaBusca()">Cadastrar como sobra</button>
+                        <button type="button" class="btn-secundario" onclick="limparSugestoesDeposito()">Fechar opções</button>
+                    </div>
+                </div>
+
                 <div id="depositoResultado" class="deposito-resultado">
                     <div class="resultado-cabecalho">
                         <div>
@@ -414,6 +447,23 @@
                         <button type="button" class="btn-principal" onclick="salvarCadastroSobra()">Cadastrar sobra</button>
                     </div>
                 </div>
+
+                <div class="sobras-cabecalho">
+                    <div>
+                        <div class="sobras-titulo">Sobras cadastradas</div>
+                        <div class="sobras-subtitulo">Consulte rapidamente todos os lançamentos feitos manualmente.</div>
+                    </div>
+                    <button type="button" id="btnVerSobras" class="btn-ver-sobras" onclick="alternarListaSobras()">Ver sobras cadastradas</button>
+                </div>
+                <div id="sobrasLista" class="sobras-lista">
+                    <div class="sobras-contador" id="sobrasContador">0 sobras cadastradas</div>
+                    <div class="sobras-tabela-container">
+                        <table class="sobras-tabela">
+                            <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th></tr></thead>
+                            <tbody id="tabelaSobras"><tr><td colspan="9" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -451,6 +501,8 @@
         let filtroCardAtivo = 'pendentes';
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
+        let sugestoesDeposito = [];
+        let sobrasListaVisivel = false;
 
         function inicializarFirebase() {
             if (typeof firebase === 'undefined') {
@@ -469,6 +521,7 @@
                     filtrarTabela();
                     atualizarFiltrosHistorico();
                     renderizarHistorico();
+                    renderizarSobras();
                     mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
                 }, error => {
                     console.error('Falha ao carregar dados do Firebase:', error);
@@ -736,6 +789,46 @@
             });
         }
 
+        function renderizarSobras() {
+            const corpo = document.getElementById('tabelaSobras');
+            const contador = document.getElementById('sobrasContador');
+            if (!corpo || !contador) return;
+            const sobras = dadosLocais
+                .filter(registro => valorRegistro(registro, 'origem').toLowerCase() === 'sobra' || valorRegistro(registro, 'ocorrencia').toUpperCase() === 'SOBRA CADASTRADA')
+                .sort((a, b) => String(b.dataImportacao || b.emissao || '').localeCompare(String(a.dataImportacao || a.emissao || '')));
+
+            contador.textContent = `${sobras.length} sobra${sobras.length === 1 ? '' : 's'} cadastrada${sobras.length === 1 ? '' : 's'}`;
+            corpo.innerHTML = '';
+            if (!sobras.length) {
+                corpo.innerHTML = '<tr><td colspan="9" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
+                return;
+            }
+
+            sobras.forEach(registro => {
+                const linha = document.createElement('tr');
+                linha.innerHTML = `
+                    <td><strong>${escaparHtml(valorRegistro(registro, 'cte') || '-')}</strong></td>
+                    <td>${escaparHtml(valorRegistro(registro, 'notas') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'volumes') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'qtd') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'rota') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'tipo') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'qtd2') || '-')}</td>
+                    <td>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</td>
+                    <td>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</td>
+                `;
+                corpo.appendChild(linha);
+            });
+        }
+
+        function alternarListaSobras() {
+            sobrasListaVisivel = !sobrasListaVisivel;
+            document.getElementById('sobrasLista')?.classList.toggle('visivel', sobrasListaVisivel);
+            const botao = document.getElementById('btnVerSobras');
+            if (botao) botao.textContent = sobrasListaVisivel ? 'Ocultar sobras' : 'Ver sobras cadastradas';
+            if (sobrasListaVisivel) renderizarSobras();
+        }
+
         function obterValorCampo(id) {
             const campo = document.getElementById(id);
             return campo ? campo.value.trim().toLowerCase() : '';
@@ -752,6 +845,13 @@
             }
         }
 
+        function obterValorBuscaDeposito(registro, tipo) {
+            if (tipo === 'etiqueta') return obterEtiquetaRegistro(registro);
+            if (tipo === 'cte') return valorRegistro(registro, 'cte');
+            if (tipo === 'nf') return valorRegistro(registro, 'notas');
+            return '';
+        }
+
         function buscarRegistroDeposito(tipo) {
             const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
             const campo = document.getElementById(ids[tipo]);
@@ -762,39 +862,83 @@
                 return;
             }
 
+            contextoBuscaDeposito = { tipo, termo };
+            limparSugestoesDeposito(false);
+            limparCadastroSobra(false);
             const termoNormalizado = normalizarTexto(termo);
-            let encontrados = dadosLocais.filter(registro => {
-                let valor = '';
-                if (tipo === 'etiqueta') valor = obterEtiquetaRegistro(registro);
-                if (tipo === 'cte') valor = valorRegistro(registro, 'cte');
-                if (tipo === 'nf') valor = valorRegistro(registro, 'notas');
-                return normalizarTexto(valor) === termoNormalizado;
-            });
+            const exatos = dadosLocais.filter(registro => normalizarTexto(obterValorBuscaDeposito(registro, tipo)) === termoNormalizado);
 
-            if (!encontrados.length) {
-                encontrados = dadosLocais.filter(registro => {
-                    let valor = '';
-                    if (tipo === 'etiqueta') valor = obterEtiquetaRegistro(registro);
-                    if (tipo === 'cte') valor = valorRegistro(registro, 'cte');
-                    if (tipo === 'nf') valor = valorRegistro(registro, 'notas');
-                    return normalizarTexto(valor).includes(termoNormalizado);
-                });
-            }
-
-            if (!encontrados.length) {
-                limparRegistroDeposito(false);
-                mostrarFormularioSobra(tipo, termo);
-                mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
+            if (exatos.length === 1) {
+                mostrarAlerta('<b>Status:</b> registro localizado exatamente. Revise os quatro campos e atualize.', 'sucesso');
+                preencherRegistroDeposito(exatos[0]);
                 return;
             }
 
-            if (encontrados.length > 1) {
-                mostrarAlerta(`<b>Atenção:</b> ${encontrados.length} registros encontrados. O primeiro resultado foi selecionado.`, 'info');
-            } else {
-                mostrarAlerta('<b>Status:</b> registro localizado. Revise os quatro campos e atualize.', 'sucesso');
+            if (exatos.length > 1) {
+                mostrarSugestoesDeposito(exatos, tipo, termo, true);
+                mostrarAlerta(`<b>Atenção:</b> existem ${exatos.length} registros com o mesmo valor. Selecione o correto ou cadastre uma sobra.`, 'info');
+                return;
             }
+
+            const semelhantes = dadosLocais.filter(registro => {
+                const valorNormalizado = normalizarTexto(obterValorBuscaDeposito(registro, tipo));
+                return valorNormalizado && valorNormalizado.includes(termoNormalizado);
+            });
+
+            if (semelhantes.length) {
+                limparRegistroDeposito(false);
+                mostrarSugestoesDeposito(semelhantes, tipo, termo, false);
+                mostrarAlerta(`<b>Atenção:</b> encontramos ${semelhantes.length} registro(s) parecido(s), mas nenhum corresponde exatamente a "${escaparHtml(termo)}".`, 'info');
+                return;
+            }
+
+            limparRegistroDeposito(false);
+            mostrarFormularioSobra(tipo, termo);
+            mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
+        }
+
+        function mostrarSugestoesDeposito(registros, tipo, termo, exato = false) {
+            sugestoesDeposito = registros;
+            document.getElementById('sugestoesTitulo').textContent = exato ? 'Existem múltiplos registros para esta busca' : 'Encontramos registros semelhantes';
+            document.getElementById('sugestoesSubtitulo').textContent = exato ? 'Selecione o registro correto ou cadastre uma sobra.' : `A busca por ${tipo.toUpperCase()} "${termo}" não foi exata. Confira antes de continuar.`;
+            const lista = document.getElementById('sugestoesLista');
+            lista.innerHTML = '';
+            registros.forEach((registro, indice) => {
+                const linha = document.createElement('div');
+                linha.className = 'sugestao-linha';
+                linha.innerHTML = `
+                    <div><strong>CTe ${escaparHtml(valorRegistro(registro, 'cte') || '-')}</strong><small>NF ${escaparHtml(valorRegistro(registro, 'notas') || '-')}</small></div>
+                    <div>ROTA <strong>${escaparHtml(valorRegistro(registro, 'rota') || '-')}</strong><small>${escaparHtml(valorRegistro(registro, 'tipo') || 'Tipo não informado')}</small></div>
+                    <div>Agência <strong>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</strong></div>
+                    <div>Emissão <strong>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</strong></div>
+                    <button type="button" class="btn-selecionar-sugestao" onclick="selecionarSugestaoDeposito(${indice})">Selecionar</button>
+                `;
+                lista.appendChild(linha);
+            });
+            document.getElementById('depositoSugestoes').classList.add('visivel');
+            document.getElementById('depositoSugestoes').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function selecionarSugestaoDeposito(indice) {
+            const registro = sugestoesDeposito[indice];
+            if (!registro) return;
+            limparSugestoesDeposito(false);
             limparCadastroSobra(false);
-            preencherRegistroDeposito(encontrados[0]);
+            preencherRegistroDeposito(registro);
+            mostrarAlerta('<b>Status:</b> registro selecionado manualmente. Revise os quatro campos e atualize.', 'sucesso');
+        }
+
+        function abrirCadastroSobraAPartirDaBusca() {
+            limparRegistroDeposito(false);
+            mostrarFormularioSobra(contextoBuscaDeposito.tipo, contextoBuscaDeposito.termo);
+            mostrarAlerta('<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
+        }
+
+        function limparSugestoesDeposito(mostrarMensagem = true) {
+            sugestoesDeposito = [];
+            document.getElementById('sugestoesLista')?.replaceChildren();
+            document.getElementById('depositoSugestoes')?.classList.remove('visivel');
+            if (mostrarMensagem) mostrarAlerta('<b>Status:</b> opções de busca fechadas.', 'info');
         }
 
         function mostrarFormularioSobra(tipo, termo) {
@@ -905,6 +1049,7 @@
 
         function limparRegistroDeposito(mostrarMensagem = true) {
             registroDepositoSelecionado = null;
+            limparSugestoesDeposito(false);
             limparCadastroSobra(false);
             ['d-qtd', 'd-rota', 'd-tipo', 'd-qtd-sec'].forEach(id => {
                 const campo = document.getElementById(id);
