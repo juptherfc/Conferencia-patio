@@ -425,7 +425,7 @@
             .deposito-card { max-width: none; padding: 14px 12px; }
             .deposito-buscas { gap: 8px; margin-top: 14px; }
             .busca-deposito { min-height: 44px; }
-            .deposito-campos, .sobra-campos { grid-template-columns: 1fr; gap: 8px; }
+            .deposito-campos, .sobra-campos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
             .deposito-acoes, .sobra-acoes { width: 100%; justify-content: stretch; }
             .deposito-acoes button, .sobra-acoes button { flex: 1; }
             .sugestao-linha { grid-template-columns: 1fr; gap: 7px; }
@@ -443,6 +443,9 @@
         }
 
         @media (max-width: 380px) {
+            .deposito-campos, .sobra-campos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+            .campo-edicao label, .sobra-campo label { margin-left: 0; font-size: 8px; }
+            .campo-edicao input, .sobra-campo input { height: 38px; padding: 0 7px; font-size: 10px; }
             .menu-texto { font-size: 9px; }
             .card-cabecalho { font-size: 9px; }
             .card-num { font-size: 19px; }
@@ -1427,8 +1430,9 @@
 
         function abrirCadastroSobraAPartirDaBusca() {
             if (!exigirPermissao('cadastrarSobra')) return;
+            const busca = { ...contextoBuscaDeposito };
             limparRegistroDeposito(false);
-            mostrarFormularioSobra(contextoBuscaDeposito.tipo, contextoBuscaDeposito.termo);
+            mostrarFormularioSobra(busca.tipo, busca.termo);
             mostrarAlerta('<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
         }
 
@@ -1453,6 +1457,13 @@
             document.getElementById('sobraCadastro').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
+        function limparCamposBuscaDeposito() {
+            ['d-etiqueta', 'd-cte', 'd-nf'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+        }
+
         function limparCadastroSobra(mostrarMensagem = true) {
             contextoBuscaDeposito = { tipo: '', termo: '' };
             ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'].forEach(id => {
@@ -1469,7 +1480,7 @@
             const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
             const obrigatorios = {
                 'sobra-volumes': 'Volumes', 'sobra-qtd': 'Qtd', 'sobra-rota': 'ROTA',
-                'sobra-tipo': 'Tipo', 'sobra-qtd-sec': 'Qtd Sec', 'sobra-agencia': 'Agência', 'sobra-emissao': 'Data de emissão'
+                'sobra-agencia': 'Agência', 'sobra-emissao': 'Data de emissão'
             };
             const cte = valores['sobra-cte'];
             const nf = valores['sobra-nf'];
@@ -1526,6 +1537,8 @@
 
             db.child(chave).set(registro).then(() => {
                 limparCadastroSobra(false);
+                limparCamposBuscaDeposito();
+                limparSugestoesDeposito(false);
                 mostrarAlerta('<b>Status:</b> sobra cadastrada com sucesso e adicionada ao Painel.', 'sucesso');
                 mudarAba('conf');
             }).catch(error => {
@@ -1551,6 +1564,7 @@
             registroDepositoSelecionado = null;
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
+            limparCamposBuscaDeposito();
             ['d-qtd', 'd-rota', 'd-tipo', 'd-qtd-sec'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
@@ -1579,7 +1593,8 @@
                 Object.assign(registroDepositoSelecionado, valores);
                 atualizarOpcoesFiltros();
                 filtrarTabela();
-                mostrarAlerta(`<b>Status:</b> registro do dia de trabalho ${formatarDataImportacao(diaTrabalho)} atualizado. Qtd, ROTA, Tipo e Qtd Sec foram salvos.`, 'sucesso');
+                limparRegistroDeposito(false);
+                mostrarAlerta(`<b>Status:</b> registro do dia de trabalho ${formatarDataImportacao(diaTrabalho)} atualizado. Qtd, ROTA, Tipo e Qtd Sec foram salvos. Os campos foram limpos.`, 'sucesso');
             }).catch(error => {
                 console.error('Erro ao atualizar registro:', error);
                 mostrarAlerta('<b>Erro:</b> não foi possível atualizar os quatro campos.', 'erro');
