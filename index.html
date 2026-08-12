@@ -438,8 +438,12 @@
             th { padding: 10px 7px; font-size: 9px; }
             td { padding: 10px 9px; font-size: 10px; }
             .deposito-card { max-width: none; padding: 14px 12px; }
-            .deposito-buscas { gap: 8px; margin-top: 14px; }
+            .deposito-buscas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 14px; overflow: visible; }
+            .deposito-buscas .busca-deposito { min-width: 0; padding: 4px 4px 4px 6px; gap: 3px; }
             .busca-deposito { min-height: 44px; }
+            .busca-deposito-icone { font-size: 12px; }
+            .busca-deposito input { font-size: 10px; }
+            .btn-buscar-deposito { padding: 8px 5px; font-size: 10px; }
             .deposito-campos, .sobra-campos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
             .deposito-acoes, .sobra-acoes { width: 100%; justify-content: stretch; }
             .deposito-acoes button, .sobra-acoes button { flex: 1; }
