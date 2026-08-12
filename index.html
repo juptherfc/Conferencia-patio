@@ -401,6 +401,7 @@
                     <div class="sobra-campos">
                         <div class="sobra-campo"><label for="sobra-cte">CTe</label><input type="text" id="sobra-cte" placeholder="Número do CTe"></div>
                         <div class="sobra-campo"><label for="sobra-nf">NF</label><input type="text" id="sobra-nf" placeholder="Número da NF"></div>
+                        <div class="sobra-campo"><label for="sobra-volumes">Volumes</label><input type="text" id="sobra-volumes" placeholder="Quantidade de volumes"></div>
                         <div class="sobra-campo"><label for="sobra-qtd">Qtd</label><input type="text" id="sobra-qtd" placeholder="Quantidade"></div>
                         <div class="sobra-campo"><label for="sobra-rota">ROTA</label><input type="text" id="sobra-rota" placeholder="ROTA"></div>
                         <div class="sobra-campo"><label for="sobra-tipo">Tipo</label><input type="text" id="sobra-tipo" placeholder="Tipo de entrega"></div>
@@ -811,7 +812,7 @@
 
         function limparCadastroSobra(mostrarMensagem = true) {
             contextoBuscaDeposito = { tipo: '', termo: '' };
-            ['sobra-cte', 'sobra-nf', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'].forEach(id => {
+            ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
@@ -821,12 +822,19 @@
 
         function salvarCadastroSobra() {
             if (!db) { alert('O banco de dados não está disponível no momento.'); return; }
-            const ids = ['sobra-cte', 'sobra-nf', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
+            const ids = ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
             const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
             const obrigatorios = {
-                'sobra-cte': 'CTe', 'sobra-nf': 'NF', 'sobra-qtd': 'Qtd', 'sobra-rota': 'ROTA',
+                'sobra-volumes': 'Volumes', 'sobra-qtd': 'Qtd', 'sobra-rota': 'ROTA',
                 'sobra-tipo': 'Tipo', 'sobra-qtd-sec': 'Qtd Sec', 'sobra-agencia': 'Agência', 'sobra-emissao': 'Data de emissão'
             };
+            const cte = valores['sobra-cte'];
+            const nf = valores['sobra-nf'];
+            if (!cte && !nf) {
+                mostrarAlerta('<b>Atenção:</b> preencha pelo menos um dos campos: CTe ou NF.', 'info');
+                document.getElementById('sobra-cte')?.focus();
+                return;
+            }
             const faltante = Object.entries(obrigatorios).find(([id]) => !valores[id]);
             if (faltante) {
                 mostrarAlerta(`<b>Atenção:</b> preencha o campo ${faltante[1]} para cadastrar a sobra.`, 'info');
@@ -834,10 +842,16 @@
                 return;
             }
 
-            const chave = obterChaveRegistro(valores['sobra-cte'], valores['sobra-emissao']);
-            const registroExistente = dadosLocais.some(registro => obterChaveRegistroAtual(registro) === chave || (valorRegistro(registro, 'cte') === valores['sobra-cte'] && obterDataEmFormatoISO(registro.emissao) === valores['sobra-emissao']));
+            const identificador = cte || nf;
+            const chave = obterChaveRegistro(identificador, valores['sobra-emissao']);
+            const registroExistente = dadosLocais.some(registro => {
+                const mesmaData = obterDataEmFormatoISO(registro.emissao) === valores['sobra-emissao'];
+                const mesmoCte = cte && valorRegistro(registro, 'cte') === cte;
+                const mesmaNf = nf && valorRegistro(registro, 'notas') === nf;
+                return mesmaData && (mesmoCte || mesmaNf);
+            });
             if (registroExistente) {
-                mostrarAlerta('<b>Atenção:</b> já existe um registro com este CTe e data de emissão. Use a busca para atualizá-lo.', 'info');
+                mostrarAlerta('<b>Atenção:</b> já existe um registro com este identificador e data de emissão. Use a busca para atualizá-lo.', 'info');
                 return;
             }
 
@@ -848,9 +862,9 @@
                 loteId: `sobra_${valores['sobra-emissao']}_${Date.now()}`,
                 dataTrabalho: valores['sobra-emissao'],
                 dataImportacao,
-                cte: valores['sobra-cte'],
-                notas: valores['sobra-nf'],
-                volumes: '1',
+                cte,
+                notas: nf,
+                volumes: valores['sobra-volumes'],
                 qtd: valores['sobra-qtd'],
                 rota: valores['sobra-rota'].toUpperCase(),
                 tipo: valores['sobra-tipo'],
