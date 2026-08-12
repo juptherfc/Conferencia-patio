@@ -108,13 +108,12 @@
         .tabela-cabecalho-acoes { display: flex; align-items: center; gap: 12px; }
         .btn-limpar-cabecalho { border: 1px solid #d9e0e7; border-radius: 7px; padding: 6px 9px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
         .btn-limpar-cabecalho:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
-        .cabecalho-coluna { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 100%; }
-        .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 96px; height: 28px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 7px; background: #fff; color: #53657a; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
+        .cabecalho-coluna { display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-width: 0; }
+        .cabecalho-coluna > span { display: block; min-height: 13px; line-height: 1.15; }
+        .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 0; height: 28px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 7px; background: #fff; color: #53657a; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
+        .filtro-coluna-input[type="date"] { padding-right: 5px; }
+        .cabecalho-coluna-datas { gap: 4px; }
         .filtro-coluna-input:focus, .filtro-coluna-select:focus { border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
-        .tabela-painel th:nth-child(1), .tabela-painel td:nth-child(1) { min-width: 112px; }
-        .tabela-painel th:nth-child(2), .tabela-painel td:nth-child(2) { min-width: 80px; }
-        .tabela-painel th:nth-child(9), .tabela-painel td:nth-child(9), .tabela-painel th:nth-child(10), .tabela-painel td:nth-child(10), .tabela-painel th:nth-child(11), .tabela-painel td:nth-child(11) { min-width: 190px; }
-        .tabela-painel th:nth-child(12), .tabela-painel td:nth-child(12) { min-width: 145px; }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
         .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
         .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
@@ -176,23 +175,25 @@
         .tabela-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
         .tabela-titulo { color: #495463; font-size: 13px; font-weight: 700; }
         .tabela-contador { color: #9aa3ad; font-size: 11px; }
+        .tabela-cabecalho-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+        .controle-largura-colunas { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 9px; border: 1px solid #d9e0e7; border-radius: 7px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
+        .controle-largura-colunas input[type="range"] { width: 118px; accent-color: #2f73c9; }
+        .controle-largura-colunas output { min-width: 34px; color: #3d6ebd; text-align: right; font-variant-numeric: tabular-nums; }
+        .btn-reset-largura { border: 1px solid #d9e0e7; border-radius: 7px; padding: 6px 9px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
+        .btn-reset-largura:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .tabela-container { flex: 1; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: auto; border: 1px solid var(--borda); border-radius: 10px; background: var(--branco); overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #aeb7c2 #f1f3f5; }
         .tabela-container::-webkit-scrollbar { width: 10px; height: 10px; }
         .tabela-container::-webkit-scrollbar-track { background: #f1f3f5; border-radius: 8px; }
         .tabela-container::-webkit-scrollbar-thumb { background: #aeb7c2; border: 2px solid #f1f3f5; border-radius: 8px; }
         .tabela-container::-webkit-scrollbar-thumb:hover { background: #8995a2; }
-        table { width: max-content; min-width: 100%; border-collapse: collapse; table-layout: auto; font-size: 11px; text-align: left; white-space: nowrap; }
-        .tabela-painel { min-width: 1800px; }
-        th { position: sticky; top: 0; z-index: 2; padding: 12px 10px; background: #fbfcfd; border-bottom: 1px solid #e8ebee; color: #7c8792; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid #f0f2f4; color: #65717d; vertical-align: middle; }
+        table { width: max-content; min-width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; text-align: left; white-space: nowrap; }
+        .tabela-painel { min-width: 100%; }
+        th { position: sticky; top: 0; z-index: 2; padding: 10px 9px; background: #fbfcfd; border-bottom: 1px solid #e8ebee; color: #7c8792; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; vertical-align: top; }
+        td { padding: 10px; border-bottom: 1px solid #f0f2f4; color: #65717d; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
         tbody tr:hover td { background: #fbfcff; }
         tbody tr:last-child td { border-bottom: 0; }
         td:first-child, th:first-child { padding-left: 12px; }
-        td:nth-child(1), th:nth-child(1) { min-width: 80px; }
-        td:nth-child(9), th:nth-child(9), td:nth-child(10), th:nth-child(10), td:nth-child(11), th:nth-child(11) { min-width: 190px; }
-        td:nth-child(12), th:nth-child(12) { min-width: 145px; }
-        td:nth-child(15), th:nth-child(15), td:nth-child(16), th:nth-child(16) { min-width: 170px; }
-        td:nth-child(18), th:nth-child(18) { min-width: 200px; }
+        .tabela-painel th, .tabela-painel td { min-width: 0; }
         td:nth-child(2) { color: #344052; font-weight: 700; }
         td:nth-child(6) { color: #3d6ebd; font-weight: 650; }
         tr.linha-conferida td { background-color: #f2fbf7 !important; }
@@ -430,8 +431,11 @@
             .tabela-cabecalho { min-height: 30px; }
             .tabela-titulo { font-size: 13px; }
             .tabela-container { max-height: calc(100vh - 330px); min-height: 220px; border-radius: 11px; -webkit-overflow-scrolling: touch; }
-            .tabela-painel { min-width: 1500px; }
-            th { padding: 11px 9px; font-size: 9px; }
+            .tabela-painel { min-width: 100%; }
+            .controle-largura-colunas { padding: 0 7px; }
+            .controle-largura-colunas input[type="range"] { width: 92px; }
+            .btn-reset-largura, .btn-limpar-cabecalho { padding: 7px 8px; }
+            th { padding: 10px 7px; font-size: 9px; }
             td { padding: 10px 9px; font-size: 10px; }
             .deposito-card { max-width: none; padding: 14px 12px; }
             .deposito-buscas { gap: 8px; margin-top: 14px; }
@@ -559,7 +563,7 @@
                     <div class="filtros-grid filtros-principais">
                         <div class="campo-filtro"><span class="campo-filtro-icone">#</span><input type="text" id="buscaUnica" placeholder="Buscar CTe" class="input-filtro"></div>
                         <div class="campo-filtro"><span class="campo-filtro-icone">▤</span><input type="text" id="buscaNf" placeholder="Buscar NF" class="input-filtro"></div>
-                        <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><select id="filtroDiaTrabalho" class="select-filtro" aria-label="Dia de trabalho" onchange="filtrarTabela()"><option value="">Todos os dias de trabalho</option></select></div>
+                        <div class="campo-filtro"><span class="campo-filtro-icone">◷</span><select id="filtroDiaTrabalho" class="select-filtro" aria-label="Dia de trabalho" onchange="registrarSelecaoDiaTrabalho(this)"><option value="">Todos os dias de trabalho</option></select></div>
                     </div>
                 </div>
             </section>
@@ -567,6 +571,12 @@
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
                 <div class="tabela-cabecalho-acoes">
+                    <label class="controle-largura-colunas" for="reguladorLarguraColunas" title="Ajustar a largura de todas as colunas">
+                        <span>Largura</span>
+                        <input type="range" id="reguladorLarguraColunas" min="70" max="140" step="5" value="100" aria-label="Regular largura das colunas" oninput="alterarLarguraColunas(this.value)">
+                        <output id="valorLarguraColunas" for="reguladorLarguraColunas">100%</output>
+                    </label>
+                    <button type="button" class="btn-reset-largura" onclick="restaurarLarguraColunas()">Largura padrão</button>
                     <button type="button" class="btn-limpar-cabecalho" onclick="limparFiltrosCabecalho()">Limpar filtros</button>
                     <span class="tabela-contador" id="contadorTabela">0 registros</span>
                 </div>
@@ -575,24 +585,24 @@
                 <table class="tabela-painel">
                     <thead>
                         <tr>
-                            <th><span class="cabecalho-coluna">Dia Trabalho</span></th>
-                            <th><span class="cabecalho-coluna">CTe</span></th>
-                            <th><span class="cabecalho-coluna">Notas</span></th>
-                            <th><span class="cabecalho-coluna">Vol.</span></th>
-                            <th><span class="cabecalho-coluna">Qtd</span></th>
-                            <th><div class="cabecalho-coluna"><span>ROTA</span><select id="filtroCabecalhoRota" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Tipo</span><select id="filtroCabecalhoTipo" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><span class="cabecalho-coluna">Qtd Sec.</span></th>
-                            <th><div class="cabecalho-coluna"><span>Remetente</span><input id="filtroCabecalhoRemetente" class="filtro-coluna-input" placeholder="Filtrar" oninput="filtrarTabela()"></div></th>
-                            <th><div class="cabecalho-coluna"><span>Destino</span><input id="filtroCabecalhoDestino" class="filtro-coluna-input" placeholder="Filtrar" oninput="filtrarTabela()"></div></th>
-                            <th><div class="cabecalho-coluna"><span>Agência</span><select id="filtroCabecalhoAgencia" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Emissão</span><input type="date" id="filtroCabecalhoDataInicial" class="filtro-coluna-input" aria-label="Data inicial de emissão" onchange="filtrarTabela()"><input type="date" id="filtroCabecalhoDataFinal" class="filtro-coluna-input" aria-label="Data final de emissão" onchange="filtrarTabela()"></div></th>
-                            <th><span class="cabecalho-coluna">Prev. Agência</span></th>
-                            <th><span class="cabecalho-coluna">Prev. Entrega</span></th>
-                            <th><span class="cabecalho-coluna">Data Ocorr.</span></th>
-                            <th><div class="cabecalho-coluna"><span>Ocorrência</span><select id="filtroCabecalhoOcorrencia" class="filtro-coluna-select" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><span class="cabecalho-coluna">Dias Atraso</span></th>
-                            <th><span class="cabecalho-coluna">Últ. Ocorrência</span></th>
+                            <th><div class="cabecalho-coluna"><span>Dia Trabalho</span><select id="filtroCabecalhoDiaTrabalho" class="filtro-coluna-select" aria-label="Filtrar por dia de trabalho" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>CTe</span><input id="filtroCabecalhoCte" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar CTe" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Notas</span><input id="filtroCabecalhoNotas" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar notas" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Vol.</span><input id="filtroCabecalhoVolumes" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar volumes" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Qtd</span><input id="filtroCabecalhoQtd" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar quantidade" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>ROTA</span><select id="filtroCabecalhoRota" class="filtro-coluna-select" aria-label="Filtrar rota" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Tipo</span><select id="filtroCabecalhoTipo" class="filtro-coluna-select" aria-label="Filtrar tipo" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Qtd Sec.</span><input id="filtroCabecalhoQtdSec" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar quantidade secundária" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Remetente</span><input id="filtroCabecalhoRemetente" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar remetente" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Destino</span><input id="filtroCabecalhoDestino" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar destino" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Agência</span><select id="filtroCabecalhoAgencia" class="filtro-coluna-select" aria-label="Filtrar agência" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><div class="cabecalho-coluna cabecalho-coluna-datas"><span>Emissão</span><input type="date" id="filtroCabecalhoDataInicial" class="filtro-coluna-input" aria-label="Data inicial de emissão" onchange="filtrarTabela()"><input type="date" id="filtroCabecalhoDataFinal" class="filtro-coluna-input" aria-label="Data final de emissão" onchange="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Prev. Agência</span><input type="date" id="filtroCabecalhoPrevAgencia" class="filtro-coluna-input" aria-label="Filtrar previsão de agência" onchange="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Prev. Entrega</span><input type="date" id="filtroCabecalhoPrevEntrega" class="filtro-coluna-input" aria-label="Filtrar previsão de entrega" onchange="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Data Ocorr.</span><input type="date" id="filtroCabecalhoDataOcorrencia" class="filtro-coluna-input" aria-label="Filtrar data de ocorrência" onchange="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Ocorrência</span><select id="filtroCabecalhoOcorrencia" class="filtro-coluna-select" aria-label="Filtrar ocorrência" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Dias Atraso</span><input id="filtroCabecalhoDiasAtraso" class="filtro-coluna-input" placeholder="Filtrar" aria-label="Filtrar dias de atraso" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Últ. Ocorrência</span><input type="date" id="filtroCabecalhoUltOcorrencia" class="filtro-coluna-input" aria-label="Filtrar última ocorrência" onchange="filtrarTabela()"></div></th>
                         </tr>
                     </thead>
                     <tbody id="tabelaCorpo"><tr><td colspan="18" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
@@ -1046,10 +1056,12 @@
             const diasTrabalho = [...new Set([...dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean), dataAtual])]
                 .sort((a, b) => b.localeCompare(a));
             const selectDia = document.getElementById('filtroDiaTrabalho');
+            const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
             const diaDesejado = selectDia?.dataset.manual === 'true' ? (selectDia.value || '') : dataAtual;
             preencherSelect('filtroDiaTrabalho', diasTrabalho, 'Todos os dias de trabalho');
+            preencherSelect('filtroCabecalhoDiaTrabalho', diasTrabalho, 'Todos');
             if (selectDia && [...selectDia.options].some(option => option.value === diaDesejado)) selectDia.value = diaDesejado;
-            [...(selectDia?.options || [])].forEach(option => {
+            [...(selectDia?.options || []), ...(selectDiaCabecalho?.options || [])].forEach(option => {
                 if (option.value) option.textContent = `${formatarDataImportacao(option.value)} — ${option.value}`;
             });
         }
@@ -1258,7 +1270,7 @@
         }
 
         function limparFiltrosCabecalho() {
-            ['filtroCabecalhoRota', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoAgencia', 'filtroCabecalhoTipo', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoDataInicial', 'filtroCabecalhoDataFinal'].forEach(id => {
+            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroCabecalhoVolumes', 'filtroCabecalhoQtd', 'filtroCabecalhoRota', 'filtroCabecalhoTipo', 'filtroCabecalhoQtdSec', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoAgencia', 'filtroCabecalhoDataInicial', 'filtroCabecalhoDataFinal', 'filtroCabecalhoPrevAgencia', 'filtroCabecalhoPrevEntrega', 'filtroCabecalhoDataOcorrencia', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoDiasAtraso', 'filtroCabecalhoUltOcorrencia'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
@@ -1722,15 +1734,26 @@
         function filtrarTabela() {
             const busca = obterValorCampo('buscaUnica');
             const buscaNf = obterValorCampo('buscaNf');
+            const diaTrabalho = obterValorCampo('filtroDiaTrabalho');
+            const diaTrabalhoCabecalho = obterValorCampo('filtroCabecalhoDiaTrabalho');
+            const cteCabecalho = obterValorCampo('filtroCabecalhoCte');
+            const notasCabecalho = obterValorCampo('filtroCabecalhoNotas');
+            const volumesCabecalho = obterValorCampo('filtroCabecalhoVolumes');
+            const qtdCabecalho = obterValorCampo('filtroCabecalhoQtd');
             const rota = obterValorCampo('filtroCabecalhoRota');
-            const ocorrenciaFiltro = obterValorCampo('filtroCabecalhoOcorrencia');
+            const tipo = obterValorCampo('filtroCabecalhoTipo');
+            const qtdSecCabecalho = obterValorCampo('filtroCabecalhoQtdSec');
             const remetente = obterValorCampo('filtroCabecalhoRemetente');
             const destino = obterValorCampo('filtroCabecalhoDestino');
             const agencia = obterValorCampo('filtroCabecalhoAgencia');
-            const tipo = obterValorCampo('filtroCabecalhoTipo');
-            const diaTrabalho = obterValorCampo('filtroDiaTrabalho');
             const dataInicial = document.getElementById('filtroCabecalhoDataInicial')?.value || '';
             const dataFinal = document.getElementById('filtroCabecalhoDataFinal')?.value || '';
+            const dataPrevAgencia = document.getElementById('filtroCabecalhoPrevAgencia')?.value || '';
+            const dataPrevEntrega = document.getElementById('filtroCabecalhoPrevEntrega')?.value || '';
+            const dataOcorrenciaFiltro = document.getElementById('filtroCabecalhoDataOcorrencia')?.value || '';
+            const ocorrenciaFiltro = obterValorCampo('filtroCabecalhoOcorrencia');
+            const diasAtrasoCabecalho = obterValorCampo('filtroCabecalhoDiasAtraso');
+            const dataUltOcorrencia = document.getElementById('filtroCabecalhoUltOcorrencia')?.value || '';
 
             if (dataInicial && dataFinal && dataInicial > dataFinal) {
                 mostrarAlerta('<b>Atenção:</b> a data inicial não pode ser posterior à data final.', 'info');
@@ -1745,18 +1768,29 @@
                 const isAtrasado = estaAtrasado(registro);
                 const isAguardando = estaAguardando(registro);
                 if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
+                if (diaTrabalhoCabecalho && obterDataTrabalhoRegistro(registro) !== diaTrabalhoCabecalho) return false;
                 if (!registroDentroPeriodo(registro, dataInicial, dataFinal)) return false;
+                if (dataPrevAgencia && obterDataEmFormatoISO(registro.previsaoAgencia) !== dataPrevAgencia) return false;
+                if (dataPrevEntrega && obterDataEmFormatoISO(registro.previsaoEntrega) !== dataPrevEntrega) return false;
+                if (dataOcorrenciaFiltro && obterDataEmFormatoISO(registro.dataOcorrencia) !== dataOcorrenciaFiltro) return false;
+                if (dataUltOcorrencia && obterDataEmFormatoISO(registro.dataUltOcorrencia) !== dataUltOcorrencia) return false;
                 if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
                 if (filtroCardAtivo === 'bo' && !isBo) return false;
                 if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
                 if (busca && !valorRegistro(registro, 'cte').toLowerCase().includes(busca)) return false;
                 if (buscaNf && !valorRegistro(registro, 'notas').toLowerCase().includes(buscaNf)) return false;
+                if (cteCabecalho && !valorRegistro(registro, 'cte').toLowerCase().includes(cteCabecalho)) return false;
+                if (notasCabecalho && !valorRegistro(registro, 'notas').toLowerCase().includes(notasCabecalho)) return false;
+                if (volumesCabecalho && !valorRegistro(registro, 'volumes').toLowerCase().includes(volumesCabecalho)) return false;
+                if (qtdCabecalho && !valorRegistro(registro, 'qtd').toLowerCase().includes(qtdCabecalho)) return false;
                 if (rota && valorRegistro(registro, 'rota').toLowerCase() !== rota) return false;
+                if (tipo && valorRegistro(registro, 'tipo').toLowerCase() !== tipo) return false;
+                if (qtdSecCabecalho && !valorRegistro(registro, 'qtd2').toLowerCase().includes(qtdSecCabecalho)) return false;
                 if (ocorrenciaFiltro && valorRegistro(registro, 'ocorrencia').toLowerCase() !== ocorrenciaFiltro) return false;
                 if (remetente && !valorRegistro(registro, 'clienteRemetente').toLowerCase().includes(remetente)) return false;
                 if (destino && !valorRegistro(registro, 'destino').toLowerCase().includes(destino)) return false;
                 if (agencia && valorRegistro(registro, 'agenciaRemetente').toLowerCase() !== agencia) return false;
-                if (tipo && valorRegistro(registro, 'tipo').toLowerCase() !== tipo) return false;
+                if (diasAtrasoCabecalho && !valorRegistro(registro, 'diasAtraso').toLowerCase().includes(diasAtrasoCabecalho)) return false;
                 return true;
             });
 
@@ -1840,6 +1874,46 @@
             aplicarEstadoFiltros(recolhido, false);
         }
 
+        const largurasColunasPadrao = [112, 82, 92, 70, 76, 105, 92, 92, 190, 190, 145, 150, 145, 145, 145, 220, 100, 165];
+
+        function aplicarLarguraColunas(percentual) {
+            const tabela = document.querySelector('.tabela-painel');
+            const regulador = document.getElementById('reguladorLarguraColunas');
+            const saida = document.getElementById('valorLarguraColunas');
+            if (!tabela) return;
+            const escala = Math.min(1.4, Math.max(.7, Number(percentual || 100) / 100));
+            let colgroup = tabela.querySelector('colgroup');
+            if (!colgroup) {
+                colgroup = document.createElement('colgroup');
+                tabela.insertBefore(colgroup, tabela.firstChild);
+            }
+            colgroup.innerHTML = largurasColunasPadrao.map(largura => `<col style="width:${Math.round(largura * escala)}px">`).join('');
+            tabela.style.width = `${Math.round(largurasColunasPadrao.reduce((total, largura) => total + largura, 0) * escala)}px`;
+            const valor = Math.round(escala * 100);
+            if (regulador) regulador.value = String(valor);
+            if (saida) saida.value = `${valor}%`;
+            if (saida) saida.textContent = `${valor}%`;
+        }
+
+        function alterarLarguraColunas(valor) {
+            aplicarLarguraColunas(valor);
+            try { localStorage.setItem('expresso-sm-largura-colunas', String(valor)); } catch (erro) { console.warn('Não foi possível salvar a largura das colunas.', erro); }
+        }
+
+        function restaurarLarguraColunas() {
+            aplicarLarguraColunas(100);
+            try { localStorage.setItem('expresso-sm-largura-colunas', '100'); } catch (erro) { console.warn('Não foi possível restaurar a largura das colunas.', erro); }
+        }
+
+        function inicializarLarguraColunas() {
+            let percentual = 100;
+            try {
+                const salvo = Number(localStorage.getItem('expresso-sm-largura-colunas'));
+                if (Number.isFinite(salvo) && salvo >= 70 && salvo <= 140) percentual = salvo;
+            } catch (erro) { console.warn('Não foi possível ler a largura das colunas.', erro); }
+            aplicarLarguraColunas(percentual);
+        }
+
         function configurarEfeitoCliqueMenu() {
             document.querySelectorAll('.btn-menu').forEach(menu => {
                 menu.addEventListener('click', evento => {
@@ -1898,6 +1972,7 @@
 
         inicializarEstadoDashboard();
         inicializarEstadoFiltros();
+        inicializarLarguraColunas();
         definirDataTrabalhoPadrao();
         atualizarDataAtual();
         configurarEfeitoCliqueMenu();
