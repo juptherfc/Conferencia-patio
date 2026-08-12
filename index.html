@@ -106,6 +106,19 @@
         .filtros-datas .campo-filtro .input-filtro { padding-left: 32px; }
         .btn-limpar-filtros { height: 34px; border: 1px solid #d9e0e7; border-radius: 7px; padding: 0 12px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
         .btn-limpar-filtros:hover { background: #f8fafc; border-color: #b9c5d1; }
+        .documento-historico { display: none; flex: 0 0 auto; padding: 12px 14px; border: 1px solid #d9e5fb; border-radius: 9px; background: #f7faff; }
+        .documento-historico.visivel { display: block; animation: abaEntrar .22s ease both; }
+        .documento-historico-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .documento-historico-titulo { color: #3d5e96; font-size: 12px; font-weight: 750; }
+        .documento-historico-resumo { margin-top: 3px; color: #7c8792; font-size: 10px; }
+        .btn-limpar-documento { border: 0; background: transparent; color: #64748b; font-size: 10px; font-weight: 700; text-decoration: underline; }
+        .documento-historico-grupos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .documento-historico-grupo { min-width: 220px; padding: 8px 10px; border: 1px solid #e3ebfa; border-radius: 7px; background: #fff; }
+        .documento-historico-chave { color: #374151; font-size: 11px; font-weight: 750; }
+        .documento-historico-dias { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .documento-historico-dia { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 5px; background: #eef4ff; color: #3d6ebd; font-size: 10px; font-weight: 700; }
+        .documento-historico-dia small { color: #7c8792; font-size: 9px; font-weight: 600; }
+        .documento-historico-vazio { margin-top: 9px; color: #9aa3ad; font-size: 10px; }
         .campo-filtro { position: relative; min-width: 0; }
         .campo-filtro-icone { position: absolute; left: 11px; top: 50%; z-index: 1; color: #9aa3ad; font-size: 13px; transform: translateY(-50%); pointer-events: none; }
         .input-filtro, .select-filtro { width: 100%; height: 34px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #5c6672; padding: 0 11px; font-size: 12px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
@@ -348,6 +361,17 @@
                     <button type="button" class="btn-limpar-filtros" onclick="limparFiltroDatas()">Limpar período</button>
                 </div>
             </section>
+
+            <div id="historicoDocumento" class="documento-historico" aria-live="polite">
+                <div class="documento-historico-cabecalho">
+                    <div>
+                        <div class="documento-historico-titulo">Dias de presença nas planilhas importadas</div>
+                        <div id="historicoDocumentoResumo" class="documento-historico-resumo"></div>
+                    </div>
+                    <button type="button" class="btn-limpar-documento" onclick="limparBuscaDocumento()">Limpar consulta</button>
+                </div>
+                <div id="historicoDocumentoGrupos" class="documento-historico-grupos"></div>
+            </div>
 
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
@@ -864,6 +888,72 @@
             filtrarTabela();
         }
 
+        function obterConsultasDocumento(busca, buscaNf) {
+            const consultas = [];
+            const adicionarConsulta = (tipo, campo, termo) => {
+                const termoNormalizado = normalizarTexto(termo);
+                if (!termoNormalizado) return;
+                const existe = dadosLocais.some(registro => normalizarTexto(valorRegistro(registro, campo)).includes(termoNormalizado));
+                if (existe && !consultas.some(consulta => consulta.tipo === tipo && consulta.termoNormalizado === termoNormalizado)) {
+                    consultas.push({ tipo, campo, termo, termoNormalizado });
+                }
+            };
+            adicionarConsulta('NF', 'notas', buscaNf);
+            if (busca) {
+                adicionarConsulta('CTe', 'cte', busca);
+                if (!buscaNf) adicionarConsulta('NF', 'notas', busca);
+            }
+            return consultas;
+        }
+
+        function obterDiasPresencaDocumento(consulta) {
+            const porDia = new Map();
+            dadosLocais.forEach(registro => {
+                const valor = normalizarTexto(valorRegistro(registro, consulta.campo));
+                if (!valor.includes(consulta.termoNormalizado)) return;
+                const data = obterDataTrabalhoRegistro(registro);
+                if (!data) return;
+                porDia.set(data, (porDia.get(data) || 0) + 1);
+            });
+            return [...porDia.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+        }
+
+        function atualizarHistoricoDocumento(busca, buscaNf) {
+            const painel = document.getElementById('historicoDocumento');
+            const grupos = document.getElementById('historicoDocumentoGrupos');
+            const resumo = document.getElementById('historicoDocumentoResumo');
+            if (!painel || !grupos || !resumo) return;
+            const consultas = obterConsultasDocumento(busca, buscaNf);
+            if (!consultas.length) {
+                painel.classList.remove('visivel');
+                grupos.innerHTML = '';
+                resumo.textContent = '';
+                return;
+            }
+
+            grupos.innerHTML = '';
+            let totalDias = 0;
+            consultas.forEach(consulta => {
+                const dias = obterDiasPresencaDocumento(consulta);
+                totalDias += dias.length;
+                const grupo = document.createElement('div');
+                grupo.className = 'documento-historico-grupo';
+                const diasHtml = dias.map(([data, quantidade]) => `<span class="documento-historico-dia">${escaparHtml(formatarDataImportacao(data))}<small>${quantidade} registro${quantidade === 1 ? '' : 's'}</small></span>`).join('');
+                grupo.innerHTML = `<div class="documento-historico-chave">${consulta.tipo}: ${escaparHtml(consulta.termo)}</div><div class="documento-historico-dias">${diasHtml || '<span class="documento-historico-vazio">Nenhum dia de importação identificado.</span>'}</div>`;
+                grupos.appendChild(grupo);
+            });
+            resumo.textContent = `${totalDias} dia${totalDias === 1 ? '' : 's'} de presença encontrado${totalDias === 1 ? '' : 's'} nas planilhas importadas.`;
+            painel.classList.add('visivel');
+        }
+
+        function limparBuscaDocumento() {
+            const busca = document.getElementById('buscaUnica');
+            const buscaNf = document.getElementById('buscaNf');
+            if (busca) busca.value = '';
+            if (buscaNf) buscaNf.value = '';
+            filtrarTabela();
+        }
+
         function obterEtiquetaRegistro(registro) {
             return valorRegistro(registro, 'etiqueta') || valorRegistro(registro, 'label') || valorRegistro(registro, 'codigoEtiqueta') || valorRegistro(registro, 'codigo');
         }
@@ -1233,6 +1323,7 @@
             const destino = obterValorCampo('filtroDestino');
             const agencia = obterValorCampo('filtroAgencia');
             const tipo = obterValorCampo('filtroTipo');
+            atualizarHistoricoDocumento(busca, buscaNf);
             const dataInicial = document.getElementById('filtroDataInicial')?.value || '';
             const dataFinal = document.getElementById('filtroDataFinal')?.value || '';
 
