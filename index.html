@@ -617,17 +617,17 @@
                 <div class="deposito-buscas" aria-label="Busca de registro">
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
-                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" oninput="agendarBuscaDeposito('etiqueta')" onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">#</span>
-                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off" oninput="agendarBuscaDeposito('cte')" onkeydown="acionarBuscaDeposito(event, 'cte')">
+                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('cte')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▤</span>
-                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off" oninput="agendarBuscaDeposito('nf')" onkeydown="acionarBuscaDeposito(event, 'nf')">
+                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('nf')">Buscar</button>
                     </div>
                 </div>
@@ -1320,24 +1320,14 @@
 
         let temporizadorBuscaDeposito = null;
 
-        function agendarBuscaDeposito(tipo) {
+        function agendarBuscaDeposito() {
             clearTimeout(temporizadorBuscaDeposito);
-            const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
-            const campo = document.getElementById(ids[tipo]);
-            const termo = campo ? campo.value.trim() : '';
-            if (!termo) {
-                if (contextoBuscaDeposito.tipo === tipo) limparRegistroDeposito(false);
-                return;
-            }
-            if (termo.length < 2) return;
-            temporizadorBuscaDeposito = setTimeout(() => buscarRegistroDeposito(tipo, { silenciosa: true }), 260);
         }
 
-        function acionarBuscaDeposito(evento, tipo) {
+        function acionarBuscaDeposito(evento) {
             if (evento.key === 'Enter') {
                 evento.preventDefault();
-                clearTimeout(temporizadorBuscaDeposito);
-                buscarRegistroDeposito(tipo);
+                mostrarAlerta('<b>Status:</b> clique em Buscar para executar a consulta.', 'info');
             }
         }
 
@@ -1385,13 +1375,13 @@
             });
 
             if (semelhantes.length) {
-                limparRegistroDeposito(false);
+                limparRegistroDeposito(false, false);
                 mostrarSugestoesDeposito(semelhantes, tipo, termo, false);
                 if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> encontramos ${semelhantes.length} registro(s) parecido(s), mas nenhum corresponde exatamente a "${escaparHtml(termo)}".`, 'info');
                 return;
             }
 
-            limparRegistroDeposito(false);
+            limparRegistroDeposito(false, false);
             mostrarFormularioSobra(tipo, termo);
             if (!silenciosa) mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
         }
@@ -1560,11 +1550,11 @@
             document.getElementById('depositoVazio').classList.add('oculto');
         }
 
-        function limparRegistroDeposito(mostrarMensagem = true) {
+        function limparRegistroDeposito(mostrarMensagem = true, limparBusca = true) {
             registroDepositoSelecionado = null;
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
-            limparCamposBuscaDeposito();
+            if (limparBusca) limparCamposBuscaDeposito();
             ['d-qtd', 'd-rota', 'd-tipo', 'd-qtd-sec'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
