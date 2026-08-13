@@ -1962,9 +1962,12 @@
         function abrirCadastroSobraAPartirDaBusca() {
             if (!exigirPermissao('cadastrarSobra')) return;
             const busca = { ...contextoBuscaDeposito };
+            const registroFonte = sugestoesDeposito.length === 1 ? sugestoesDeposito[0] : null;
             limparRegistroDeposito(false);
-            mostrarFormularioSobra(busca.tipo, busca.termo);
-            mostrarAlerta('<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
+            mostrarFormularioSobra(busca.tipo, busca.termo, registroFonte);
+            mostrarAlerta(registroFonte
+                ? '<b>Status:</b> dados do registro de outro dia foram importados para a nova sobra. Revise e salve.'
+                : '<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
         }
 
         function limparSugestoesDeposito(mostrarMensagem = true) {
@@ -1974,18 +1977,36 @@
             if (mostrarMensagem) mostrarAlerta('<b>Status:</b> opções de busca fechadas.', 'info');
         }
 
-        function mostrarFormularioSobra(tipo, termo) {
+        function mostrarFormularioSobra(tipo, termo, registroFonte = null) {
             if (!exigirPermissao('cadastrarSobra')) return;
             contextoBuscaDeposito = { tipo, termo };
             registroSobraSelecionada = null;
             modoEdicaoSobra = false;
+            const fonte = registroFonte || {};
             const campoCte = document.getElementById('sobra-cte');
             const campoNf = document.getElementById('sobra-nf');
-            if (campoCte) campoCte.value = tipo === 'cte' ? termo : '';
-            if (campoNf) campoNf.value = tipo === 'nf' ? termo : '';
+            const campoVolumes = document.getElementById('sobra-volumes');
+            const campoQtd = document.getElementById('sobra-qtd');
+            const campoRota = document.getElementById('sobra-rota');
+            const campoTipo = document.getElementById('sobra-tipo');
+            const campoQtdSec = document.getElementById('sobra-qtd-sec');
+            const campoAgencia = document.getElementById('sobra-agencia');
             const campoEmissao = document.getElementById('sobra-emissao');
-            if (campoEmissao && !campoEmissao.value) campoEmissao.value = obterDiaTrabalhoAtualParaSobra();
-            document.getElementById('sobraMensagem').textContent = `A busca por ${tipo.toUpperCase()} não encontrou resultado. Confira os dados e cadastre a sobra.`;
+            if (campoCte) campoCte.value = (valorRegistro(fonte, 'cte') || (tipo === 'cte' ? termo : '')).toUpperCase();
+            if (campoNf) campoNf.value = (valorRegistro(fonte, 'notas') || (tipo === 'nf' ? termo : '')).toUpperCase();
+            if (campoVolumes) campoVolumes.value = valorRegistro(fonte, 'volumes').toUpperCase();
+            if (campoQtd) campoQtd.value = registroFonte ? '' : valorRegistro(fonte, 'qtd').toUpperCase();
+            if (campoRota) campoRota.value = registroFonte ? '' : valorRegistro(fonte, 'rota').toUpperCase();
+            if (campoTipo) campoTipo.value = registroFonte ? '' : valorRegistro(fonte, 'tipo').toUpperCase();
+            if (campoQtdSec) campoQtdSec.value = registroFonte ? '' : valorRegistro(fonte, 'qtd2').toUpperCase();
+            if (campoAgencia) campoAgencia.value = valorRegistro(fonte, 'agenciaRemetente').toUpperCase();
+            if (campoEmissao) campoEmissao.value = obterDataEmFormatoISO(fonte.emissao) || obterDiaTrabalhoAtualParaSobra();
+            const possuiFonte = Boolean(registroFonte);
+            document.getElementById('sobraMensagem').textContent = possuiFonte
+                ? `Dados importados do dia ${formatarDataImportacao(obterDataTrabalhoRegistro(registroFonte))}. O Dia de Trabalho da nova sobra será ${formatarDataImportacao(obterDiaTrabalhoAtualParaSobra())}; a Data de emissão original foi preservada. Preencha somente Qtd, ROTA, Tipo e Qtd Sec antes de salvar.`
+                : `A busca por ${tipo.toUpperCase()} não encontrou resultado. Confira os dados e cadastre a sobra.`;
+            const badge = document.querySelector('#sobraCadastro .sobra-badge');
+            if (badge) badge.textContent = possuiFonte ? 'Dados importados' : 'Novo registro';
             document.getElementById('sobraCadastro').classList.add('visivel');
             document.getElementById('sobraCadastro').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
