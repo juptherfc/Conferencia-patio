@@ -609,6 +609,13 @@
         .alerta { box-shadow: 0 5px 14px rgba(43,77,116,.06); }
         .btn-principal { background: linear-gradient(135deg, #246fc5, #174f96); box-shadow: 0 6px 14px rgba(33,93,164,.2); }
         .btn-principal:hover { background: linear-gradient(135deg, #2e80dc, #1b5eaa); }
+        .tabela-painel { border-collapse: separate; border-spacing: 0; }
+        .tabela-painel thead th { border-bottom: 1px solid #cbd9e8; box-shadow: inset 0 -1px 0 rgba(255,255,255,.75); }
+        .tabela-painel tbody td { border-bottom: 1px solid #e8eef5; }
+        .tabela-painel tbody tr:last-child td { border-bottom: 0; }
+        .tabela-painel tbody tr:nth-child(even) td { background: rgba(246,250,254,.72); }
+        .tabela-painel tbody tr:hover td { background: #eef6ff; box-shadow: inset 0 1px 0 rgba(107,159,211,.16), inset 0 -1px 0 rgba(107,159,211,.16); }
+        .tabela-painel tbody tr.linha-entrega:hover td, .tabela-painel tbody tr.linha-bo:hover td, .tabela-painel tbody tr.linha-previsao:hover td { filter: saturate(1.04) brightness(.985); }
         @media (max-width: 900px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); } }
         @media (max-width: 600px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .sobra-resumo-card { min-height: 82px; padding: 11px; } .sobra-resumo-card strong { font-size: 21px; } .sobras-acoes-menu { justify-content: stretch; } .sobras-acoes-menu button { flex: 1; } .auditoria-filtros { grid-template-columns: 1fr; } }
     </style>
@@ -1021,6 +1028,7 @@
         let registroSobraSelecionada = null;
         let modoEdicaoSobra = false;
         let tentativasInicializacaoFirebase = 0;
+        let temporizadorSessaoNula = null;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1173,7 +1181,22 @@
         function gerenciarSessao(user) {
             const tela = document.getElementById('telaAcesso');
             const botao = document.getElementById('btnEntrar');
+            if (temporizadorSessaoNula) {
+                clearTimeout(temporizadorSessaoNula);
+                temporizadorSessaoNula = null;
+            }
             if (!user) {
+                // O Auth pode emitir null brevemente durante a restauração da sessão.
+                // Aguarde um instante somente quando a página ainda está inicializando;
+                // logout real continua levando imediatamente à tela de login.
+                if (tela?.classList.contains('inicializando')) {
+                    temporizadorSessaoNula = window.setTimeout(() => {
+                        temporizadorSessaoNula = null;
+                        limparSessaoPainel();
+                        mostrarTelaAcesso();
+                    }, 900);
+                    return;
+                }
                 limparSessaoPainel();
                 mostrarTelaAcesso();
                 return;
