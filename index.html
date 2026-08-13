@@ -2078,6 +2078,16 @@
                 let idxOco = encontrarIndice(valor => valor === 'ocorrencia' || valor === 'ocorr');
                 let idxDiasAtraso = indicePorAliases(['diasatraso', 'diasatraso', 'dias']);
                 let idxDataUltOcorrencia = indicePorAliases(['dataultocorrencia', 'ultocorrencia', 'ultocorr', 'ultimaocorrencia', 'uocorr']);
+                const possuiEstruturaCrua = primeiraLinha.includes('cnpjremetente') && primeiraLinha.includes('trecho') && primeiraLinha.includes('agenciadestino') && primeiraLinha.includes('cidadedestino');
+                if (possuiEstruturaCrua) {
+                    idxQtd = -1;
+                    idxRota = -1;
+                    idxTipo = -1;
+                    idxQtd2 = -1;
+                    idxRemetente = indicePorAliases(['clienteremetente']);
+                    idxDst = indicePorAliases(['clientedestino']);
+                    idxAgencia = indicePorAliases(['agenciaremetente']);
+                }
                 let inicioDados = 1;
 
                 if (idxCte === -1 && idxNf === -1) {
