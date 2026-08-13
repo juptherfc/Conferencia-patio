@@ -1020,6 +1020,7 @@
         let indiceRegistroDetalhes = null;
         let registroSobraSelecionada = null;
         let modoEdicaoSobra = false;
+        let tentativasInicializacaoFirebase = 0;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1170,11 +1171,17 @@
         }
 
         function gerenciarSessao(user) {
+            const tela = document.getElementById('telaAcesso');
+            const botao = document.getElementById('btnEntrar');
             if (!user) {
                 limparSessaoPainel();
                 mostrarTelaAcesso();
                 return;
             }
+            // A autenticação já respondeu; não mantenha a tela inteira coberta enquanto
+            // a autorização do UID é consultada no Realtime Database.
+            tela?.classList.remove('inicializando');
+            if (botao) { botao.disabled = true; botao.textContent = 'Validando...'; }
             definirMensagemAcesso('Validando autorização...', false);
             firebase.database().ref(`usuariosAutorizados/${user.uid}`).once('value').then(snapshot => {
                 const perfil = snapshot.val();
@@ -1226,22 +1233,35 @@
 
         function inicializarFirebase() {
             if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-                definirMensagemAcesso('A biblioteca de autenticação não foi carregada.');
+                tentativasInicializacaoFirebase += 1;
+                if (tentativasInicializacaoFirebase <= 20) {
+                    window.setTimeout(inicializarFirebase, 500);
+                    return;
+                }
+                mostrarTelaAcesso('A biblioteca de autenticação não foi carregada. Verifique sua conexão e recarregue a página.');
                 return;
             }
+            tentativasInicializacaoFirebase = 0;
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
+                // O listener deve ser registrado antes da persistência: se setPersistence falhar ou atrasar,
+                // a tela de login ainda precisa ser liberada e a sessão existente deve ser processada.
+                auth.onAuthStateChanged(gerenciarSessao);
                 const persistenciaSessao = firebase.auth.Auth?.Persistence?.SESSION || 'session';
-                auth.setPersistence(persistenciaSessao).then(() => {
-                    auth.onAuthStateChanged(gerenciarSessao);
-                }).catch(error => {
-                    console.error('Falha ao configurar a sessão do Firebase Auth:', error);
-                    definirMensagemAcesso('Não foi possível configurar a sessão deste navegador.');
+                auth.setPersistence(persistenciaSessao).catch(error => {
+                    console.warn('Não foi possível configurar a sessão temporária; o login continuará disponível:', error);
                 });
+                window.setTimeout(() => {
+                    const tela = document.getElementById('telaAcesso');
+                    if (tela?.classList.contains('inicializando')) {
+                        console.warn('Tempo excedido na verificação inicial da sessão.');
+                        mostrarTelaAcesso('Não foi possível verificar a sessão automaticamente. Faça login novamente.');
+                    }
+                }, 8000);
             } catch (error) {
                 console.error('Falha ao inicializar o Firebase Auth:', error);
-                definirMensagemAcesso('A configuração do serviço de autenticação está indisponível.');
+                mostrarTelaAcesso('A configuração do serviço de autenticação está indisponível.');
             }
         }
 
@@ -3123,15 +3143,20 @@
             if (campo) campo.textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date());
         }
 
-        inicializarEstadoDashboard();
-        mudarFiltroCard('todos');
-        inicializarLarguraColunas();
-        definirDataTrabalhoPadrao();
-        atualizarDataAtual();
-        configurarEfeitoCliqueMenu();
-        configurarEventosDetalhesRegistro();
-        configurarCamposEmCaixaAlta();
-        inicializarFirebase();
+        try {
+            inicializarEstadoDashboard();
+            mudarFiltroCard('todos');
+            inicializarLarguraColunas();
+            definirDataTrabalhoPadrao();
+            atualizarDataAtual();
+            configurarEfeitoCliqueMenu();
+            configurarEventosDetalhesRegistro();
+            configurarCamposEmCaixaAlta();
+        } catch (error) {
+            console.error('Falha ao preparar a interface inicial:', error);
+        } finally {
+            inicializarFirebase();
+        }
     </script>
 </body>
 </html>
