@@ -1965,38 +1965,49 @@
                     return encontrados[ocorrencia] ?? -1;
                 };
                 const indicePorNome = nome => encontrarIndice(valor => valor === nome || valor.includes(nome));
+                const indicePorAliases = aliases => encontrarIndice(valor => aliases.some(alias => valor === alias || valor.includes(alias)));
 
-                let idxCte = indicePorNome('cte');
-                let idxNf = encontrarIndice(valor => valor.includes('nota') || valor === 'nf');
-                let idxVol = indicePorNome('vol');
-                let idxQtd = encontrarIndice(valor => valor === 'qtd' || valor.includes('qtd'));
-                let idxQtd2 = encontrarIndice(valor => valor === 'qtd' || valor.includes('qtd'), 1);
-                let idxRota = indicePorNome('rota');
-                let idxTipo = indicePorNome('tipo');
-                let idxRemetente = encontrarIndice(valor => valor.includes('remetente'));
-                let idxDst = encontrarIndice(valor => valor.includes('destino'));
-                let idxAgencia = encontrarIndice(valor => valor.includes('agencia'));
-                let idxEmissao = encontrarIndice(valor => valor.includes('emissao'));
-                let idxPrevAgencia = encontrarIndice(valor => valor.includes('previsaoagencia'));
-                let idxPrevEntrega = encontrarIndice(valor => valor.includes('previsaoentrega'));
-                let idxDataOcorrencia = encontrarIndice(valor => valor.includes('dataocorrencia'));
+                let idxCte = indicePorAliases(['cte']);
+                let idxNf = indicePorAliases(['nota', 'nf']);
+                let idxVol = indicePorAliases(['volume', 'vol']);
+                let idxQtd = encontrarIndice(valor => valor === 'qtd' || valor === 'quantidade' || valor === 'qtdtotal');
+                let idxQtd2 = indicePorAliases(['qtdsec', 'quantidadesecundaria', 'qtd2']);
+                let idxRota = indicePorAliases(['rota']);
+                let idxTipo = indicePorAliases(['tipo']);
+                let idxRemetente = indicePorAliases(['remetente']);
+                let idxDst = indicePorAliases(['destino']);
+                let idxAgencia = indicePorAliases(['agencia']);
+                let idxEmissao = indicePorAliases(['emissao']);
+                let idxPrevAgencia = indicePorAliases(['previsaoagencia', 'prevagencia', 'prevag']);
+                let idxPrevEntrega = indicePorAliases(['previsaoentrega', 'preventrega', 'pentrega', 'pentreg']);
+                let idxDataOcorrencia = indicePorAliases(['dataocorrencia', 'dtaocorrencia', 'dtocorr', 'docorr']);
                 // "Data Ocorrência" e "Ocorrência" possuem texto semelhante.
-                // Aqui usamos correspondência exata para não gravar a data no campo da ocorrência.
-                let idxOco = encontrarIndice(valor => valor === 'ocorrencia');
-                let idxDiasAtraso = encontrarIndice(valor => valor.includes('diasatraso') || valor.includes('dias_atraso'));
-                let idxDataUltOcorrencia = encontrarIndice(valor => valor.includes('dataultocorrencia') || valor.includes('data_ult_ocorrencia'));
+                // Aqui usamos correspondência exata e aliases da coluna para não gravar a data na ocorrência.
+                let idxOco = encontrarIndice(valor => valor === 'ocorrencia' || valor === 'ocorr');
+                let idxDiasAtraso = indicePorAliases(['diasatraso', 'diasatraso', 'dias']);
+                let idxDataUltOcorrencia = indicePorAliases(['dataultocorrencia', 'ultocorrencia', 'ultocorr', 'ultimaocorrencia', 'uocorr']);
                 let inicioDados = 1;
 
                 if (idxCte === -1 && idxNf === -1) {
                     [idxCte, idxNf, idxVol, idxQtd, idxRota, idxTipo, idxQtd2, idxRemetente, idxDst, idxAgencia, idxEmissao, idxPrevAgencia, idxPrevEntrega, idxDataOcorrencia, idxOco, idxDiasAtraso, idxDataUltOcorrencia] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
                     inicioDados = 0;
+                } else {
+                    const indicesPadrao = { idxCte: 0, idxNf: 1, idxVol: 2, idxQtd: 3, idxRota: 4, idxTipo: 5, idxQtd2: 6, idxRemetente: 7, idxDst: 8, idxAgencia: 9, idxEmissao: 10, idxPrevAgencia: 11, idxPrevEntrega: 12, idxDataOcorrencia: 13, idxOco: 14, idxDiasAtraso: 15, idxDataUltOcorrencia: 16 };
+                    if (idxPrevAgencia === -1) idxPrevAgencia = indicesPadrao.idxPrevAgencia;
+                    if (idxPrevEntrega === -1) idxPrevEntrega = indicesPadrao.idxPrevEntrega;
+                    if (idxDataOcorrencia === -1) idxDataOcorrencia = indicesPadrao.idxDataOcorrencia;
+                    if (idxOco === -1) idxOco = indicesPadrao.idxOco;
+                    if (idxDiasAtraso === -1) idxDiasAtraso = indicesPadrao.idxDiasAtraso;
+                    if (idxDataUltOcorrencia === -1) idxDataUltOcorrencia = indicesPadrao.idxDataUltOcorrencia;
                 }
 
                 const valorCelula = (celulas, indice, padrao = '') => indice >= 0 && celulas[indice] !== undefined ? celulas[indice].trim() : padrao;
                 const pareceData = valor => /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/.test(String(valor || '').trim());
                 const loteId = criarIdentificadorLote(data);
                 const dataImportacao = new Date().toISOString();
-                const gravacoes = [];
+                const idxEtiqueta = indicePorAliases(['etiqueta', 'label']);
+                const atualizacoes = {};
+                const registrosImportados = [];
                 for (let i = inicioDados; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
                     const celulas = linhas[i].split('\t');
@@ -2008,7 +2019,7 @@
                         dataTrabalho: data,
                         dataImportacao,
                         cte,
-                        etiqueta: valorCelula(celulas, encontrarIndice(valor => valor.includes('etiqueta') || valor.includes('label'))),
+                        etiqueta: valorCelula(celulas, idxEtiqueta),
                         notas: valorCelula(celulas, idxNf, '-'),
                         volumes: valorCelula(celulas, idxVol, '1'),
                         qtd: valorCelula(celulas, idxQtd),
@@ -2027,16 +2038,26 @@
                         diasAtraso: valorCelula(celulas, idxDiasAtraso),
                         dataUltOcorrencia: valorCelula(celulas, idxDataUltOcorrencia)
                     };
-                    gravacoes.push(db.child(obterChaveRegistro(cte, data)).set(registro));
+                    const chave = obterChaveRegistro(cte, data);
+                    atualizacoes[chave] = registro;
+                    registrosImportados.push(registro);
                 }
 
-                Promise.all(gravacoes).then(() => {
+                if (!registrosImportados.length) {
+                    mostrarAlerta('<b>Atenção:</b> nenhuma linha válida foi encontrada. Verifique o cabeçalho CTe/NF e o separador por tabulação.', 'erro');
+                    return;
+                }
+                const salvarLote = typeof db.update === 'function' ? db.update(atualizacoes) : Promise.all(Object.entries(atualizacoes).map(([chave, registro]) => db.child(chave).set(registro)));
+                salvarLote.then(() => {
                     caixaTexto.value = '';
                     atualizarOpcoesFiltros();
+                    filtrarTabela();
                     atualizarFiltrosHistorico();
                     renderizarHistorico();
                     mudarAba('conf');
-                    mostrarAlerta('<b>Status:</b> planilha processada com sucesso.', 'sucesso');
+                    const totalEntrega = registrosImportados.filter(registro => ocorrenciaIndicaEntrega(registro.ocorrencia)).length;
+                    const totalBo = registrosImportados.filter(registro => ocorrenciaIndicaBo(registro.ocorrencia)).length;
+                    mostrarAlerta(`<b>Status:</b> planilha processada: ${registrosImportados.length} registros, ${totalEntrega} EM ENTREGA e ${totalBo} com B.O.`, 'sucesso');
                 }).catch(error => {
                     console.error('Erro ao salvar planilha:', error);
                     alert('Erro ao salvar os dados da planilha.');
