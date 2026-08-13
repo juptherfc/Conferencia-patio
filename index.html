@@ -561,6 +561,56 @@
             .detalhes-conteudo { grid-template-columns: 1fr; }
             .detalhes-item.detalhes-item-destaque { grid-column: span 1; }
         }
+        /* Camada visual operacional: mais contraste, cor e hierarquia sem perder a leveza. */
+        body { background: linear-gradient(135deg, #eef4fb 0%, #f7f9fc 52%, #edf5ff 100%); }
+        aside { background: linear-gradient(180deg, #173d70 0%, #215b99 58%, #1a477d 100%); border-right-color: #2f6da9; box-shadow: 10px 0 28px rgba(25, 69, 117, .16); }
+        .marca { border-bottom-color: rgba(255,255,255,.16); }
+        .marca-icone, .acesso-marca-icone { background: linear-gradient(145deg, #f7c948, #e89f2d); color: #173d70; box-shadow: 0 6px 14px rgba(0,0,0,.14); }
+        .marca-texto, .marca-subtexto, .sidebar-rodape { color: rgba(255,255,255,.94); }
+        .marca-subtexto, .sidebar-rodape { color: rgba(231,241,255,.7); }
+        .btn-menu { color: rgba(238,246,255,.76); }
+        .btn-menu::before { background: #f7c948; }
+        .btn-menu:hover { background: rgba(255,255,255,.10); color: #fff; }
+        .btn-menu.active { background: rgba(255,255,255,.16); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+        .menu-icone, .btn-menu.active .menu-icone { color: #f7c948; }
+        .topbar { padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.62); border: 1px solid rgba(148,180,218,.28); box-shadow: 0 8px 26px rgba(35,79,128,.07); }
+        .topbar-titulo { color: #173d70; }
+        .topbar-subtitulo { color: #6f88a5; }
+        .avatar { background: #dcecff; color: #215b99; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(38,91,145,.14); }
+        .bloco, .filtros-card, .card { border-color: #d8e5f2; box-shadow: 0 8px 22px rgba(34,81,130,.07); }
+        .bloco { background: rgba(255,255,255,.91); }
+        .card { background: linear-gradient(145deg, #fff 0%, #f7fbff 100%); }
+        .card.filtrado { border-color: #6fa8e6; background: linear-gradient(145deg, #eaf4ff 0%, #f8fbff 100%); }
+        .card-num { color: #173d70; }
+        .dashboard-titulo, .tabela-titulo { color: #27598c; }
+        .aba-conteudo.active { animation: abaEntrar .24s cubic-bezier(.23,1,.32,1) both; }
+        .sobra-resumo-grid { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+        .sobra-resumo-card { min-height: 92px; padding: 13px 14px; border: 1px solid transparent; border-radius: 12px; box-shadow: 0 6px 16px rgba(39,82,128,.07); }
+        .sobra-resumo-card span { display: block; color: #48627c; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+        .sobra-resumo-card strong { display: block; margin-top: 8px; color: #173d70; font-size: 25px; line-height: 1; }
+        .sobra-resumo-card small { display: block; margin-top: 7px; color: #6f88a5; font-size: 10px; }
+        .sobra-resumo-total { background: linear-gradient(145deg, #e5f1ff, #f6fbff); border-color: #bed9f5; }
+        .sobra-resumo-pendente { background: linear-gradient(145deg, #fff1d6, #fffaf0); border-color: #f4d69c; }
+        .sobra-resumo-pendente strong { color: #b16b16; }
+        .sobra-resumo-completa { background: linear-gradient(145deg, #e3f7ef, #f7fffb); border-color: #b9e6d2; }
+        .sobra-resumo-completa strong { color: #16825e; }
+        .sobra-resumo-dia { background: linear-gradient(145deg, #ede8ff, #fbf9ff); border-color: #d6c9f4; }
+        .sobra-resumo-dia strong { font-size: 18px; color: #6744a5; }
+        .sobras-acoes-menu { display: flex; justify-content: flex-end; gap: 8px; margin-top: 13px; }
+        .sobra-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; white-space: nowrap; }
+        .sobra-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .sobra-status-pendente { background: #fff1d6; color: #b16b16; }
+        .sobra-status-completa { background: #e3f7ef; color: #16825e; }
+        .sobras-tabela th, .auditoria-tabela th { background: linear-gradient(180deg, #eaf3ff, #dcecff); color: #27598c; }
+        .sobras-tabela tr:nth-child(even), .auditoria-tabela tr:nth-child(even) { background: #f8fbff; }
+        .auditoria-subtexto { display: block; margin-top: 3px; color: #7890aa; font-size: 9px; }
+        .auditoria-acao { display: inline-flex; padding: 4px 7px; border-radius: 999px; background: #e9efff; color: #4e52a4; font-size: 9px; font-weight: 800; white-space: nowrap; }
+        .auditoria-filtros { grid-template-columns: minmax(180px, 1fr) minmax(150px, .8fr) auto; }
+        .alerta { box-shadow: 0 5px 14px rgba(43,77,116,.06); }
+        .btn-principal { background: linear-gradient(135deg, #246fc5, #174f96); box-shadow: 0 6px 14px rgba(33,93,164,.2); }
+        .btn-principal:hover { background: linear-gradient(135deg, #2e80dc, #1b5eaa); }
+        @media (max-width: 900px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); } }
+        @media (max-width: 600px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .sobra-resumo-card { min-height: 82px; padding: 11px; } .sobra-resumo-card strong { font-size: 21px; } .sobras-acoes-menu { justify-content: stretch; } .sobras-acoes-menu button { flex: 1; } .auditoria-filtros { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -604,6 +654,9 @@
             </button>
             <button type="button" id="menu-hist" class="btn-menu" onclick="mudarAba('hist')" title="Histórico">
                 <span class="menu-icone" aria-hidden="true">◷</span><span class="menu-texto">Histórico</span>
+            </button>
+            <button type="button" id="menu-auditoria" class="btn-menu" data-permissao="verAuditoria" onclick="mudarAba('auditoria')" title="Auditoria">
+                <span class="menu-icone" aria-hidden="true">◉</span><span class="menu-texto">Auditoria</span>
             </button>
         </nav>
 
@@ -839,8 +892,8 @@
                     <div class="sobras-contador" id="sobrasContador">0 sobras cadastradas</div>
                     <div class="sobras-tabela-container">
                         <table class="sobras-tabela">
-                            <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Ação</th></tr></thead>
-                            <tbody id="tabelaSobras"><tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                            <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Status</th><th>Ação</th></tr></thead>
+                            <tbody id="tabelaSobras"><tr><td colspan="11" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -859,14 +912,42 @@
                 <div class="historico-filtros" aria-label="Filtro de sobras">
                     <select id="filtroSobrasDiaTrabalho" class="select-filtro" onchange="renderizarSobrasMenu()"><option value="">Todos os dias</option></select>
                 </div>
-                <div class="historico-resumo">
-                    <span><strong id="sobrasMenuContador">0</strong> sobras encontradas</span>
+                <div class="sobras-resumo-grid" aria-label="Resumo das sobras">
+                    <article class="sobra-resumo-card sobra-resumo-total"><span>Total filtrado</span><strong id="sobrasMenuContador">0</strong><small>lançamentos encontrados</small></article>
+                    <article class="sobra-resumo-card sobra-resumo-pendente"><span>Pendentes</span><strong id="sobrasMenuPendentes">0</strong><small>aguardando campos manuais</small></article>
+                    <article class="sobra-resumo-card sobra-resumo-completa"><span>Completas</span><strong id="sobrasMenuCompletas">0</strong><small>prontas para conferência</small></article>
+                    <article class="sobra-resumo-card sobra-resumo-dia"><span>Dia exibido</span><strong id="sobrasMenuDiaExibido">Todos</strong><small id="sobrasMenuUltimoLancamento">Sem lançamentos</small></article>
+                </div>
+                <div class="sobras-acoes-menu">
+                    <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="exportarSobrasExcel()">Exportar Excel</button>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="imprimirSobrasMenu()">Imprimir / PDF</button>
                 </div>
             </div>
             <div class="tabela-container historico-tabela-container">
                 <table class="historico-tabela sobras-tabela">
-                    <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Ação</th></tr></thead>
-                    <tbody id="tabelaSobrasMenu"><tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                    <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Status</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaSobrasMenu"><tr><td colspan="11" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tela-auditoria" class="aba-conteudo" data-permissao="verAuditoria">
+            <div class="bloco">
+                <h3 style="color:#374151;">Trilha de auditoria</h3>
+                <p style="margin-top:5px; color:#8a949e; font-size:12px;">Consulte inclusões e alterações realizadas no painel por usuário, ação e dia de trabalho.</p>
+                <div class="historico-filtros auditoria-filtros" aria-label="Filtros da auditoria">
+                    <select id="filtroAuditoriaAcao" class="select-filtro" onchange="renderizarAuditoria()"><option value="">Todas as ações</option></select>
+                    <input type="date" id="filtroAuditoriaDia" class="input-filtro" onchange="renderizarAuditoria()" aria-label="Filtrar auditoria por dia">
+                    <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosAuditoria()">Limpar filtros</button>
+                </div>
+                <div class="historico-resumo">
+                    <span><strong id="auditoriaContador">0</strong> eventos encontrados</span>
+                </div>
+            </div>
+            <div class="tabela-container historico-tabela-container">
+                <table class="historico-tabela auditoria-tabela">
+                    <thead><tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Dia Trabalho</th><th>Chave</th><th>Detalhes</th></tr></thead>
+                    <tbody id="tabelaAuditoria"><tr><td colspan="6" class="historico-vazio">Nenhum evento de auditoria carregado.</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -922,10 +1003,11 @@
         };
 
         let db = null;
+        let auditoriaRef = null;
         let auth = null;
         let usuarioAutenticado = null;
         let perfilAutorizado = null;
-        let dadosLocais = [];
+        let auditoriaLocais = [];
         let registrosFiltradosAtuais = [];
         let registrosSelecionados = new Set();
         let filtroCardAtivo = 'todos';
@@ -972,7 +1054,10 @@
 
         function limparSessaoPainel() {
             if (db && typeof db.off === 'function') db.off();
+            if (auditoriaRef && typeof auditoriaRef.off === 'function') auditoriaRef.off();
             db = null;
+            auditoriaRef = null;
+            auditoriaLocais = [];
             usuarioAutenticado = null;
             perfilAutorizado = null;
             dadosLocais = [];
@@ -1018,6 +1103,41 @@
             if (temAcessoAutorizado()) return true;
             mostrarTelaAcesso('Faça login com uma conta autorizada para continuar.');
             return false;
+        }
+
+        function obterContextoAuditoria() {
+            return {
+                uid: usuarioAutenticado?.uid || '',
+                email: usuarioAutenticado?.email || '',
+                nome: perfilAutorizado?.nome || usuarioAutenticado?.email || '',
+                perfil: String(perfilAutorizado?.perfil || '').toLowerCase()
+            };
+        }
+
+        function registrarAuditoria(acao, chaveRegistro, antes = null, depois = null, metadados = {}) {
+            if (!db?.root || !temPermissao('editarDeposito')) return Promise.resolve();
+            const contexto = obterContextoAuditoria();
+            const evento = {
+                ...contexto,
+                acao,
+                chaveRegistro: chaveRegistro || '',
+                dataTrabalho: metadados.dataTrabalho || obterDataTrabalhoRegistro(depois || antes || {}),
+                loteId: metadados.loteId || valorRegistro(depois || antes || {}, 'loteId'),
+                criadoEm: new Date().toISOString(),
+                antes,
+                depois,
+                detalhes: metadados.detalhes || ''
+            };
+            return db.root.child('auditoria').push(evento).catch(error => {
+                console.warn('Não foi possível registrar a auditoria:', error);
+            });
+        }
+
+        async function obterRegistrosMaisRecentesParaValidacao() {
+            if (!db) return dadosLocais;
+            const snapshot = await db.once('value');
+            const valor = snapshot.val();
+            return valor ? Object.entries(valor).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
         }
 
         function traduzirErroLogin(error) {
@@ -1075,6 +1195,18 @@
         function inicializarBancoAutorizado() {
             if (db) return;
             db = firebase.database().ref('patio_sao_miguel');
+            if (temPermissao('verAuditoria')) {
+                auditoriaRef = firebase.database().ref('auditoria').limitToLast(500);
+                auditoriaRef.on('value', snap => {
+                    const val = snap.val();
+                    auditoriaLocais = val ? Object.entries(val).map(([firebaseKey, evento]) => ({ ...evento, _firebaseKey: firebaseKey })) : [];
+                    renderizarAuditoria();
+                }, error => {
+                    console.error('Falha ao carregar a auditoria:', error);
+                    auditoriaLocais = [];
+                    renderizarAuditoria();
+                });
+            }
             db.on('value', snap => {
                 const val = snap.val();
                 dadosLocais = val ? Object.entries(val).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
@@ -1130,6 +1262,7 @@
             }
             if (id === 'hist') renderizarHistorico();
             if (id === 'sobras') renderizarSobrasMenu();
+            if (id === 'auditoria') renderizarAuditoria();
         }
 
         function mostrarAlerta(mensagem, tipo) {
@@ -1361,6 +1494,44 @@
             return loteImportado || lotes[0] || criarIdentificadorLote(dataTrabalho);
         }
 
+        function normalizarChaveIndiceSobra(valor) {
+            return normalizarTexto(valor).replace(/[.#$\[\]\/]/g, '_').replace(/\s+/g, '_').slice(0, 120);
+        }
+
+        function obterChavesIndiceSobra(diaTrabalho, cte, nf) {
+            const dia = normalizarChaveIndiceSobra(diaTrabalho);
+            return [cte ? `CTE_${dia}_${normalizarChaveIndiceSobra(cte)}` : '', nf ? `NF_${dia}_${normalizarChaveIndiceSobra(nf)}` : ''].filter(Boolean);
+        }
+
+        async function reservarIndiceSobra(diaTrabalho, cte, nf, chaveRegistro, registroAnterior = null) {
+            if (!db?.root || typeof db.root.child('indiceSobras').child(diaTrabalho).transaction !== 'function') return true;
+            const indiceRef = db.root.child('indiceSobras').child(normalizarChaveIndiceSobra(diaTrabalho));
+            const chavesNovas = obterChavesIndiceSobra(diaTrabalho, cte, nf);
+            const chavesAntigas = obterChavesIndiceSobra(diaTrabalho, valorRegistro(registroAnterior, 'cte'), valorRegistro(registroAnterior, 'notas'));
+            const resultado = await indiceRef.transaction(indiceAtual => {
+                const indice = { ...(indiceAtual || {}) };
+                chavesAntigas.forEach(chave => {
+                    if (indice[chave] === chaveRegistro) delete indice[chave];
+                });
+                if (chavesNovas.some(chave => indice[chave] && indice[chave] !== chaveRegistro)) return;
+                chavesNovas.forEach(chave => { indice[chave] = chaveRegistro; });
+                return indice;
+            }, undefined, false);
+            return Boolean(resultado?.committed);
+        }
+
+        async function liberarIndiceSobra(diaTrabalho, cte, nf, chaveRegistro) {
+            if (!db?.root) return;
+            const indiceRef = db.root.child('indiceSobras').child(normalizarChaveIndiceSobra(diaTrabalho));
+            await indiceRef.transaction(indiceAtual => {
+                const indice = { ...(indiceAtual || {}) };
+                obterChavesIndiceSobra(diaTrabalho, cte, nf).forEach(chave => {
+                    if (indice[chave] === chaveRegistro) delete indice[chave];
+                });
+                return indice;
+            }, undefined, false).catch(error => console.warn('Não foi possível liberar o índice de sobra:', error));
+        }
+
         function obterPartesData(data) {
             const partes = String(data || '').split('-');
             return { ano: partes[0] || '', mes: partes[1] || '', dia: partes[2] || '' };
@@ -1459,6 +1630,66 @@
             });
         }
 
+        function formatarDataHoraAuditoria(valor) {
+            const texto = String(valor || '').trim();
+            if (!texto) return '-';
+            const data = new Date(texto);
+            return Number.isNaN(data.getTime()) ? texto : new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(data);
+        }
+
+        function rotuloAcaoAuditoria(acao) {
+            const rotulos = {
+                cadastrar_sobra: 'Cadastrar sobra',
+                editar_sobra: 'Editar sobra',
+                editar_deposito: 'Editar depósito',
+                editar_detalhes: 'Editar card de detalhes',
+                importar_lote: 'Importar lote',
+                excluir_lote: 'Excluir lote'
+            };
+            return rotulos[acao] || acao || '-';
+        }
+
+        function renderizarAuditoria() {
+            const corpo = document.getElementById('tabelaAuditoria');
+            const contador = document.getElementById('auditoriaContador');
+            const filtroAcao = document.getElementById('filtroAuditoriaAcao');
+            const filtroDia = document.getElementById('filtroAuditoriaDia');
+            if (!corpo || !contador || !filtroAcao || !filtroDia) return;
+            preencherSelect('filtroAuditoriaAcao', auditoriaLocais.map(evento => evento.acao), 'Todas as ações', rotuloAcaoAuditoria);
+            const acaoSelecionada = filtroAcao.value;
+            const diaSelecionado = filtroDia.value;
+            const eventos = auditoriaLocais
+                .filter(evento => !acaoSelecionada || valorRegistro(evento, 'acao') === acaoSelecionada)
+                .filter(evento => !diaSelecionado || obterDataEmFormatoISO(evento.criadoEm) === diaSelecionado)
+                .sort((a, b) => String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')));
+            contador.textContent = String(eventos.length);
+            corpo.innerHTML = '';
+            if (!eventos.length) {
+                corpo.innerHTML = '<tr><td colspan="6" class="historico-vazio">Nenhum evento encontrado para os filtros selecionados.</td></tr>';
+                return;
+            }
+            eventos.forEach(evento => {
+                const linha = document.createElement('tr');
+                linha.innerHTML = `
+                    <td>${escaparHtml(formatarDataHoraAuditoria(evento.criadoEm))}</td>
+                    <td><strong>${escaparHtml(evento.nome || evento.email || '-')}</strong><small class="auditoria-subtexto">${escaparHtml(evento.email || evento.uid || '')}</small></td>
+                    <td><span class="auditoria-acao">${escaparHtml(rotuloAcaoAuditoria(evento.acao))}</span></td>
+                    <td>${escaparHtml(formatarDataImportacao(evento.dataTrabalho) || '-')}</td>
+                    <td>${escaparHtml(evento.chaveRegistro || '-')}</td>
+                    <td>${escaparHtml(evento.detalhes || '-')}</td>
+                `;
+                corpo.appendChild(linha);
+            });
+        }
+
+        function limparFiltrosAuditoria() {
+            const acao = document.getElementById('filtroAuditoriaAcao');
+            const dia = document.getElementById('filtroAuditoriaDia');
+            if (acao) acao.value = '';
+            if (dia) dia.value = '';
+            renderizarAuditoria();
+        }
+
         function excluirLoteImportacao(loteId, data, quantidade) {
             if (!db || !exigirAcessoAutorizado() || !exigirPermissao('excluirLote')) return;
             const confirmacao = confirm(`Excluir o lote de ${formatarDataImportacao(data)} com ${quantidade} registro(s)? Esta ação não pode ser desfeita.`);
@@ -1480,6 +1711,7 @@
             }
 
             db.update(atualizacoes).then(() => {
+                registrarAuditoria('excluir_lote', loteId, registrosDoLote, null, { dataTrabalho: data, loteId, detalhes: `Exclusão de lote com ${registrosDoLote.length} registro(s)` });
                 mostrarAlerta(`<b>Status:</b> lote de ${formatarDataImportacao(data)} excluído com sucesso.`, 'sucesso');
             }).catch(error => {
                 console.error('Erro ao excluir lote:', error);
@@ -1493,11 +1725,15 @@
                 .sort((a, b) => String(b.dataImportacao || b.emissao || '').localeCompare(String(a.dataImportacao || a.emissao || '')));
         }
 
+        function sobraTemPendencias(registro) {
+            return !valorRegistro(registro, 'volumes') || !valorRegistro(registro, 'qtd') || !valorRegistro(registro, 'rota') || !valorRegistro(registro, 'agenciaRemetente') || !obterDataEmFormatoISO(registro.emissao);
+        }
+
         function renderizarTabelaSobras(corpo, sobras) {
             if (!corpo) return;
             corpo.innerHTML = '';
             if (!sobras.length) {
-                corpo.innerHTML = '<tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
+                corpo.innerHTML = '<tr><td colspan="11" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
                 return;
             }
 
@@ -1513,6 +1749,7 @@
                     <td>${escaparHtml(valorRegistro(registro, 'qtd2') || '-')}</td>
                     <td>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</td>
                     <td>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</td>
+                    <td><span class="sobra-status ${sobraTemPendencias(registro) ? 'sobra-status-pendente' : 'sobra-status-completa'}">${sobraTemPendencias(registro) ? 'Pendente' : 'Completa'}</span></td>
                     <td class="sobra-acao"></td>
                 `;
                 const acao = linha.querySelector('.sobra-acao');
@@ -1543,6 +1780,16 @@
             renderizarTabelaSobras(corpo, sobras);
         }
 
+        function obterSobrasMenuFiltradas() {
+            const filtro = document.getElementById('filtroSobrasDiaTrabalho');
+            const todas = obterRegistrosSobras();
+            const diaSelecionado = filtro?.value || '';
+            const sobras = diaSelecionado === '__BRANCO__'
+                ? todas.filter(registro => !obterDataTrabalhoRegistro(registro))
+                : todas.filter(registro => !diaSelecionado || obterDataTrabalhoRegistro(registro) === diaSelecionado);
+            return { sobras, diaSelecionado };
+        }
+
         function renderizarSobrasMenu() {
             const corpo = document.getElementById('tabelaSobrasMenu');
             const contador = document.getElementById('sobrasMenuContador');
@@ -1550,12 +1797,62 @@
             if (!corpo || !contador || !filtro) return;
             const todas = obterRegistrosSobras();
             preencherSelect('filtroSobrasDiaTrabalho', todas.map(obterDataTrabalhoRegistro), 'Todos os dias', formatarDataImportacao);
-            const diaSelecionado = filtro.value;
-            const sobras = diaSelecionado === '__BRANCO__'
-                ? todas.filter(registro => !obterDataTrabalhoRegistro(registro))
-                : todas.filter(registro => !diaSelecionado || obterDataTrabalhoRegistro(registro) === diaSelecionado);
+            const { sobras, diaSelecionado } = obterSobrasMenuFiltradas();
+            const pendentes = sobras.filter(sobraTemPendencias).length;
+            const completas = sobras.length - pendentes;
+            const ultimoLancamento = sobras[0]?.dataImportacao || sobras[0]?.emissao || '';
             contador.textContent = String(sobras.length);
+            document.getElementById('sobrasMenuPendentes').textContent = String(pendentes);
+            document.getElementById('sobrasMenuCompletas').textContent = String(completas);
+            document.getElementById('sobrasMenuDiaExibido').textContent = diaSelecionado ? formatarDataImportacao(diaSelecionado) : 'Todos';
+            document.getElementById('sobrasMenuUltimoLancamento').textContent = ultimoLancamento ? `Último: ${formatarDataHoraAuditoria(ultimoLancamento)}` : 'Sem lançamentos';
             renderizarTabelaSobras(corpo, sobras);
+        }
+
+        function exportarSobrasExcel() {
+            if (!exigirAcessoAutorizado()) return;
+            const { sobras, diaSelecionado } = obterSobrasMenuFiltradas();
+            if (!sobras.length) {
+                mostrarAlerta('<b>Atenção:</b> não há sobras para exportar com o filtro selecionado.', 'info');
+                return;
+            }
+            const linhas = sobras.map(registro => ({
+                'Dia Trabalho': obterDataTrabalhoRegistro(registro),
+                CTe: valorRegistro(registro, 'cte'),
+                NF: valorRegistro(registro, 'notas'),
+                Volumes: valorRegistro(registro, 'volumes'),
+                Qtd: valorRegistro(registro, 'qtd'),
+                ROTA: valorRegistro(registro, 'rota'),
+                Tipo: valorRegistro(registro, 'tipo'),
+                'Qtd Sec': valorRegistro(registro, 'qtd2'),
+                Agência: valorRegistro(registro, 'agenciaRemetente'),
+                'Data de emissão': valorRegistro(registro, 'emissao'),
+                Status: sobraTemPendencias(registro) ? 'Pendente' : 'Completa'
+            }));
+            const planilha = XLSX.utils.json_to_sheet(linhas);
+            const livro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(livro, planilha, 'Sobras');
+            const sufixo = diaSelecionado && diaSelecionado !== '__BRANCO__' ? diaSelecionado : 'todos-os-dias';
+            XLSX.writeFile(livro, `sobras_${sufixo}.xlsx`);
+            mostrarAlerta(`<b>Status:</b> ${sobras.length} sobra(s) exportada(s) para Excel.`, 'sucesso');
+        }
+
+        function imprimirSobrasMenu() {
+            if (!exigirAcessoAutorizado()) return;
+            const { sobras, diaSelecionado } = obterSobrasMenuFiltradas();
+            if (!sobras.length) {
+                mostrarAlerta('<b>Atenção:</b> não há sobras para imprimir com o filtro selecionado.', 'info');
+                return;
+            }
+            const janela = window.open('', '_blank', 'width=1200,height=800');
+            if (!janela) {
+                mostrarAlerta('<b>Atenção:</b> o navegador bloqueou a janela de impressão. Permita pop-ups para continuar.', 'info');
+                return;
+            }
+            const titulo = diaSelecionado && diaSelecionado !== '__BRANCO__' ? `Sobras — ${formatarDataImportacao(diaSelecionado)}` : 'Sobras — todos os dias';
+            const linhas = sobras.map(registro => `<tr><td>${escaparHtml(obterDataTrabalhoRegistro(registro))}</td><td>${escaparHtml(valorRegistro(registro, 'cte') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'notas') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'volumes') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'qtd') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'rota') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'tipo') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'qtd2') || '-')}</td><td>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</td><td>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</td><td>${sobraTemPendencias(registro) ? 'Pendente' : 'Completa'}</td></tr>`).join('');
+            janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escaparHtml(titulo)}</title><style>body{font-family:Arial,sans-serif;color:#172033;padding:24px}h1{font-size:20px;margin:0 0 6px}p{color:#64748b;font-size:12px;margin:0 0 18px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{border:1px solid #d7e2ed;padding:7px;text-align:left}th{background:#e8f1ff;color:#244d80}tr:nth-child(even){background:#f8fbff}@media print{button{display:none}}</style></head><body><h1>${escaparHtml(titulo)}</h1><p>Expresso SM · ${sobras.length} sobra(s)</p><table><thead><tr><th>Dia Trabalho</th><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Emissão</th><th>Status</th></tr></thead><tbody>${linhas}</tbody></table><script>window.onload=()=>window.print();<\/script></body></html>`);
+            janela.document.close();
         }
 
         function iniciarEdicaoSobra(registro) {
@@ -2038,7 +2335,7 @@
             if (mostrarMensagem) mostrarAlerta('<b>Status:</b> cadastro de sobra cancelado.', 'info');
         }
 
-        function salvarCadastroSobra() {
+        async function salvarCadastroSobra() {
             if (!db || !exigirAcessoAutorizado()) return;
             const emEdicao = modoEdicaoSobra && registroSobraSelecionada;
             const permissao = emEdicao ? 'editarDeposito' : 'cadastrarSobra';
@@ -2064,17 +2361,26 @@
                 return;
             }
 
-            const diaTrabalhoAtual = obterDiaTrabalhoAtualParaSobra(valores['sobra-emissao']);
+            const diaTrabalhoAtual = emEdicao ? obterDataTrabalhoRegistro(registroSobraSelecionada) : obterDiaTrabalhoAtualParaSobra(valores['sobra-emissao']);
             const chaveAtual = emEdicao ? obterChaveRegistroAtual(registroSobraSelecionada) : '';
-            const registroExistente = dadosLocais.some(registro => {
+            let registrosParaValidar;
+            try {
+                registrosParaValidar = await obterRegistrosMaisRecentesParaValidacao();
+            } catch (error) {
+                console.error('Erro ao atualizar a validação de duplicidade:', error);
+                mostrarAlerta('<b>Erro:</b> não foi possível confirmar a duplicidade no Firebase. Tente novamente.', 'erro');
+                return;
+            }
+            const duplicado = registrosParaValidar.find(registro => {
                 if (emEdicao && obterChaveRegistroAtual(registro) === chaveAtual) return false;
                 const mesmoDiaTrabalho = obterDataTrabalhoRegistro(registro) === diaTrabalhoAtual;
                 const mesmoCte = cte && valorRegistro(registro, 'cte') === cte;
                 const mesmaNf = nf && valorRegistro(registro, 'notas') === nf;
                 return mesmoDiaTrabalho && (mesmoCte || mesmaNf);
             });
-            if (registroExistente) {
-                mostrarAlerta('<b>Atenção:</b> já existe outro registro com este identificador e data de emissão.', 'info');
+            if (duplicado) {
+                const ident = valorRegistro(duplicado, 'cte') || valorRegistro(duplicado, 'notas');
+                mostrarAlerta(`<b>Atenção:</b> o registro ${ident} já existe no dia de trabalho ${formatarDataImportacao(diaTrabalhoAtual)}. Não é permitido duplicar lançamentos no mesmo dia.`, 'erro');
                 return;
             }
 
@@ -2089,14 +2395,29 @@
                 agenciaRemetente: valores['sobra-agencia'],
                 emissao: valores['sobra-emissao']
             };
+            if (emEdicao && !chaveAtual) {
+                mostrarAlerta('<b>Erro:</b> não foi possível identificar a chave da sobra para edição.', 'erro');
+                return;
+            }
+            const registroAntes = emEdicao ? JSON.parse(JSON.stringify(registroSobraSelecionada)) : null;
+            const chaveRegistroSobra = emEdicao ? chaveAtual : obterChaveRegistro(cte || nf, diaTrabalhoAtual);
+            let indiceReservado = false;
+            try {
+                indiceReservado = await reservarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra, registroAntes);
+            } catch (error) {
+                console.error('Erro ao reservar índice de sobra:', error);
+            }
+            if (!indiceReservado) {
+                const ident = cte || nf;
+                mostrarAlerta(`<b>Atenção:</b> já existe uma sobra com ${cte ? 'CTe' : 'NF'} ${ident} no Dia de Trabalho ${formatarDataImportacao(diaTrabalhoAtual)}. O lançamento foi bloqueado.`, 'erro');
+                return;
+            }
 
             if (emEdicao) {
-                if (!chaveAtual) {
-                    mostrarAlerta('<b>Erro:</b> não foi possível identificar a chave da sobra para edição.', 'erro');
-                    return;
-                }
-                db.child(chaveAtual).update(valoresAtualizacao).then(() => {
+                db.child(chaveRegistroSobra).update(valoresAtualizacao).then(() => {
                     Object.assign(registroSobraSelecionada, valoresAtualizacao);
+                    const registroDepois = JSON.parse(JSON.stringify(registroSobraSelecionada));
+                    registrarAuditoria('editar_sobra', chaveAtual, registroAntes, registroDepois, { dataTrabalho: diaTrabalhoAtual, detalhes: 'Edição completa de sobra' });
                     limparCadastroSobra(false);
                     limparCamposBuscaDeposito();
                     limparSugestoesDeposito(false);
@@ -2109,13 +2430,15 @@
                     mudarAba('conf');
                 }).catch(error => {
                     console.error('Erro ao editar sobra:', error);
+                    liberarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra);
+                    if (registroAntes) reservarIndiceSobra(diaTrabalhoAtual, valorRegistro(registroAntes, 'cte'), valorRegistro(registroAntes, 'notas'), chaveRegistroSobra);
                     mostrarAlerta('<b>Erro:</b> não foi possível atualizar a sobra.', 'erro');
                 });
                 return;
             }
 
             const identificador = cte || nf;
-            const chave = obterChaveRegistro(identificador, diaTrabalhoAtual);
+            const chave = chaveRegistroSobra;
             const registro = {
                 conferido: false,
                 origem: 'sobra',
@@ -2134,6 +2457,7 @@
             };
 
             db.child(chave).set(registro).then(() => {
+                registrarAuditoria('cadastrar_sobra', chave, null, registro, { dataTrabalho: diaTrabalhoAtual, loteId: registro.loteId, detalhes: 'Cadastro de nova sobra' });
                 limparCadastroSobra(false);
                 limparCamposBuscaDeposito();
                 limparSugestoesDeposito(false);
@@ -2141,6 +2465,7 @@
                 mudarAba('conf');
             }).catch(error => {
                 console.error('Erro ao cadastrar sobra:', error);
+                liberarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra);
                 mostrarAlerta('<b>Erro:</b> não foi possível cadastrar a sobra.', 'erro');
             });
         }
@@ -2186,9 +2511,12 @@
             const diaTrabalho = obterDataTrabalhoRegistro(registroDepositoSelecionado);
             const chaveRegistro = obterChaveRegistroAtual(registroDepositoSelecionado);
             if (!identificador || !chaveRegistro) { alert('O registro localizado não possui identificador ou chave válida para atualização.'); return; }
+            const registroAntes = JSON.parse(JSON.stringify(registroDepositoSelecionado));
 
             db.child(chaveRegistro).update(valores).then(() => {
                 Object.assign(registroDepositoSelecionado, valores);
+                const registroDepois = JSON.parse(JSON.stringify(registroDepositoSelecionado));
+                registrarAuditoria('editar_deposito', chaveRegistro, registroAntes, registroDepois, { dataTrabalho: diaTrabalho, detalhes: 'Atualização dos campos de conferência' });
                 atualizarOpcoesFiltros();
                 filtrarTabela();
                 limparRegistroDeposito(false);
@@ -2373,6 +2701,7 @@
                 }
                 const salvarLote = typeof db.update === 'function' ? db.update(atualizacoes) : Promise.all(Object.entries(atualizacoes).map(([chave, registro]) => db.child(chave).set(registro)));
                 salvarLote.then(() => {
+                    registrarAuditoria('importar_lote', loteId, null, { quantidade: registrosImportados.length, dataTrabalho: data, loteId }, { dataTrabalho: data, loteId, detalhes: `Importação de ${registrosImportados.length} registro(s)` });
                     caixaTexto.value = '';
                     limparSeletorArquivoPlanilha();
                     atualizarOpcoesFiltros();
@@ -2654,8 +2983,11 @@
                 mostrarAlerta('<b>Erro:</b> o registro não possui uma chave válida para atualização.', 'erro');
                 return;
             }
+            const registroAntes = JSON.parse(JSON.stringify(registro));
             db.child(chaveRegistro).update(valores).then(() => {
                 Object.assign(registro, valores);
+                const registroDepois = JSON.parse(JSON.stringify(registro));
+                registrarAuditoria('editar_detalhes', chaveRegistro, registroAntes, registroDepois, { dataTrabalho: obterDataTrabalhoRegistro(registro), detalhes: 'Edição pelo card de detalhes' });
                 atualizarOpcoesFiltros();
                 filtrarTabela();
                 const subtitulo = document.getElementById('detalhesRegistroSubtitulo');
