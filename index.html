@@ -698,8 +698,8 @@
                     <thead>
                         <tr>
                             <th><div class="cabecalho-coluna"><span>Dia Trabalho</span><select id="filtroCabecalhoDiaTrabalho" class="filtro-coluna-select" aria-label="Filtrar por dia de trabalho" onchange="registrarSelecaoDiaTrabalho(this)"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>CTe</span><select id="filtroCabecalhoCte" class="filtro-coluna-select" aria-label="Filtrar CTe" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Notas</span><select id="filtroCabecalhoNotas" class="filtro-coluna-select" aria-label="Filtrar notas" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>CTe</span><input id="filtroCabecalhoCte" class="filtro-coluna-input" type="search" aria-label="Pesquisar CTe" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
+                            <th><div class="cabecalho-coluna"><span>Notas</span><input id="filtroCabecalhoNotas" class="filtro-coluna-input" type="search" aria-label="Pesquisar notas" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Vol.</span><select id="filtroCabecalhoVolumes" class="filtro-coluna-select" aria-label="Filtrar volumes" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
                             <th><div class="cabecalho-coluna"><span>Qtd</span><select id="filtroCabecalhoQtd" class="filtro-coluna-select" aria-label="Filtrar quantidade" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
                             <th><div class="cabecalho-coluna"><span>ROTA</span><select id="filtroCabecalhoRota" class="filtro-coluna-select" aria-label="Filtrar rota" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
@@ -1265,8 +1265,10 @@
         function atualizarOpcoesFiltros() {
             const chavesAtuais = new Set(dadosLocais.map(obterChaveRegistroAtual));
             registrosSelecionados = new Set([...registrosSelecionados].filter(chave => chavesAtuais.has(chave)));
-            preencherSelect('filtroCabecalhoCte', dadosLocais.map(registro => registro.cte), 'Todos');
-            preencherSelect('filtroCabecalhoNotas', dadosLocais.map(registro => registro.notas), 'Todos');
+            const campoCte = document.getElementById('filtroCabecalhoCte');
+            const campoNotas = document.getElementById('filtroCabecalhoNotas');
+            if (campoCte && document.activeElement !== campoCte) campoCte.value = campoCte.value || '';
+            if (campoNotas && document.activeElement !== campoNotas) campoNotas.value = campoNotas.value || '';
             preencherSelect('filtroCabecalhoVolumes', dadosLocais.map(registro => registro.volumes), 'Todos');
             preencherSelect('filtroCabecalhoQtd', dadosLocais.map(registro => registro.qtd), 'Todos');
             preencherSelect('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
@@ -2255,8 +2257,8 @@
                 if (!dentroIntervalo(emissaoRegistro, emissaoInicialAvancado, emissaoFinalAvancado)) return false;
                 if (!dentroIntervalo(entregaRegistro, entregaInicialAvancado, entregaFinalAvancado)) return false;
                 if (atrasoMinimoAvancado > 0 && valorNumerico(registro.diasAtraso) < atrasoMinimoAvancado) return false;
-                if (cteCabecalho && !atendeFiltroExato(valorRegistro(registro, 'cte'), cteCabecalho)) return false;
-                if (notasCabecalho && !atendeFiltroExato(valorRegistro(registro, 'notas'), notasCabecalho)) return false;
+                if (cteCabecalho && !atendeFiltroTexto(valorRegistro(registro, 'cte'), cteCabecalho)) return false;
+                if (notasCabecalho && !atendeFiltroTexto(valorRegistro(registro, 'notas'), notasCabecalho)) return false;
                 if (volumesCabecalho && !atendeFiltroExato(valorRegistro(registro, 'volumes'), volumesCabecalho)) return false;
                 if (qtdCabecalho && !atendeFiltroExato(valorRegistro(registro, 'qtd'), qtdCabecalho)) return false;
                 if (rota && !atendeFiltroExato(valorRegistro(registro, 'rota'), rota)) return false;
