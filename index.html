@@ -219,6 +219,15 @@
         .detalhes-item-valor { display: block; min-height: 16px; overflow-wrap: anywhere; color: #334155; font-size: 12px; font-weight: 650; white-space: normal; }
         .detalhes-item-destaque .detalhes-item-valor { color: #1d5fae; font-size: 16px; }
         .detalhes-item .ocorrencia-badge { max-width: 100%; }
+        .detalhes-item-editavel { border-color: #c7dcf5; background: #f7fbff; }
+        .detalhes-campo-editavel { width: 100%; height: 34px; border: 1px solid #bfd3eb; border-radius: 7px; background: #fff; color: #334155; padding: 0 9px; outline: none; font: inherit; font-size: 12px; font-weight: 650; }
+        .detalhes-campo-editavel:focus { border-color: #3d7ac4; box-shadow: 0 0 0 3px rgba(61, 122, 196, .12); }
+        .detalhes-acoes { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px 18px; border-top: 1px solid #e8eef5; }
+        .detalhes-edicao-aviso { color: #8190a3; font-size: 10px; }
+        .detalhes-acoes-botoes { display: flex; gap: 8px; }
+        .btn-salvar-detalhes { border: 0; border-radius: 7px; padding: 9px 13px; background: #2563eb; color: #fff; font-size: 11px; font-weight: 750; cursor: pointer; }
+        .btn-salvar-detalhes:hover { background: #1d4ed8; }
+        .btn-salvar-detalhes.oculto-permissao { display: none; }
         @keyframes detalhesEntrar { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .ocorrencia-badge .badge-dot { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
         .badge-azul { background: #eaf5fb; border-color: #c8e5f2; color: #258bb8; }
@@ -487,6 +496,9 @@
             .detalhes-conteudo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 14px 15px 16px; }
             .detalhes-item.detalhes-item-destaque { grid-column: span 2; }
             .detalhes-item { padding: 9px 10px; }
+            .detalhes-acoes { align-items: stretch; flex-direction: column; padding: 12px 15px 15px; }
+            .detalhes-acoes-botoes { width: 100%; }
+            .detalhes-acoes-botoes button { flex: 1; }
         }
 
         @media (max-width: 380px) {
@@ -774,6 +786,13 @@
                     <button type="button" class="btn-fechar-detalhes" aria-label="Fechar detalhes do registro" onclick="fecharDetalhesRegistro()">×</button>
                 </header>
                 <div id="detalhesRegistroConteudo" class="detalhes-conteudo"></div>
+                <footer class="detalhes-acoes">
+                    <span id="detalhesEdicaoAviso" class="detalhes-edicao-aviso">Campos operacionais disponíveis para edição.</span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharDetalhesRegistro()">Fechar</button>
+                        <button type="button" id="btnSalvarDetalhesRegistro" class="btn-salvar-detalhes" data-permissao="editarDeposito" onclick="salvarDetalhesRegistro()">Salvar alterações</button>
+                    </div>
+                </footer>
             </article>
         </div>
     </main>
@@ -796,6 +815,7 @@
         let sobrasListaVisivel = false;
         let mensagemAcessoPendente = '';
         let elementoFocoAntesDetalhes = null;
+        let indiceRegistroDetalhes = null;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1894,6 +1914,8 @@
             ['Últ. Ocorrência', 'dataUltOcorrencia']
         ];
 
+        const camposEditaveisDetalhes = new Set(['qtd', 'rota', 'tipo', 'qtd2']);
+
         function formatarValorDetalhesRegistro(registro, campo) {
             if (campo === 'diaTrabalho') return escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-');
             if (['emissao', 'previsaoAgencia', 'previsaoEntrega', 'dataOcorrencia', 'dataUltOcorrencia'].includes(campo)) return escaparHtml(formatarData(registro?.[campo]));
@@ -1909,20 +1931,64 @@
             const subtitulo = document.getElementById('detalhesRegistroSubtitulo');
             if (!registro || !modal || !conteudo || !titulo || !subtitulo) return;
             elementoFocoAntesDetalhes = document.activeElement;
+            indiceRegistroDetalhes = Number(indiceRegistro);
+            const podeEditar = temPermissao('editarDeposito');
             const cte = valorRegistro(registro, 'cte') || '-';
             titulo.textContent = `CTe ${cte}`;
-            subtitulo.textContent = `Informações completas da linha do CTe ${cte}.`;
-            conteudo.innerHTML = camposDetalhesRegistro.map(([label, campo, classe = '']) => `
-                <div class="detalhes-item ${classe}">
-                    <span class="detalhes-item-label">${escaparHtml(label)}</span>
-                    <span class="detalhes-item-valor">${formatarValorDetalhesRegistro(registro, campo)}</span>
-                </div>
-            `).join('');
+            subtitulo.textContent = podeEditar ? `Edite Qtd, ROTA, Tipo ou Qtd Sec e salve as alterações.` : `Informações completas da linha do CTe ${cte}.`;
+            const aviso = document.getElementById('detalhesEdicaoAviso');
+            if (aviso) aviso.textContent = podeEditar ? 'Campos editáveis: Qtd, ROTA, Tipo e Qtd Sec.' : 'Modo de consulta: seu perfil não permite editar este registro.';
+            conteudo.innerHTML = camposDetalhesRegistro.map(([label, campo, classe = '']) => {
+                const campoPodeEditar = podeEditar && camposEditaveisDetalhes.has(campo);
+                const classeFinal = `${classe} ${campoPodeEditar ? 'detalhes-item-editavel' : ''}`.trim();
+                const valor = campoPodeEditar
+                    ? `<input id="detalheCampo-${escaparHtml(campo)}" class="detalhes-campo-editavel" type="text" value="${escaparHtml(valorRegistro(registro, campo))}" aria-label="Editar ${escaparHtml(label)}">`
+                    : formatarValorDetalhesRegistro(registro, campo);
+                return `
+                    <div class="detalhes-item ${classeFinal}">
+                        <span class="detalhes-item-label">${escaparHtml(label)}</span>
+                        <span class="detalhes-item-valor">${valor}</span>
+                    </div>
+                `;
+            }).join('');
             modal.hidden = false;
             modal.classList.add('visivel');
             document.body.classList.add('modal-aberto');
             const botaoFechar = modal.querySelector('.btn-fechar-detalhes');
             requestAnimationFrame(() => botaoFechar?.focus());
+        }
+
+        function salvarDetalhesRegistro() {
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('editarDeposito')) return;
+            if (!Number.isInteger(indiceRegistroDetalhes) || !dadosLocais[indiceRegistroDetalhes]) {
+                mostrarAlerta('<b>Atenção:</b> não foi possível identificar o registro selecionado.', 'info');
+                return;
+            }
+            const registro = dadosLocais[indiceRegistroDetalhes];
+            const valores = {
+                qtd: document.getElementById('detalheCampo-qtd')?.value.trim() || '',
+                rota: (document.getElementById('detalheCampo-rota')?.value.trim() || '').toUpperCase(),
+                tipo: document.getElementById('detalheCampo-tipo')?.value.trim() || '',
+                qtd2: document.getElementById('detalheCampo-qtd2')?.value.trim() || ''
+            };
+            const chaveRegistro = obterChaveRegistroAtual(registro);
+            if (!chaveRegistro) {
+                mostrarAlerta('<b>Erro:</b> o registro não possui uma chave válida para atualização.', 'erro');
+                return;
+            }
+            db.child(chaveRegistro).update(valores).then(() => {
+                Object.assign(registro, valores);
+                atualizarOpcoesFiltros();
+                filtrarTabela();
+                const subtitulo = document.getElementById('detalhesRegistroSubtitulo');
+                const aviso = document.getElementById('detalhesEdicaoAviso');
+                if (subtitulo) subtitulo.textContent = 'Alterações salvas. Você pode continuar revisando este registro.';
+                if (aviso) aviso.textContent = 'Alterações salvas com sucesso.';
+                mostrarAlerta('<b>Status:</b> Qtd, ROTA, Tipo e Qtd Sec foram atualizados no registro.', 'sucesso');
+            }).catch(error => {
+                console.error('Erro ao atualizar detalhes do CTe:', error);
+                mostrarAlerta('<b>Erro:</b> não foi possível salvar as alterações do card.', 'erro');
+            });
         }
 
         function fecharDetalhesRegistro() {
@@ -1933,6 +1999,7 @@
             document.body.classList.remove('modal-aberto');
             if (elementoFocoAntesDetalhes && typeof elementoFocoAntesDetalhes.focus === 'function') elementoFocoAntesDetalhes.focus();
             elementoFocoAntesDetalhes = null;
+            indiceRegistroDetalhes = null;
         }
 
         function fecharDetalhesRegistroAoClicarFundo(evento) {
