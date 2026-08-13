@@ -854,6 +854,8 @@
             usuarioAutenticado = null;
             perfilAutorizado = null;
             dadosLocais = [];
+            const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
+            if (selectDiaCabecalho) selectDiaCabecalho.dataset.manual = 'false';
             document.getElementById('usuarioSessao').textContent = '';
             document.getElementById('avatarSessao').textContent = 'SM';
             document.getElementById('btnSair').hidden = true;
@@ -1102,16 +1104,21 @@
             if ([...select.options].some(option => option.value === valorAtual)) select.value = valorAtual;
         }
 
+        function obterDiasTrabalhoImportados() {
+            return [...new Set(dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean))]
+                .sort((a, b) => b.localeCompare(a));
+        }
+
         function atualizarOpcoesFiltros() {
             preencherSelect('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
             preencherSelect('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
             preencherSelect('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
             preencherSelect('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
-            const dataAtual = obterDataAtualLocalISO();
-            const diasTrabalho = [...new Set([...dadosLocais.map(registro => obterDataTrabalhoRegistro(registro)).filter(Boolean), dataAtual])]
-                .sort((a, b) => b.localeCompare(a));
+            const diasTrabalho = obterDiasTrabalhoImportados();
+            const ultimoDiaImportado = diasTrabalho[0] || '';
             const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
-            const diaDesejado = selectDiaCabecalho?.dataset.manual === 'true' ? (selectDiaCabecalho.value || '') : dataAtual;
+            const selecaoManual = selectDiaCabecalho?.dataset.manual === 'true';
+            const diaDesejado = selecaoManual ? (selectDiaCabecalho.value || '') : ultimoDiaImportado;
             preencherSelect('filtroCabecalhoDiaTrabalho', diasTrabalho, 'Todos');
             if (selectDiaCabecalho && [...selectDiaCabecalho.options].some(option => option.value === diaDesejado)) selectDiaCabecalho.value = diaDesejado;
             [...(selectDiaCabecalho?.options || [])].forEach(option => {
