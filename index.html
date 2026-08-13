@@ -753,17 +753,17 @@
                 <div class="deposito-buscas" aria-label="Busca de registro">
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
-                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off">
+                        <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">#</span>
-                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off">
+                        <input type="text" id="d-cte" placeholder="Buscar CTe" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'cte')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('cte')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▤</span>
-                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off">
+                        <input type="text" id="d-nf" placeholder="Buscar NF" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'nf')">
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('nf')">Buscar</button>
                     </div>
                 </div>
@@ -789,10 +789,10 @@
                         <span class="resultado-chave" id="depositoChave"></span>
                     </div>
                     <div class="deposito-campos">
-                        <div class="campo-edicao"><label for="d-qtd">Qtd</label><input type="text" id="d-qtd" placeholder="Qtd"></div>
-                        <div class="campo-edicao"><label for="d-rota">ROTA</label><input type="text" id="d-rota" placeholder="ROTA"></div>
-                        <div class="campo-edicao"><label for="d-tipo">Tipo</label><input type="text" id="d-tipo" placeholder="Tipo"></div>
-                        <div class="campo-edicao"><label for="d-qtd-sec">Qtd Sec</label><input type="text" id="d-qtd-sec" placeholder="Qtd Sec"></div>
+                        <div class="campo-edicao"><label for="d-qtd">Qtd</label><input type="text" id="d-qtd" placeholder="Qtd" data-caixa-alta></div>
+                        <div class="campo-edicao"><label for="d-rota">ROTA</label><input type="text" id="d-rota" placeholder="ROTA" data-caixa-alta></div>
+                        <div class="campo-edicao"><label for="d-tipo">Tipo</label><input type="text" id="d-tipo" placeholder="Tipo" data-caixa-alta></div>
+                        <div class="campo-edicao"><label for="d-qtd-sec">Qtd Sec</label><input type="text" id="d-qtd-sec" placeholder="Qtd Sec" data-caixa-alta></div>
                     </div>
                     <div class="deposito-acoes">
                         <button type="button" class="btn-secundario" onclick="limparRegistroDeposito()">Limpar</button>
@@ -809,14 +809,14 @@
                         <span class="sobra-badge">Novo registro</span>
                     </div>
                     <div class="sobra-campos">
-                        <div class="sobra-campo"><label for="sobra-cte">CTe</label><input type="text" id="sobra-cte" placeholder="Número do CTe"></div>
-                        <div class="sobra-campo"><label for="sobra-nf">NF</label><input type="text" id="sobra-nf" placeholder="Número da NF"></div>
-                        <div class="sobra-campo"><label for="sobra-volumes">Volumes</label><input type="text" id="sobra-volumes" placeholder="Quantidade de volumes"></div>
-                        <div class="sobra-campo"><label for="sobra-qtd">Qtd</label><input type="text" id="sobra-qtd" placeholder="Quantidade"></div>
-                        <div class="sobra-campo"><label for="sobra-rota">ROTA</label><input type="text" id="sobra-rota" placeholder="ROTA"></div>
-                        <div class="sobra-campo"><label for="sobra-tipo">Tipo</label><input type="text" id="sobra-tipo" placeholder="Tipo de entrega"></div>
-                        <div class="sobra-campo"><label for="sobra-qtd-sec">Qtd Sec</label><input type="text" id="sobra-qtd-sec" placeholder="Quantidade secundária"></div>
-                        <div class="sobra-campo"><label for="sobra-agencia">Agência</label><input type="text" id="sobra-agencia" placeholder="Agência remetente"></div>
+                        <div class="sobra-campo"><label for="sobra-cte">CTe</label><input type="text" id="sobra-cte" placeholder="Número do CTe" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-nf">NF</label><input type="text" id="sobra-nf" placeholder="Número da NF" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-volumes">Volumes</label><input type="text" id="sobra-volumes" placeholder="Quantidade de volumes" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-qtd">Qtd</label><input type="text" id="sobra-qtd" placeholder="Quantidade" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-rota">ROTA</label><input type="text" id="sobra-rota" placeholder="ROTA" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-tipo">Tipo</label><input type="text" id="sobra-tipo" placeholder="Tipo de entrega" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-qtd-sec">Qtd Sec</label><input type="text" id="sobra-qtd-sec" placeholder="Quantidade secundária" data-caixa-alta></div>
+                        <div class="sobra-campo"><label for="sobra-agencia">Agência</label><input type="text" id="sobra-agencia" placeholder="Agência remetente" data-caixa-alta></div>
                         <div class="sobra-campo"><label for="sobra-emissao">Data de emissão</label><input type="date" id="sobra-emissao"></div>
                     </div>
                     <div class="sobra-acoes">
@@ -1317,6 +1317,21 @@
             return `${dataTrabalho}_${Date.now()}`;
         }
 
+        function obterDiaTrabalhoAtualParaSobra(dataFallback = '') {
+            const seletor = document.getElementById('filtroCabecalhoDiaTrabalho');
+            if (seletor?.dataset.manual === 'true' && seletor.value) return seletor.value;
+            return obterDiasTrabalhoImportados()[0] || dataFallback || obterDataAtualLocalISO();
+        }
+
+        function obterLoteIdDoDiaTrabalho(dataTrabalho) {
+            const registrosDoDia = dadosLocais
+                .filter(registro => obterDataTrabalhoRegistro(registro) === dataTrabalho)
+                .sort((a, b) => String(b.dataImportacao || '').localeCompare(String(a.dataImportacao || '')));
+            const lotes = [...new Set(registrosDoDia.map(registro => valorRegistro(registro, 'loteId')).filter(Boolean))];
+            const loteImportado = lotes.find(lote => !String(lote).toLowerCase().startsWith('sobra_'));
+            return loteImportado || lotes[0] || criarIdentificadorLote(dataTrabalho);
+        }
+
         function obterPartesData(data) {
             const partes = String(data || '').split('-');
             return { ano: partes[0] || '', mes: partes[1] || '', dia: partes[2] || '' };
@@ -1765,11 +1780,32 @@
             clearTimeout(temporizadorBuscaDeposito);
         }
 
-        function acionarBuscaDeposito(evento) {
-            if (evento.key === 'Enter') {
-                evento.preventDefault();
-                mostrarAlerta('<b>Status:</b> clique em Buscar para executar a consulta.', 'info');
+        function acionarBuscaDeposito(evento, tipo) {
+            if (evento.key !== 'Enter') return;
+            evento.preventDefault();
+            const campo = evento.currentTarget;
+            if (campo) campo.value = String(campo.value || '').toUpperCase();
+            buscarRegistroDeposito(tipo);
+        }
+
+        function normalizarEntradaManual(evento) {
+            const campo = evento.target;
+            if (!campo || !campo.matches('[data-caixa-alta]')) return;
+            const inicio = campo.selectionStart;
+            const fim = campo.selectionEnd;
+            const valorAnterior = campo.value;
+            const valorAtual = valorAnterior.toUpperCase();
+            if (valorAtual === valorAnterior) return;
+            campo.value = valorAtual;
+            if (typeof inicio === 'number' && typeof fim === 'number') {
+                try { campo.setSelectionRange(inicio, fim); } catch (erro) { /* campos sem seleção textual */ }
             }
+        }
+
+        function configurarCamposEmCaixaAlta() {
+            document.addEventListener('input', normalizarEntradaManual);
+            document.addEventListener('change', normalizarEntradaManual);
+            document.addEventListener('blur', normalizarEntradaManual, true);
         }
 
         function obterValorBuscaDeposito(registro, tipo) {
@@ -1784,6 +1820,7 @@
             clearTimeout(temporizadorBuscaDeposito);
             const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf' };
             const campo = document.getElementById(ids[tipo]);
+            if (campo) campo.value = String(campo.value || '').toUpperCase();
             const termo = campo ? campo.value.trim() : '';
             if (!termo) {
                 if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> informe um valor para buscar por ${tipo.toUpperCase()}.`, 'info');
@@ -1924,7 +1961,7 @@
             if (!exigirPermissao(permissao)) return;
 
             const ids = ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
-            const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
+            const valores = Object.fromEntries(ids.map(id => [id, String(document.getElementById(id)?.value || '').trim().toUpperCase()]));
             const obrigatorios = {
                 'sobra-volumes': 'Volumes', 'sobra-qtd': 'Qtd', 'sobra-rota': 'ROTA',
                 'sobra-agencia': 'Agência', 'sobra-emissao': 'Data de emissão'
@@ -1943,13 +1980,14 @@
                 return;
             }
 
+            const diaTrabalhoAtual = obterDiaTrabalhoAtualParaSobra(valores['sobra-emissao']);
             const chaveAtual = emEdicao ? obterChaveRegistroAtual(registroSobraSelecionada) : '';
             const registroExistente = dadosLocais.some(registro => {
                 if (emEdicao && obterChaveRegistroAtual(registro) === chaveAtual) return false;
-                const mesmaData = obterDataEmFormatoISO(registro.emissao) === valores['sobra-emissao'];
+                const mesmoDiaTrabalho = obterDataTrabalhoRegistro(registro) === diaTrabalhoAtual;
                 const mesmoCte = cte && valorRegistro(registro, 'cte') === cte;
                 const mesmaNf = nf && valorRegistro(registro, 'notas') === nf;
-                return mesmaData && (mesmoCte || mesmaNf);
+                return mesmoDiaTrabalho && (mesmoCte || mesmaNf);
             });
             if (registroExistente) {
                 mostrarAlerta('<b>Atenção:</b> já existe outro registro com este identificador e data de emissão.', 'info');
@@ -1965,8 +2003,7 @@
                 tipo: valores['sobra-tipo'],
                 qtd2: valores['sobra-qtd-sec'],
                 agenciaRemetente: valores['sobra-agencia'],
-                emissao: valores['sobra-emissao'],
-                dataTrabalho: valores['sobra-emissao']
+                emissao: valores['sobra-emissao']
             };
 
             if (emEdicao) {
@@ -1994,12 +2031,12 @@
             }
 
             const identificador = cte || nf;
-            const chave = obterChaveRegistro(identificador, valores['sobra-emissao']);
+            const chave = obterChaveRegistro(identificador, diaTrabalhoAtual);
             const registro = {
                 conferido: false,
                 origem: 'sobra',
-                loteId: `sobra_${valores['sobra-emissao']}_${Date.now()}`,
-                dataTrabalho: valores['sobra-emissao'],
+                loteId: obterLoteIdDoDiaTrabalho(diaTrabalhoAtual),
+                dataTrabalho: diaTrabalhoAtual,
                 dataImportacao: new Date().toISOString(),
                 ...valoresAtualizacao,
                 clienteRemetente: '-',
@@ -2056,10 +2093,10 @@
             if (!registroDepositoSelecionado) { alert('Busque um registro antes de atualizar.'); return; }
 
             const valores = {
-                qtd: document.getElementById('d-qtd').value.trim(),
-                rota: document.getElementById('d-rota').value.trim().toUpperCase(),
-                tipo: document.getElementById('d-tipo').value.trim(),
-                qtd2: document.getElementById('d-qtd-sec').value.trim()
+                qtd: String(document.getElementById('d-qtd').value || '').trim().toUpperCase(),
+                rota: String(document.getElementById('d-rota').value || '').trim().toUpperCase(),
+                tipo: String(document.getElementById('d-tipo').value || '').trim().toUpperCase(),
+                qtd2: String(document.getElementById('d-qtd-sec').value || '').trim().toUpperCase()
             };
             const identificador = valorRegistro(registroDepositoSelecionado, 'cte') || valorRegistro(registroDepositoSelecionado, 'notas');
             const diaTrabalho = obterDataTrabalhoRegistro(registroDepositoSelecionado);
@@ -2523,10 +2560,10 @@
             }
             const registro = dadosLocais[indiceRegistroDetalhes];
             const valores = {
-                qtd: document.getElementById('detalheCampo-qtd')?.value.trim() || '',
-                rota: (document.getElementById('detalheCampo-rota')?.value.trim() || '').toUpperCase(),
-                tipo: document.getElementById('detalheCampo-tipo')?.value.trim() || '',
-                qtd2: document.getElementById('detalheCampo-qtd2')?.value.trim() || ''
+                qtd: String(document.getElementById('detalheCampo-qtd')?.value || '').trim().toUpperCase(),
+                rota: String(document.getElementById('detalheCampo-rota')?.value || '').trim().toUpperCase(),
+                tipo: String(document.getElementById('detalheCampo-tipo')?.value || '').trim().toUpperCase(),
+                qtd2: String(document.getElementById('detalheCampo-qtd2')?.value || '').trim().toUpperCase()
             };
             const chaveRegistro = obterChaveRegistroAtual(registro);
             if (!chaveRegistro) {
@@ -2677,6 +2714,7 @@
         atualizarDataAtual();
         configurarEfeitoCliqueMenu();
         configurarEventosDetalhesRegistro();
+        configurarCamposEmCaixaAlta();
         inicializarFirebase();
     </script>
 </body>
