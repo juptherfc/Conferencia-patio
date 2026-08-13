@@ -202,6 +202,19 @@
         .controle-largura-colunas output { min-width: 34px; color: #3d6ebd; text-align: right; font-variant-numeric: tabular-nums; }
         .btn-reset-largura { border: 1px solid #d9e0e7; border-radius: 7px; padding: 6px 9px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
         .btn-reset-largura:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
+        .seletor-arquivo-planilha { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 11px 13px; border: 1px dashed #9db9d8; border-radius: 9px; background: #f7fbff; color: #315d91; cursor: pointer; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+        .seletor-arquivo-planilha:hover { border-color: #4d85c5; background: #eef6ff; transform: translateY(-1px); }
+        .seletor-arquivo-planilha:focus-within { outline: 3px solid rgba(47, 115, 201, .14); border-color: #3d7ac4; }
+        .seletor-arquivo-planilha input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        .seletor-arquivo-icone { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #dcecff; color: #2f73c9; font-size: 18px; font-weight: 800; }
+        .seletor-arquivo-planilha strong, .seletor-arquivo-planilha small { display: block; }
+        .seletor-arquivo-planilha strong { font-size: 12px; }
+        .seletor-arquivo-planilha small { margin-top: 3px; color: #7b8ba0; font-size: 10px; font-weight: 500; }
+        .arquivo-planilha-status { min-height: 18px; color: #7b8ba0; font-size: 11px; }
+        .arquivo-planilha-status.sucesso { color: #177653; }
+        .arquivo-planilha-status.erro { color: #b04444; }
+        .importacao-colagem-alternativa { color: #65717d; font-size: 11px; }
+        .importacao-colagem-alternativa summary { width: fit-content; color: #4c719d; cursor: pointer; font-weight: 700; }
         .tabela-container { flex: 1; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: auto; border: 1px solid var(--borda); border-radius: 10px; background: var(--branco); overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #aeb7c2 #f1f3f5; }
         .tabela-container::-webkit-scrollbar { width: 10px; height: 10px; }
         .tabela-container::-webkit-scrollbar-track { background: #f1f3f5; border-radius: 8px; }
@@ -475,6 +488,8 @@
             .card-cabecalho { font-size: 10px; }
             .card-num { margin-top: 6px; font-size: 21px; }
             .alerta { padding: 10px 11px; line-height: 1.4; }
+            .seletor-arquivo-planilha { min-height: 54px; padding: 10px; }
+            .arquivo-planilha-status { font-size: 10px; }
             .filtros-card { padding: 12px; border-radius: 13px; }
             .filtros-titulo { font-size: 13px; }
             .btn-alternar-filtros { height: 32px; padding: 0 9px; font-size: 10px; }
@@ -612,7 +627,7 @@
                 <button type="button" id="btnAlternarDashboard" class="btn-alternar-dashboard" aria-expanded="true" aria-controls="dashboardConferencia" onclick="alternarDashboard()"><span aria-hidden="true">⌃</span> Ocultar dashboard</button>
             </div>
             <section id="dashboardConferencia" class="dashboard-conferencia cards-grid" aria-label="Resumo da operação">
-            <div class="card filtrado" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')">
+            <div class="card" id="card-pnd-box" onclick="mudarFiltroCard('pendentes')">
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-amarelo"></i>Total Pendentes</span><span class="card-icone">◷</span></div>
                 <span class="card-num" id="c-pnd">0</span>
             </div>
@@ -624,7 +639,7 @@
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-roxo"></i>Com B.O</span><span class="card-icone">●</span></div>
                 <span class="card-num" id="c-bo">0</span>
             </div>
-            <div class="card" id="card-total-box" onclick="mudarFiltroCard('todos')">
+            <div class="card filtrado" id="card-total-box" onclick="mudarFiltroCard('todos')">
                 <div class="card-cabecalho"><span><i class="card-indicador indicador-azul"></i>Total</span><span class="card-icone">Σ</span></div>
                 <span class="card-num" id="c-total">0</span>
             </div>
@@ -710,11 +725,22 @@
         <div id="tela-colar" class="aba-conteudo">
             <div class="bloco">
                 <h3 style="margin-bottom:12px; color:#374151;">Importar planilha</h3>
-                <p style="margin-bottom:16px; color:#8a949e; font-size:12px;">Cole as linhas da planilha mantendo a ordem dos cabeçalhos originais.</p>
+                <p style="margin-bottom:16px; color:#8a949e; font-size:12px;">Escolha um arquivo Excel ou CSV. O sistema lerá a primeira aba, validará as linhas, preservará o lote e gravará os registros em uma única operação.</p>
                 <div style="display:flex; flex-direction:column; gap:12px;">
                     <input type="date" id="dataTrabalhoImportacao" class="input-filtro" style="max-width:220px;">
-                    <textarea id="caixaTextoColagem" style="width:100%; min-height:120px; padding:11px; border:1px solid #e0e4e8; border-radius:7px; resize:vertical; outline:none;" placeholder="Cole as linhas da planilha aqui..."></textarea>
-                    <div class="botoes-acao"><button type="button" class="btn-principal" data-permissao="importar" onclick="processarTextoColado()">Processar planilha</button></div>
+                    <label for="arquivoPlanilha" class="seletor-arquivo-planilha">
+                        <span class="seletor-arquivo-icone" aria-hidden="true">⇧</span>
+                        <span><strong>Escolher arquivo</strong><small id="arquivoPlanilhaNome">XLS, XLSX, XLSM, CSV ou TXT</small></span>
+                        <input type="file" id="arquivoPlanilha" accept=".xls,.xlsx,.xlsm,.csv,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" data-permissao="importar" onchange="carregarArquivoPlanilha(event)">
+                    </label>
+                    <div id="arquivoPlanilhaStatus" class="arquivo-planilha-status" role="status" aria-live="polite">Nenhum arquivo carregado.</div>
+                    <textarea id="caixaTextoColagem" hidden aria-hidden="true"></textarea>
+                    <div class="botoes-acao"><button type="button" class="btn-principal" data-permissao="importar" onclick="processarTextoColado()">Processar arquivo</button></div>
+                    <details class="importacao-colagem-alternativa">
+                        <summary>Alternativa: colar texto tabulado</summary>
+                        <textarea id="caixaTextoColagemAlternativa" style="width:100%; min-height:100px; padding:11px; border:1px solid #e0e4e8; border-radius:7px; resize:vertical; outline:none;" placeholder="Cole aqui as linhas da planilha e depois clique em Processar arquivo..."></textarea>
+                        <button type="button" class="btn-ferramenta-tabela" onclick="usarTextoColadoAlternativo()">Usar texto colado</button>
+                    </details>
                 </div>
             </div>
         </div>
@@ -875,7 +901,7 @@
         let dadosLocais = [];
         let registrosFiltradosAtuais = [];
         let registrosSelecionados = new Set();
-        let filtroCardAtivo = 'pendentes';
+        let filtroCardAtivo = 'todos';
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
         let sugestoesDeposito = [];
@@ -1949,6 +1975,70 @@
             });
         }
 
+        async function carregarArquivoPlanilha(evento) {
+            const arquivo = evento?.target?.files?.[0];
+            const status = document.getElementById('arquivoPlanilhaStatus');
+            const nome = document.getElementById('arquivoPlanilhaNome');
+            const caixaTexto = document.getElementById('caixaTextoColagem');
+            if (!arquivo || !status || !nome || !caixaTexto) return;
+            try {
+                if (!exigirAcessoAutorizado() || !exigirPermissao('importar')) return;
+                status.className = 'arquivo-planilha-status';
+                status.textContent = 'Lendo arquivo...';
+                const extensao = String(arquivo.name || '').split('.').pop().toLowerCase();
+                let textoTabulado = '';
+                if (['xls', 'xlsx', 'xlsm'].includes(extensao)) {
+                    const buffer = await arquivo.arrayBuffer();
+                    const livro = XLSX.read(buffer, { type: 'array', cellDates: false });
+                    const primeiraAba = livro.SheetNames[0];
+                    if (!primeiraAba) throw new Error('O arquivo não possui uma aba válida.');
+                    textoTabulado = XLSX.utils.sheet_to_csv(livro.Sheets[primeiraAba], { FS: '\t', blankrows: false, raw: false });
+                } else {
+                    const textoOriginal = await arquivo.text();
+                    if (extensao === 'csv') {
+                        const livro = XLSX.read(textoOriginal, { type: 'string', raw: false });
+                        const primeiraAba = livro.SheetNames[0];
+                        textoTabulado = primeiraAba ? XLSX.utils.sheet_to_csv(livro.Sheets[primeiraAba], { FS: '\t', blankrows: false, raw: false }) : textoOriginal;
+                    } else {
+                        textoTabulado = textoOriginal;
+                    }
+                }
+                if (!textoTabulado.trim()) throw new Error('O arquivo está vazio.');
+                caixaTexto.value = textoTabulado;
+                nome.textContent = `${arquivo.name} — ${textoTabulado.split(/\r?\n/).filter(linha => linha.trim()).length - 1} linhas de dados`;
+                status.className = 'arquivo-planilha-status sucesso';
+                status.textContent = 'Arquivo carregado. Confira a data de trabalho e clique em Processar arquivo.';
+            } catch (erro) {
+                caixaTexto.value = '';
+                nome.textContent = 'XLS, XLSX, XLSM, CSV ou TXT';
+                status.className = 'arquivo-planilha-status erro';
+                status.textContent = `Não foi possível ler o arquivo: ${erro.message || 'formato inválido'}`;
+                console.error('Erro ao ler arquivo de planilha:', erro);
+            }
+        }
+
+        function usarTextoColadoAlternativo() {
+            const alternativa = document.getElementById('caixaTextoColagemAlternativa');
+            const caixaTexto = document.getElementById('caixaTextoColagem');
+            const status = document.getElementById('arquivoPlanilhaStatus');
+            const nome = document.getElementById('arquivoPlanilhaNome');
+            if (!alternativa || !caixaTexto || !alternativa.value.trim()) return;
+            caixaTexto.value = alternativa.value.trim();
+            if (nome) nome.textContent = 'Texto colado manualmente';
+            if (status) { status.className = 'arquivo-planilha-status sucesso'; status.textContent = 'Texto carregado. Confira a data de trabalho e clique em Processar arquivo.'; }
+        }
+
+        function limparSeletorArquivoPlanilha() {
+            const arquivo = document.getElementById('arquivoPlanilha');
+            const nome = document.getElementById('arquivoPlanilhaNome');
+            const status = document.getElementById('arquivoPlanilhaStatus');
+            const alternativa = document.getElementById('caixaTextoColagemAlternativa');
+            if (arquivo) arquivo.value = '';
+            if (nome) nome.textContent = 'XLS, XLSX, XLSM, CSV ou TXT';
+            if (status) { status.className = 'arquivo-planilha-status'; status.textContent = 'Nenhum arquivo carregado.'; }
+            if (alternativa) alternativa.value = '';
+        }
+
         function processarTextoColado() {
             try {
                 const caixaTexto = document.getElementById('caixaTextoColagem');
@@ -2050,6 +2140,7 @@
                 const salvarLote = typeof db.update === 'function' ? db.update(atualizacoes) : Promise.all(Object.entries(atualizacoes).map(([chave, registro]) => db.child(chave).set(registro)));
                 salvarLote.then(() => {
                     caixaTexto.value = '';
+                    limparSeletorArquivoPlanilha();
                     atualizarOpcoesFiltros();
                     filtrarTabela();
                     atualizarFiltrosHistorico();
@@ -2467,6 +2558,7 @@
         }
 
         inicializarEstadoDashboard();
+        mudarFiltroCard('todos');
         inicializarLarguraColunas();
         definirDataTrabalhoPadrao();
         atualizarDataAtual();
