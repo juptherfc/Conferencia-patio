@@ -199,6 +199,27 @@
         tr.linha-conferida td { background-color: #f2fbf7 !important; }
 
         .ocorrencia-badge { display: inline-flex; align-items: center; gap: 6px; max-width: 260px; padding: 4px 8px; border: 1px solid transparent; border-radius: 5px; font-size: 10px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+        .cte-detalhe-link { display: inline-flex; align-items: center; max-width: 100%; border: 0; padding: 0; background: transparent; color: #245fae; font: inherit; font-weight: 750; text-decoration: none; cursor: pointer; }
+        .cte-detalhe-link:hover { color: #164b91; text-decoration: underline; }
+        .cte-detalhe-link:focus-visible { outline: 3px solid rgba(47, 115, 201, .22); outline-offset: 3px; border-radius: 3px; }
+        .detalhes-modal[hidden] { display: none !important; }
+        body.modal-aberto { overflow: hidden; }
+        .detalhes-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(20, 39, 64, .42); backdrop-filter: blur(4px); }
+        .detalhes-card { width: min(920px, 100%); max-height: min(760px, calc(100vh - 48px)); overflow-y: auto; border: 1px solid #dce6f1; border-radius: 18px; background: #fff; box-shadow: 0 24px 80px rgba(20, 49, 88, .22); animation: detalhesEntrar .2s ease-out both; }
+        .detalhes-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid #e8eef5; background: linear-gradient(135deg, #f8fbff, #fff); }
+        .detalhes-kicker { color: #7b8ba0; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        .detalhes-titulo { margin-top: 5px; color: #18355e; font-size: 22px; font-weight: 800; letter-spacing: -.025em; }
+        .detalhes-subtitulo { margin-top: 4px; color: #8190a3; font-size: 11px; }
+        .btn-fechar-detalhes { flex: 0 0 auto; width: 34px; height: 34px; border: 1px solid #d7e1ec; border-radius: 9px; background: #fff; color: #607086; font-size: 18px; line-height: 1; cursor: pointer; }
+        .btn-fechar-detalhes:hover { border-color: #b9cce3; background: #f6faff; color: #245fae; }
+        .detalhes-conteudo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 20px 22px 22px; }
+        .detalhes-item { min-width: 0; padding: 11px 12px; border: 1px solid #e6edf5; border-radius: 10px; background: #fbfdff; }
+        .detalhes-item.detalhes-item-destaque { grid-column: span 2; border-color: #c9ddf7; background: #f3f8ff; }
+        .detalhes-item-label { display: block; margin-bottom: 5px; color: #8190a3; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+        .detalhes-item-valor { display: block; min-height: 16px; overflow-wrap: anywhere; color: #334155; font-size: 12px; font-weight: 650; white-space: normal; }
+        .detalhes-item-destaque .detalhes-item-valor { color: #1d5fae; font-size: 16px; }
+        .detalhes-item .ocorrencia-badge { max-width: 100%; }
+        @keyframes detalhesEntrar { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .ocorrencia-badge .badge-dot { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
         .badge-azul { background: #eaf5fb; border-color: #c8e5f2; color: #258bb8; }
         .badge-verde { background: #eaf8f1; border-color: #c7ead8; color: #16845e; }
@@ -459,6 +480,13 @@
             .historico-tabela { min-width: 720px; }
             .bloco { padding: 14px 12px; border-radius: 13px; }
             .acesso-card { padding: 23px 18px; border-radius: 16px; }
+            .detalhes-modal { align-items: flex-end; padding: 10px; }
+            .detalhes-card { max-height: calc(100vh - 20px); border-radius: 16px 16px 10px 10px; }
+            .detalhes-cabecalho { padding: 16px 15px 14px; }
+            .detalhes-titulo { font-size: 19px; }
+            .detalhes-conteudo { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 14px 15px 16px; }
+            .detalhes-item.detalhes-item-destaque { grid-column: span 2; }
+            .detalhes-item { padding: 9px 10px; }
         }
 
         @media (max-width: 380px) {
@@ -469,6 +497,8 @@
             .card-cabecalho { font-size: 9px; }
             .card-num { font-size: 19px; }
             .topbar-titulo { font-size: 18px; }
+            .detalhes-conteudo { grid-template-columns: 1fr; }
+            .detalhes-item.detalhes-item-destaque { grid-column: span 1; }
         }
     </style>
 </head>
@@ -732,6 +762,20 @@
                 </table>
             </div>
         </div>
+
+        <div id="detalhesRegistroModal" class="detalhes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="detalhesRegistroTitulo" onclick="fecharDetalhesRegistroAoClicarFundo(event)">
+            <article class="detalhes-card" role="document">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker">Detalhes do registro</span>
+                        <h2 id="detalhesRegistroTitulo" class="detalhes-titulo">CTe</h2>
+                        <p id="detalhesRegistroSubtitulo" class="detalhes-subtitulo">Informações completas da linha selecionada.</p>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar detalhes do registro" onclick="fecharDetalhesRegistro()">×</button>
+                </header>
+                <div id="detalhesRegistroConteudo" class="detalhes-conteudo"></div>
+            </article>
+        </div>
     </main>
 
     <script>
@@ -751,6 +795,7 @@
         let sugestoesDeposito = [];
         let sobrasListaVisivel = false;
         let mensagemAcessoPendente = '';
+        let elementoFocoAntesDetalhes = null;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1781,10 +1826,15 @@
 
             registros.forEach(registro => {
                 const linha = document.createElement('tr');
+                const indiceRegistro = dadosLocais.indexOf(registro);
+                const cteTexto = registro.cte || '-';
+                const cteCelula = indiceRegistro >= 0
+                    ? `<button type="button" class="cte-detalhe-link" aria-label="Abrir detalhes do CTe ${escaparHtml(cteTexto)}" onclick="abrirDetalhesRegistro(${indiceRegistro})"><b>${escaparHtml(cteTexto)}</b></button>`
+                    : `<b>${escaparHtml(cteTexto)}</b>`;
                 if (registro.conferido) linha.className = 'linha-conferida';
                 linha.innerHTML = `
                     <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
-                    <td><b>${escaparHtml(registro.cte || '-')}</b></td>
+                    <td>${cteCelula}</td>
                     <td>${escaparHtml(registro.notas || '-')}</td>
                     <td>${escaparHtml(registro.volumes || '-')}</td>
                     <td>${escaparHtml(registro.qtd || '-')}</td>
@@ -1821,6 +1871,79 @@
             document.getElementById('c-bo').innerText = boletins;
             document.getElementById('c-total').innerText = total;
             document.getElementById('contadorTabela').innerText = `${registros.length} de ${total} registro${total === 1 ? '' : 's'}`;
+        }
+
+        const camposDetalhesRegistro = [
+            ['Dia Trabalho', 'diaTrabalho'],
+            ['CTe', 'cte', 'detalhes-item-destaque'],
+            ['Notas', 'notas'],
+            ['Volumes', 'volumes'],
+            ['Qtd', 'qtd'],
+            ['ROTA', 'rota'],
+            ['Tipo', 'tipo'],
+            ['Qtd Sec.', 'qtd2'],
+            ['Remetente', 'clienteRemetente'],
+            ['Destino', 'destino'],
+            ['Agência', 'agenciaRemetente'],
+            ['Emissão', 'emissao'],
+            ['Prev. Agência', 'previsaoAgencia'],
+            ['Prev. Entrega', 'previsaoEntrega'],
+            ['Data Ocorr.', 'dataOcorrencia'],
+            ['Ocorrência', 'ocorrencia'],
+            ['Dias Atraso', 'diasAtraso'],
+            ['Últ. Ocorrência', 'dataUltOcorrencia']
+        ];
+
+        function formatarValorDetalhesRegistro(registro, campo) {
+            if (campo === 'diaTrabalho') return escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-');
+            if (['emissao', 'previsaoAgencia', 'previsaoEntrega', 'dataOcorrencia', 'dataUltOcorrencia'].includes(campo)) return escaparHtml(formatarData(registro?.[campo]));
+            if (campo === 'ocorrencia') return renderizarOcorrencia(registro?.ocorrencia);
+            return escaparHtml(valorRegistro(registro, campo) || '-');
+        }
+
+        function abrirDetalhesRegistro(indiceRegistro) {
+            const registro = dadosLocais[Number(indiceRegistro)];
+            const modal = document.getElementById('detalhesRegistroModal');
+            const conteudo = document.getElementById('detalhesRegistroConteudo');
+            const titulo = document.getElementById('detalhesRegistroTitulo');
+            const subtitulo = document.getElementById('detalhesRegistroSubtitulo');
+            if (!registro || !modal || !conteudo || !titulo || !subtitulo) return;
+            elementoFocoAntesDetalhes = document.activeElement;
+            const cte = valorRegistro(registro, 'cte') || '-';
+            titulo.textContent = `CTe ${cte}`;
+            subtitulo.textContent = `Informações completas da linha do CTe ${cte}.`;
+            conteudo.innerHTML = camposDetalhesRegistro.map(([label, campo, classe = '']) => `
+                <div class="detalhes-item ${classe}">
+                    <span class="detalhes-item-label">${escaparHtml(label)}</span>
+                    <span class="detalhes-item-valor">${formatarValorDetalhesRegistro(registro, campo)}</span>
+                </div>
+            `).join('');
+            modal.hidden = false;
+            modal.classList.add('visivel');
+            document.body.classList.add('modal-aberto');
+            const botaoFechar = modal.querySelector('.btn-fechar-detalhes');
+            requestAnimationFrame(() => botaoFechar?.focus());
+        }
+
+        function fecharDetalhesRegistro() {
+            const modal = document.getElementById('detalhesRegistroModal');
+            if (!modal) return;
+            modal.hidden = true;
+            modal.classList.remove('visivel');
+            document.body.classList.remove('modal-aberto');
+            if (elementoFocoAntesDetalhes && typeof elementoFocoAntesDetalhes.focus === 'function') elementoFocoAntesDetalhes.focus();
+            elementoFocoAntesDetalhes = null;
+        }
+
+        function fecharDetalhesRegistroAoClicarFundo(evento) {
+            if (evento.target === evento.currentTarget) fecharDetalhesRegistro();
+        }
+
+        function configurarEventosDetalhesRegistro() {
+            document.addEventListener('keydown', evento => {
+                const modal = document.getElementById('detalhesRegistroModal');
+                if (evento.key === 'Escape' && modal && !modal.hidden) fecharDetalhesRegistro();
+            });
         }
 
         function lancarFisicoAutomatico() {
@@ -1928,6 +2051,7 @@
         definirDataTrabalhoPadrao();
         atualizarDataAtual();
         configurarEfeitoCliqueMenu();
+        configurarEventosDetalhesRegistro();
         inicializarFirebase();
     </script>
 </body>
