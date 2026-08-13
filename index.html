@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conferência - Expresso SM</title>
+<script>
+    try {
+        if (sessionStorage.getItem('expresso-sm-sessao-ativa') === 'true') {
+            document.documentElement.classList.add('sessao-esperada');
+        }
+    } catch (erro) {
+        console.warn('Não foi possível ler o estado temporário da sessão.', erro);
+    }
+</script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -80,6 +89,7 @@
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
         .tela-acesso.inicializando .acesso-card { visibility: hidden; opacity: 0; }
         .tela-acesso.inicializando::after { content: 'Verificando sessão...'; position: absolute; left: 50%; top: 50%; color: #64748b; font-size: 12px; font-weight: 700; transform: translate(-50%, -50%); }
+        html.sessao-esperada .tela-acesso.inicializando { visibility: hidden; opacity: 0; pointer-events: none; }
         .tela-acesso.oculta { display: none; }
         .oculto-permissao { display: none !important; }
         [disabled] { cursor: not-allowed; opacity: .58; }
