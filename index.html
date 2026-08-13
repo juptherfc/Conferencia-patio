@@ -803,7 +803,7 @@
                 <div id="sobraCadastro" class="sobra-cadastro" data-permissao="cadastrarSobra">
                     <div class="sobra-cabecalho">
                         <div>
-                            <div class="sobra-titulo">Cadastrar sobra</div>
+                            <div class="sobra-titulo" id="sobraTitulo">Cadastrar sobra</div>
                             <div class="sobra-subtitulo" id="sobraMensagem">O registro não foi encontrado. Preencha os dados para cadastrá-lo.</div>
                         </div>
                         <span class="sobra-badge">Novo registro</span>
@@ -821,7 +821,7 @@
                     </div>
                     <div class="sobra-acoes">
                         <button type="button" class="btn-secundario" onclick="limparCadastroSobra()">Cancelar</button>
-                        <button type="button" class="btn-principal" data-permissao="cadastrarSobra" onclick="salvarCadastroSobra()">Cadastrar sobra</button>
+                        <button type="button" id="btnSalvarSobra" class="btn-principal" data-permissao="cadastrarSobra" onclick="salvarCadastroSobra()">Cadastrar sobra</button>
                     </div>
                 </div>
 
@@ -836,8 +836,8 @@
                     <div class="sobras-contador" id="sobrasContador">0 sobras cadastradas</div>
                     <div class="sobras-tabela-container">
                         <table class="sobras-tabela">
-                            <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th></tr></thead>
-                            <tbody id="tabelaSobras"><tr><td colspan="9" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                            <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Ação</th></tr></thead>
+                            <tbody id="tabelaSobras"><tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -909,6 +909,8 @@
         let mensagemAcessoPendente = '';
         let elementoFocoAntesDetalhes = null;
         let indiceRegistroDetalhes = null;
+        let registroSobraSelecionada = null;
+        let modoEdicaoSobra = false;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1071,7 +1073,13 @@
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
-                auth.onAuthStateChanged(gerenciarSessao);
+                const persistenciaSessao = firebase.auth.Auth?.Persistence?.SESSION || 'session';
+                auth.setPersistence(persistenciaSessao).then(() => {
+                    auth.onAuthStateChanged(gerenciarSessao);
+                }).catch(error => {
+                    console.error('Falha ao configurar a sessão do Firebase Auth:', error);
+                    definirMensagemAcesso('Não foi possível configurar a sessão deste navegador.');
+                });
             } catch (error) {
                 console.error('Falha ao inicializar o Firebase Auth:', error);
                 definirMensagemAcesso('A configuração do serviço de autenticação está indisponível.');
@@ -1446,7 +1454,7 @@
             contador.textContent = `${sobras.length} sobra${sobras.length === 1 ? '' : 's'} cadastrada${sobras.length === 1 ? '' : 's'}`;
             corpo.innerHTML = '';
             if (!sobras.length) {
-                corpo.innerHTML = '<tr><td colspan="9" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
+                corpo.innerHTML = '<tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
                 return;
             }
 
@@ -1462,9 +1470,56 @@
                     <td>${escaparHtml(valorRegistro(registro, 'qtd2') || '-')}</td>
                     <td>${escaparHtml(valorRegistro(registro, 'agenciaRemetente') || '-')}</td>
                     <td>${escaparHtml(formatarData(valorRegistro(registro, 'emissao')))}</td>
+                    <td class="sobra-acao"></td>
                 `;
+                const acao = linha.querySelector('.sobra-acao');
+                if (temPermissao('editarDeposito')) {
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'btn-ferramenta-tabela btn-primario';
+                    botao.textContent = 'Editar';
+                    botao.title = 'Editar todos os campos desta sobra';
+                    botao.addEventListener('click', () => iniciarEdicaoSobra(registro));
+                    acao.appendChild(botao);
+                } else {
+                    acao.textContent = 'Somente adm';
+                    acao.style.color = '#9aa3ad';
+                    acao.style.fontSize = '10px';
+                    acao.style.fontWeight = '700';
+                }
                 corpo.appendChild(linha);
             });
+        }
+
+        function iniciarEdicaoSobra(registro) {
+            if (!registro || !exigirPermissao('editarDeposito')) return;
+            registroSobraSelecionada = registro;
+            modoEdicaoSobra = true;
+            const valores = {
+                'sobra-cte': valorRegistro(registro, 'cte'),
+                'sobra-nf': valorRegistro(registro, 'notas'),
+                'sobra-volumes': valorRegistro(registro, 'volumes'),
+                'sobra-qtd': valorRegistro(registro, 'qtd'),
+                'sobra-rota': valorRegistro(registro, 'rota'),
+                'sobra-tipo': valorRegistro(registro, 'tipo'),
+                'sobra-qtd-sec': valorRegistro(registro, 'qtd2'),
+                'sobra-agencia': valorRegistro(registro, 'agenciaRemetente'),
+                'sobra-emissao': obterDataEmFormatoISO(registro.emissao)
+            };
+            Object.entries(valores).forEach(([id, valor]) => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = valor;
+            });
+            const titulo = document.getElementById('sobraTitulo');
+            const botao = document.getElementById('btnSalvarSobra');
+            const mensagem = document.getElementById('sobraMensagem');
+            if (titulo) titulo.textContent = 'Editar sobra cadastrada';
+            if (botao) botao.textContent = 'Salvar alterações';
+            if (mensagem) mensagem.textContent = 'Atualize todos os campos necessários e salve as alterações deste lançamento.';
+            const badge = document.querySelector('#sobraCadastro .sobra-badge');
+            if (badge) badge.textContent = 'Edição';
+            document.getElementById('sobraCadastro')?.classList.add('visivel');
+            document.getElementById('sobraCadastro')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function alternarListaSobras() {
@@ -1822,6 +1877,8 @@
         function mostrarFormularioSobra(tipo, termo) {
             if (!exigirPermissao('cadastrarSobra')) return;
             contextoBuscaDeposito = { tipo, termo };
+            registroSobraSelecionada = null;
+            modoEdicaoSobra = false;
             const campoCte = document.getElementById('sobra-cte');
             const campoNf = document.getElementById('sobra-nf');
             if (campoCte) campoCte.value = tipo === 'cte' ? termo : '';
@@ -1842,16 +1899,30 @@
 
         function limparCadastroSobra(mostrarMensagem = true) {
             contextoBuscaDeposito = { tipo: '', termo: '' };
+            registroSobraSelecionada = null;
+            modoEdicaoSobra = false;
             ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
             document.getElementById('sobraCadastro')?.classList.remove('visivel');
+            const titulo = document.getElementById('sobraTitulo');
+            const botao = document.getElementById('btnSalvarSobra');
+            const mensagem = document.getElementById('sobraMensagem');
+            const badge = document.querySelector('#sobraCadastro .sobra-badge');
+            if (titulo) titulo.textContent = 'Cadastrar sobra';
+            if (botao) botao.textContent = 'Cadastrar sobra';
+            if (mensagem) mensagem.textContent = 'O registro não foi encontrado. Preencha os dados para cadastrá-lo.';
+            if (badge) badge.textContent = 'Novo registro';
             if (mostrarMensagem) mostrarAlerta('<b>Status:</b> cadastro de sobra cancelado.', 'info');
         }
 
         function salvarCadastroSobra() {
-            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('cadastrarSobra')) return;
+            if (!db || !exigirAcessoAutorizado()) return;
+            const emEdicao = modoEdicaoSobra && registroSobraSelecionada;
+            const permissao = emEdicao ? 'editarDeposito' : 'cadastrarSobra';
+            if (!exigirPermissao(permissao)) return;
+
             const ids = ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao'];
             const valores = Object.fromEntries(ids.map(id => [id, document.getElementById(id)?.value.trim() || '']));
             const obrigatorios = {
@@ -1867,31 +1938,25 @@
             }
             const faltante = Object.entries(obrigatorios).find(([id]) => !valores[id]);
             if (faltante) {
-                mostrarAlerta(`<b>Atenção:</b> preencha o campo ${faltante[1]} para cadastrar a sobra.`, 'info');
+                mostrarAlerta(`<b>Atenção:</b> preencha o campo ${faltante[1]} para ${emEdicao ? 'salvar a edição' : 'cadastrar a sobra'}.`, 'info');
                 document.getElementById(faltante[0])?.focus();
                 return;
             }
 
-            const identificador = cte || nf;
-            const chave = obterChaveRegistro(identificador, valores['sobra-emissao']);
+            const chaveAtual = emEdicao ? obterChaveRegistroAtual(registroSobraSelecionada) : '';
             const registroExistente = dadosLocais.some(registro => {
+                if (emEdicao && obterChaveRegistroAtual(registro) === chaveAtual) return false;
                 const mesmaData = obterDataEmFormatoISO(registro.emissao) === valores['sobra-emissao'];
                 const mesmoCte = cte && valorRegistro(registro, 'cte') === cte;
                 const mesmaNf = nf && valorRegistro(registro, 'notas') === nf;
                 return mesmaData && (mesmoCte || mesmaNf);
             });
             if (registroExistente) {
-                mostrarAlerta('<b>Atenção:</b> já existe um registro com este identificador e data de emissão. Use a busca para atualizá-lo.', 'info');
+                mostrarAlerta('<b>Atenção:</b> já existe outro registro com este identificador e data de emissão.', 'info');
                 return;
             }
 
-            const dataImportacao = new Date().toISOString();
-            const registro = {
-                conferido: false,
-                origem: 'sobra',
-                loteId: `sobra_${valores['sobra-emissao']}_${Date.now()}`,
-                dataTrabalho: valores['sobra-emissao'],
-                dataImportacao,
+            const valoresAtualizacao = {
                 cte,
                 notas: nf,
                 volumes: valores['sobra-volumes'],
@@ -1899,10 +1964,46 @@
                 rota: valores['sobra-rota'].toUpperCase(),
                 tipo: valores['sobra-tipo'],
                 qtd2: valores['sobra-qtd-sec'],
-                clienteRemetente: '-',
-                destino: '-',
                 agenciaRemetente: valores['sobra-agencia'],
                 emissao: valores['sobra-emissao'],
+                dataTrabalho: valores['sobra-emissao']
+            };
+
+            if (emEdicao) {
+                if (!chaveAtual) {
+                    mostrarAlerta('<b>Erro:</b> não foi possível identificar a chave da sobra para edição.', 'erro');
+                    return;
+                }
+                db.child(chaveAtual).update(valoresAtualizacao).then(() => {
+                    Object.assign(registroSobraSelecionada, valoresAtualizacao);
+                    limparCadastroSobra(false);
+                    limparCamposBuscaDeposito();
+                    limparSugestoesDeposito(false);
+                    atualizarOpcoesFiltros();
+                    filtrarTabela();
+                    atualizarFiltrosHistorico();
+                    renderizarHistorico();
+                    renderizarSobras();
+                    mostrarAlerta('<b>Status:</b> sobra atualizada com sucesso. Todos os campos foram limpos.', 'sucesso');
+                    mudarAba('conf');
+                }).catch(error => {
+                    console.error('Erro ao editar sobra:', error);
+                    mostrarAlerta('<b>Erro:</b> não foi possível atualizar a sobra.', 'erro');
+                });
+                return;
+            }
+
+            const identificador = cte || nf;
+            const chave = obterChaveRegistro(identificador, valores['sobra-emissao']);
+            const registro = {
+                conferido: false,
+                origem: 'sobra',
+                loteId: `sobra_${valores['sobra-emissao']}_${Date.now()}`,
+                dataTrabalho: valores['sobra-emissao'],
+                dataImportacao: new Date().toISOString(),
+                ...valoresAtualizacao,
+                clienteRemetente: '-',
+                destino: '-',
                 previsaoAgencia: '',
                 previsaoEntrega: '',
                 dataOcorrencia: '',
