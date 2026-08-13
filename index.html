@@ -1133,10 +1133,27 @@
             return valorRegistro(registro, 'ocorrencia').toUpperCase().includes('AGUARDANDO');
         }
 
+        function normalizarTextoOcorrencia(valor) {
+            return String(valor ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function ocorrenciaIndicaEntrega(valor) {
+            return normalizarTextoOcorrencia(valor).includes('EM ENTREGA');
+        }
+
+        function ocorrenciaIndicaBo(valor) {
+            const texto = normalizarTextoOcorrencia(valor);
+            return texto.includes('BOLETIM') || /B\s*\.?\s*O\b/.test(texto);
+        }
+
         function classeCorLinha(registro) {
-            const ocorrencia = valorRegistro(registro, 'ocorrencia').toUpperCase();
-            if (ocorrencia === 'EM ENTREGA') return 'linha-entrega';
-            if (ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM')) return 'linha-bo';
+            if (ocorrenciaIndicaEntrega(registro?.ocorrencia)) return 'linha-entrega';
+            if (ocorrenciaIndicaBo(registro?.ocorrencia)) return 'linha-bo';
             const previsaoAgencia = obterDataEmFormatoISO(registro?.previsaoAgencia);
             if (previsaoAgencia && previsaoAgencia > obterDataAtualLocalISO()) return 'linha-previsao-futura';
             return '';
@@ -2164,7 +2181,8 @@
                     : `<b>${escaparHtml(cteTexto)}</b>`;
                 const cteCelula = `<span class="selecao-cte">${checkboxCelula}${cteBotao}</span>`;
                 const classeLinha = classeCorLinha(registro);
-                if (classeLinha) linha.className = classeLinha;
+                linha.className = classeLinha || 'linha-normal';
+                linha.dataset.regraCor = classeLinha || 'normal';
                 linha.innerHTML = `
                     <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
                     <td>${cteCelula}</td>
