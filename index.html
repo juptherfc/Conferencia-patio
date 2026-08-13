@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
@@ -176,6 +177,26 @@
         .tabela-titulo { color: #495463; font-size: 13px; font-weight: 700; }
         .tabela-contador { color: #9aa3ad; font-size: 11px; }
         .tabela-cabecalho-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+        .exportacao-painel { margin: 9px 0 10px; border: 1px solid #dce6f1; border-radius: 10px; background: #fbfdff; }
+        .exportacao-toolbar { display: flex; align-items: center; gap: 8px; padding: 9px 10px; }
+        .exportacao-toolbar-titulo { margin-right: auto; color: #52647a; font-size: 11px; font-weight: 800; }
+        .exportacao-toolbar-titulo small { display: block; margin-top: 2px; color: #8a99aa; font-size: 9px; font-weight: 600; }
+        .select-escopo-exportacao { height: 32px; min-width: 150px; border: 1px solid #d9e3ee; border-radius: 7px; background: #fff; color: #52647a; padding: 0 8px; font-size: 10px; }
+        .btn-ferramenta-tabela { height: 32px; border: 1px solid #d7e2ed; border-radius: 7px; padding: 0 10px; background: #fff; color: #52647a; font-size: 10px; font-weight: 750; }
+        .btn-ferramenta-tabela:hover { border-color: #a9c2df; background: #f3f8ff; color: #245fae; }
+        .btn-ferramenta-tabela.btn-primario { border-color: #bdd3ef; background: #eef5ff; color: #245fae; }
+        .filtros-avancados { padding: 0 10px 10px; border-top: 1px solid #e8eef5; }
+        .filtros-avancados[hidden] { display: none; }
+        .filtros-avancados-grid { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 8px; padding-top: 10px; }
+        .filtro-avancado { min-width: 0; }
+        .filtro-avancado label { display: block; margin: 0 0 4px 2px; color: #7b8ba0; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+        .filtro-avancado input, .filtro-avancado select { width: 100%; height: 32px; border: 1px solid #d9e3ee; border-radius: 7px; background: #fff; color: #52647a; padding: 0 8px; font-size: 10px; outline: none; }
+        .filtro-avancado input:focus, .filtro-avancado select:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+        .filtros-avancados-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 9px; }
+        .selecao-cte { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+        .selecao-cte input[type="checkbox"] { flex: 0 0 auto; width: 14px; height: 14px; accent-color: #2563eb; cursor: pointer; }
+        .selecao-cte .cte-detalhe-link { min-width: 0; }
+        .selecao-cte .cte-detalhe-link b { overflow: hidden; text-overflow: ellipsis; }
         .controle-largura-colunas { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 9px; border: 1px solid #d9e0e7; border-radius: 7px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
         .controle-largura-colunas input[type="range"] { width: 118px; accent-color: #2f73c9; }
         .controle-largura-colunas output { min-width: 34px; color: #3d6ebd; text-align: right; font-variant-numeric: tabular-nums; }
@@ -459,6 +480,13 @@
             .documento-historico-cabecalho, .resultado-cabecalho, .sobra-cabecalho { align-items: flex-start; flex-direction: column; }
             .documento-historico-grupo { min-width: 100%; }
             .tabela-cabecalho { min-height: 30px; }
+            .exportacao-toolbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+            .exportacao-toolbar-titulo { grid-column: 1 / -1; }
+            .select-escopo-exportacao { grid-column: 1 / -1; width: 100%; }
+            .exportacao-toolbar .btn-ferramenta-tabela { width: 100%; min-width: 0; padding: 0 6px; }
+            .filtros-avancados-grid { grid-template-columns: 1fr; }
+            .filtros-avancados-acoes { justify-content: stretch; }
+            .filtros-avancados-acoes button { flex: 1; }
             .tabela-titulo { font-size: 13px; }
             .tabela-container { max-height: calc(100vh - 330px); min-height: 220px; border-radius: 11px; -webkit-overflow-scrolling: touch; }
             .tabela-painel { min-width: 100%; }
@@ -600,6 +628,37 @@
         <div id="alertaStatus" class="alerta alerta-info">Conectando ao banco de dados...</div>
 
         <div id="tela-conf" class="aba-conteudo active">
+            <div class="exportacao-painel" aria-label="Filtros avançados e exportação">
+                <div class="exportacao-toolbar">
+                    <span class="exportacao-toolbar-titulo">Seleção e exportação<small id="contadorSelecaoRegistros">0 selecionados</small></span>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="alternarFiltrosAvancados()">Filtros avançados</button>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="selecionarRegistrosVisiveis()">Selecionar visíveis</button>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="limparSelecaoRegistros()">Limpar seleção</button>
+                    <select id="escopoExportacao" class="select-escopo-exportacao" aria-label="Escopo da exportação">
+                        <option value="filtrados">Visão filtrada</option>
+                        <option value="selecionados">Somente selecionados</option>
+                        <option value="todos">Toda a planilha</option>
+                    </select>
+                    <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="imprimirEscopoSelecionado()">Imprimir / PDF</button>
+                    <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="exportarExcelEscopoSelecionado()">Excel</button>
+                </div>
+                <div id="filtrosAvancados" class="filtros-avancados" hidden>
+                    <div class="filtros-avancados-grid">
+                        <div class="filtro-avancado"><label for="filtroAvancadoTexto">Busca geral</label><input id="filtroAvancadoTexto" type="search" placeholder="CTe, NF, remetente, destino..." oninput="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoStatus">Status</label><select id="filtroAvancadoStatus" onchange="filtrarTabela()"><option value="">Usar cartão atual</option><option value="todos">Todos os status</option><option value="pendentes">Pendentes</option><option value="entrega">Em entrega</option><option value="bo">Com B.O.</option><option value="atrasados">Atrasados</option><option value="aguardando">Aguardando</option></select></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoLote">Lote importado</label><select id="filtroAvancadoLote" onchange="filtrarTabela()"><option value="">Todos os lotes</option></select></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoOcorrencia">Ocorrência</label><select id="filtroAvancadoOcorrencia" onchange="filtrarTabela()"><option value="">Com ou sem ocorrência</option><option value="com">Somente com ocorrência</option><option value="sem">Somente sem ocorrência</option></select></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoDiaInicial">Dia trabalho inicial</label><input id="filtroAvancadoDiaInicial" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoDiaFinal">Dia trabalho final</label><input id="filtroAvancadoDiaFinal" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoEmissaoInicial">Emissão inicial</label><input id="filtroAvancadoEmissaoInicial" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoEmissaoFinal">Emissão final</label><input id="filtroAvancadoEmissaoFinal" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoEntregaInicial">Prev. entrega inicial</label><input id="filtroAvancadoEntregaInicial" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoEntregaFinal">Prev. entrega final</label><input id="filtroAvancadoEntregaFinal" type="date" onchange="filtrarTabela()"></div>
+                        <div class="filtro-avancado"><label for="filtroAvancadoAtrasoMinimo">Atraso mínimo (dias)</label><input id="filtroAvancadoAtrasoMinimo" type="number" min="0" step="1" placeholder="Ex.: 1" oninput="filtrarTabela()"></div>
+                    </div>
+                    <div class="filtros-avancados-acoes"><button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosAvancados()">Limpar avançados</button></div>
+                </div>
+            </div>
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
                 <div class="tabela-cabecalho-acoes">
@@ -808,6 +867,8 @@
         let usuarioAutenticado = null;
         let perfilAutorizado = null;
         let dadosLocais = [];
+        let registrosFiltradosAtuais = [];
+        let registrosSelecionados = new Set();
         let filtroCardAtivo = 'pendentes';
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
@@ -854,6 +915,8 @@
             usuarioAutenticado = null;
             perfilAutorizado = null;
             dadosLocais = [];
+            registrosFiltradosAtuais = [];
+            registrosSelecionados.clear();
             const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
             if (selectDiaCabecalho) selectDiaCabecalho.dataset.manual = 'false';
             document.getElementById('usuarioSessao').textContent = '';
@@ -1110,10 +1173,13 @@
         }
 
         function atualizarOpcoesFiltros() {
+            const chavesAtuais = new Set(dadosLocais.map(obterChaveRegistroAtual));
+            registrosSelecionados = new Set([...registrosSelecionados].filter(chave => chavesAtuais.has(chave)));
             preencherSelect('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
             preencherSelect('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
             preencherSelect('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
             preencherSelect('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
+            preencherSelect('filtroAvancadoLote', dadosLocais.map(registro => registro.loteId), 'Todos os lotes');
             const diasTrabalho = obterDiasTrabalhoImportados();
             const ultimoDiaImportado = diasTrabalho[0] || '';
             const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
@@ -1330,13 +1396,136 @@
         }
 
         function limparFiltrosCabecalho() {
-            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroCabecalhoVolumes', 'filtroCabecalhoQtd', 'filtroCabecalhoRota', 'filtroCabecalhoTipo', 'filtroCabecalhoQtdSec', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoAgencia', 'filtroCabecalhoDataEmissao', 'filtroCabecalhoPrevAgencia', 'filtroCabecalhoPrevEntrega', 'filtroCabecalhoDataOcorrencia', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoDiasAtraso', 'filtroCabecalhoUltOcorrencia'].forEach(id => {
+            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroCabecalhoVolumes', 'filtroCabecalhoQtd', 'filtroCabecalhoRota', 'filtroCabecalhoTipo', 'filtroCabecalhoQtdSec', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoAgencia', 'filtroCabecalhoDataEmissao', 'filtroCabecalhoPrevAgencia', 'filtroCabecalhoPrevEntrega', 'filtroCabecalhoDataOcorrencia', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoDiasAtraso', 'filtroCabecalhoUltOcorrencia', 'filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
             const dia = document.getElementById('filtroCabecalhoDiaTrabalho');
             if (dia) dia.dataset.manual = 'true';
+            limparSelecaoRegistros(false);
             filtrarTabela();
+        }
+
+        function alternarFiltrosAvancados() {
+            const painel = document.getElementById('filtrosAvancados');
+            if (!painel) return;
+            painel.hidden = !painel.hidden;
+        }
+
+        function atualizarContadorSelecao() {
+            const contador = document.getElementById('contadorSelecaoRegistros');
+            if (contador) contador.textContent = `${registrosSelecionados.size} selecionado${registrosSelecionados.size === 1 ? '' : 's'}`;
+            document.querySelectorAll('.seletor-registro').forEach(caixa => {
+                caixa.checked = registrosSelecionados.has(caixa.dataset.chave);
+            });
+        }
+
+        function alternarSelecaoRegistro(caixa) {
+            if (!caixa?.dataset.chave) return;
+            if (caixa.checked) registrosSelecionados.add(caixa.dataset.chave);
+            else registrosSelecionados.delete(caixa.dataset.chave);
+            atualizarContadorSelecao();
+        }
+
+        function selecionarRegistrosVisiveis() {
+            registrosFiltradosAtuais.forEach(registro => registrosSelecionados.add(obterChaveRegistroAtual(registro)));
+            atualizarContadorSelecao();
+        }
+
+        function limparSelecaoRegistros(atualizar = true) {
+            registrosSelecionados.clear();
+            if (atualizar) atualizarContadorSelecao();
+        }
+
+        function limparFiltrosAvancados() {
+            ['filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+            filtrarTabela();
+        }
+
+        function obterRegistrosPorEscopo() {
+            const escopo = document.getElementById('escopoExportacao')?.value || 'filtrados';
+            if (escopo === 'todos') return [...dadosLocais];
+            if (escopo === 'selecionados') return dadosLocais.filter(registro => registrosSelecionados.has(obterChaveRegistroAtual(registro)));
+            return [...registrosFiltradosAtuais];
+        }
+
+        function obterCabecalhosExportacao() {
+            return ['Dia Trabalho', 'CTe', 'Notas', 'Vol.', 'Qtd', 'ROTA', 'Tipo', 'Qtd Sec.', 'Remetente', 'Destino', 'Agência', 'Emissão', 'Prev. Agência', 'Prev. Entrega', 'Data Ocorr.', 'Ocorrência', 'Dias Atraso', 'Últ. Ocorrência'];
+        }
+
+        function obterLinhaExportacao(registro) {
+            return [
+                formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '',
+                valorRegistro(registro, 'cte'),
+                valorRegistro(registro, 'notas'),
+                valorRegistro(registro, 'volumes'),
+                valorRegistro(registro, 'qtd'),
+                valorRegistro(registro, 'rota'),
+                valorRegistro(registro, 'tipo'),
+                valorRegistro(registro, 'qtd2'),
+                valorRegistro(registro, 'clienteRemetente'),
+                valorRegistro(registro, 'destino'),
+                valorRegistro(registro, 'agenciaRemetente'),
+                formatarData(registro.emissao),
+                formatarData(registro.previsaoAgencia),
+                formatarData(registro.previsaoEntrega),
+                formatarData(registro.dataOcorrencia),
+                valorRegistro(registro, 'ocorrencia'),
+                valorRegistro(registro, 'diasAtraso'),
+                formatarData(registro.dataUltOcorrencia)
+            ];
+        }
+
+        function nomeArquivoExportacao(extensao) {
+            const data = obterDataAtualLocalISO().replace(/-/g, '');
+            const escopo = document.getElementById('escopoExportacao')?.value || 'filtrados';
+            return `expresso-sm-${escopo}-${data}.${extensao}`;
+        }
+
+        function baixarArquivo(conteudo, nome, tipo) {
+            const blob = new Blob([conteudo], { type: tipo });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nome;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function exportarExcelEscopoSelecionado() {
+            const registros = obterRegistrosPorEscopo();
+            if (!registros.length) { mostrarAlerta('<b>Atenção:</b> não há registros no escopo escolhido para exportar.', 'info'); return; }
+            const dados = [obterCabecalhosExportacao(), ...registros.map(obterLinhaExportacao)];
+            if (window.XLSX) {
+                const planilha = XLSX.utils.aoa_to_sheet(dados);
+                planilha['!cols'] = obterCabecalhosExportacao().map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                const livro = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(livro, planilha, 'Conferência');
+                XLSX.writeFile(livro, nomeArquivoExportacao('xlsx'));
+            } else {
+                const texto = dados.map(linha => linha.map(valor => String(valor ?? '').replace(/\t|\r?\n/g, ' ')).join('\t')).join('\n');
+                baixarArquivo('\ufeff' + texto, nomeArquivoExportacao('xls'), 'application/vnd.ms-excel;charset=utf-8');
+            }
+            mostrarAlerta(`<b>Status:</b> ${registros.length} registro${registros.length === 1 ? '' : 's'} exportado${registros.length === 1 ? '' : 's'} para Excel.`, 'sucesso');
+        }
+
+        function imprimirEscopoSelecionado() {
+            const registros = obterRegistrosPorEscopo();
+            if (!registros.length) { mostrarAlerta('<b>Atenção:</b> não há registros no escopo escolhido para imprimir.', 'info'); return; }
+            const cabecalhos = obterCabecalhosExportacao();
+            const linhas = registros.map(registro => `<tr>${obterLinhaExportacao(registro).map(valor => `<td>${escaparHtml(valor)}</td>`).join('')}</tr>`).join('');
+            const janela = window.open('', '_blank', 'width=1200,height=800');
+            if (!janela) { mostrarAlerta('<b>Atenção:</b> o navegador bloqueou a janela de impressão. Permita pop-ups para continuar.', 'info'); return; }
+            janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Expresso SM - Impressão</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;color:#1f2937;font-size:9px}h1{font-size:16px;margin:0 0 4px}p{margin:0 0 10px;color:#64748b;font-size:10px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #cbd5e1;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eaf2fb;color:#334155;font-size:8px;text-transform:uppercase}td{white-space:normal;word-break:break-word}@media print{button{display:none}}</style></head><body><h1>Expresso SM — Registros de conferência</h1><p>${registros.length} registro${registros.length === 1 ? '' : 's'} · Escopo: ${escaparHtml(document.getElementById('escopoExportacao')?.selectedOptions?.[0]?.text || 'Visão filtrada')}</p><table><thead><tr>${cabecalhos.map(cabecalho => `<th>${escaparHtml(cabecalho)}</th>`).join('')}</tr></thead><tbody>${linhas}</tbody></table></body></html>`);
+            janela.document.close();
+            janela.focus();
+            janela.onafterprint = () => janela.close();
+            janela.print();
         }
 
         function obterConsultasDocumento(busca, buscaNf) {
@@ -1810,6 +1999,22 @@
             const ocorrenciaFiltro = obterValorCampo('filtroCabecalhoOcorrencia');
             const diasAtrasoCabecalho = obterValorCampo('filtroCabecalhoDiasAtraso');
             const ultimaOcorrenciaCabecalho = obterValorCampo('filtroCabecalhoUltOcorrencia');
+            const buscaAvancada = obterValorCampo('filtroAvancadoTexto');
+            const statusAvancado = obterValorCampo('filtroAvancadoStatus');
+            const loteAvancado = obterValorCampo('filtroAvancadoLote');
+            const ocorrenciaAvancada = obterValorCampo('filtroAvancadoOcorrencia');
+            const diaInicialAvancado = document.getElementById('filtroAvancadoDiaInicial')?.value || '';
+            const diaFinalAvancado = document.getElementById('filtroAvancadoDiaFinal')?.value || '';
+            const emissaoInicialAvancado = document.getElementById('filtroAvancadoEmissaoInicial')?.value || '';
+            const emissaoFinalAvancado = document.getElementById('filtroAvancadoEmissaoFinal')?.value || '';
+            const entregaInicialAvancado = document.getElementById('filtroAvancadoEntregaInicial')?.value || '';
+            const entregaFinalAvancado = document.getElementById('filtroAvancadoEntregaFinal')?.value || '';
+            const atrasoMinimoAvancado = Number(document.getElementById('filtroAvancadoAtrasoMinimo')?.value || 0);
+            const dentroIntervalo = (valor, inicial, final) => {
+                if (!inicial && !final) return true;
+                if (!valor) return false;
+                return (!inicial || valor >= inicial) && (!final || valor <= final);
+            };
 
             const filtrados = dadosLocais.filter(registro => {
                 const ocorrencia = valorRegistro(registro, 'ocorrencia').toUpperCase();
@@ -1817,16 +2022,34 @@
                 const isEntrega = ocorrencia === 'EM ENTREGA';
                 const isAtrasado = estaAtrasado(registro);
                 const isAguardando = estaAguardando(registro);
-                if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
+                const possuiOcorrencia = Boolean(valorRegistro(registro, 'ocorrencia'));
+                const textoBuscaAvancada = ['cte', 'notas', 'volumes', 'qtd', 'rota', 'tipo', 'qtd2', 'clienteRemetente', 'destino', 'agenciaRemetente', 'ocorrencia'].map(campo => valorRegistro(registro, campo).toLowerCase()).join(' ');
+                const diaTrabalhoRegistro = obterDataTrabalhoRegistro(registro);
+                const emissaoRegistro = obterDataEmFormatoISO(registro.emissao);
+                const entregaRegistro = obterDataEmFormatoISO(registro.previsaoEntrega);
+                if (diaTrabalho && diaTrabalhoRegistro !== diaTrabalho) return false;
                 if (dataEmissao && obterDataEmFormatoISO(registro.emissao) !== dataEmissao) return false;
                 if (dataPrevAgencia && obterDataEmFormatoISO(registro.previsaoAgencia) !== dataPrevAgencia) return false;
                 if (dataPrevEntrega && obterDataEmFormatoISO(registro.previsaoEntrega) !== dataPrevEntrega) return false;
                 if (dataOcorrenciaFiltro && obterDataEmFormatoISO(registro.dataOcorrencia) !== dataOcorrenciaFiltro) return false;
                 const ultimaOcorrenciaTexto = `${valorRegistro(registro, 'dataUltOcorrencia')} ${formatarData(registro.dataUltOcorrencia)}`.toLowerCase();
                 if (ultimaOcorrenciaCabecalho && !ultimaOcorrenciaTexto.includes(ultimaOcorrenciaCabecalho)) return false;
-                if (filtroCardAtivo === 'entrega' && !isEntrega) return false;
-                if (filtroCardAtivo === 'bo' && !isBo) return false;
-                if (filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
+                if (!statusAvancado && filtroCardAtivo === 'entrega' && !isEntrega) return false;
+                if (!statusAvancado && filtroCardAtivo === 'bo' && !isBo) return false;
+                if (!statusAvancado && filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
+                if (buscaAvancada && !textoBuscaAvancada.includes(buscaAvancada)) return false;
+                if (statusAvancado === 'entrega' && !isEntrega) return false;
+                if (statusAvancado === 'bo' && !isBo) return false;
+                if (statusAvancado === 'pendentes' && (isEntrega || isBo)) return false;
+                if (statusAvancado === 'atrasados' && !isAtrasado) return false;
+                if (statusAvancado === 'aguardando' && !isAguardando) return false;
+                if (loteAvancado && valorRegistro(registro, 'loteId').toLowerCase() !== loteAvancado) return false;
+                if (ocorrenciaAvancada === 'com' && !possuiOcorrencia) return false;
+                if (ocorrenciaAvancada === 'sem' && possuiOcorrencia) return false;
+                if (!dentroIntervalo(diaTrabalhoRegistro, diaInicialAvancado, diaFinalAvancado)) return false;
+                if (!dentroIntervalo(emissaoRegistro, emissaoInicialAvancado, emissaoFinalAvancado)) return false;
+                if (!dentroIntervalo(entregaRegistro, entregaInicialAvancado, entregaFinalAvancado)) return false;
+                if (atrasoMinimoAvancado > 0 && valorNumerico(registro.diasAtraso) < atrasoMinimoAvancado) return false;
                 if (cteCabecalho && !valorRegistro(registro, 'cte').toLowerCase().includes(cteCabecalho)) return false;
                 if (notasCabecalho && !valorRegistro(registro, 'notas').toLowerCase().includes(notasCabecalho)) return false;
                 if (volumesCabecalho && !valorRegistro(registro, 'volumes').toLowerCase().includes(volumesCabecalho)) return false;
@@ -1842,6 +2065,7 @@
                 return true;
             });
 
+            registrosFiltradosAtuais = filtrados;
             renderizarTabelaHtml(filtrados);
         }
 
@@ -1855,9 +2079,13 @@
                 const linha = document.createElement('tr');
                 const indiceRegistro = dadosLocais.indexOf(registro);
                 const cteTexto = registro.cte || '-';
-                const cteCelula = indiceRegistro >= 0
+                const chaveRegistroTabela = obterChaveRegistroAtual(registro);
+                const selecionado = registrosSelecionados.has(chaveRegistroTabela);
+                const checkboxCelula = `<input type="checkbox" class="seletor-registro" data-chave="${escaparHtml(chaveRegistroTabela)}" aria-label="Selecionar CTe ${escaparHtml(cteTexto)}" ${selecionado ? 'checked' : ''} onchange="alternarSelecaoRegistro(this)">`;
+                const cteBotao = indiceRegistro >= 0
                     ? `<button type="button" class="cte-detalhe-link" aria-label="Abrir detalhes do CTe ${escaparHtml(cteTexto)}" onclick="abrirDetalhesRegistro(${indiceRegistro})"><b>${escaparHtml(cteTexto)}</b></button>`
                     : `<b>${escaparHtml(cteTexto)}</b>`;
+                const cteCelula = `<span class="selecao-cte">${checkboxCelula}${cteBotao}</span>`;
                 if (registro.conferido) linha.className = 'linha-conferida';
                 linha.innerHTML = `
                     <td>${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-')}</td>
@@ -1898,6 +2126,7 @@
             document.getElementById('c-bo').innerText = boletins;
             document.getElementById('c-total').innerText = total;
             document.getElementById('contadorTabela').innerText = `${registros.length} de ${total} registro${total === 1 ? '' : 's'}`;
+            atualizarContadorSelecao();
         }
 
         const camposDetalhesRegistro = [
