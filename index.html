@@ -596,6 +596,9 @@
             <button type="button" id="menu-dep" class="btn-menu" onclick="mudarAba('dep')" title="Conf. Depósito">
                 <span class="menu-icone" aria-hidden="true">⌗</span><span class="menu-texto">Conf. Depósito</span>
             </button>
+            <button type="button" id="menu-sobras" class="btn-menu" onclick="mudarAba('sobras')" title="Sobras lançadas">
+                <span class="menu-icone" aria-hidden="true">▤</span><span class="menu-texto">Sobras</span>
+            </button>
             <button type="button" id="menu-colar" class="btn-menu" data-permissao="importar" onclick="mudarAba('colar')" title="Importar">
                 <span class="menu-icone" aria-hidden="true">⇩</span><span class="menu-texto">Importar</span>
             </button>
@@ -841,6 +844,30 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="tela-sobras" class="aba-conteudo">
+            <div class="bloco">
+                <div class="sobras-cabecalho">
+                    <div>
+                        <h3 style="color:#374151;">Sobras lançadas</h3>
+                        <p style="margin-top:5px; color:#8a949e; font-size:12px;">Consulte as sobras cadastradas e filtre pelo dia de trabalho em que foram lançadas.</p>
+                    </div>
+                    <span class="sobra-badge">Consulta operacional</span>
+                </div>
+                <div class="historico-filtros" aria-label="Filtro de sobras">
+                    <select id="filtroSobrasDiaTrabalho" class="select-filtro" onchange="renderizarSobrasMenu()"><option value="">Todos os dias</option></select>
+                </div>
+                <div class="historico-resumo">
+                    <span><strong id="sobrasMenuContador">0</strong> sobras encontradas</span>
+                </div>
+            </div>
+            <div class="tabela-container historico-tabela-container">
+                <table class="historico-tabela sobras-tabela">
+                    <thead><tr><th>CTe</th><th>NF</th><th>Volumes</th><th>Qtd</th><th>ROTA</th><th>Tipo</th><th>Qtd Sec</th><th>Agência</th><th>Data de emissão</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaSobrasMenu"><tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr></tbody>
+                </table>
             </div>
         </div>
 
@@ -1102,6 +1129,7 @@
                 menu.setAttribute('aria-current', 'page');
             }
             if (id === 'hist') renderizarHistorico();
+            if (id === 'sobras') renderizarSobrasMenu();
         }
 
         function mostrarAlerta(mensagem, tipo) {
@@ -1304,6 +1332,7 @@
                 if (filtroEhBranco(option.value)) option.textContent = 'Em branco';
                 else if (option.value) option.textContent = `${formatarDataImportacao(option.value)} — ${option.value}`;
             });
+            renderizarSobrasMenu();
         }
 
         function registrarSelecaoDiaTrabalho(select) {
@@ -1458,15 +1487,14 @@
             });
         }
 
-        function renderizarSobras() {
-            const corpo = document.getElementById('tabelaSobras');
-            const contador = document.getElementById('sobrasContador');
-            if (!corpo || !contador) return;
-            const sobras = dadosLocais
+        function obterRegistrosSobras() {
+            return dadosLocais
                 .filter(registro => valorRegistro(registro, 'origem').toLowerCase() === 'sobra' || valorRegistro(registro, 'ocorrencia').toUpperCase() === 'SOBRA CADASTRADA')
                 .sort((a, b) => String(b.dataImportacao || b.emissao || '').localeCompare(String(a.dataImportacao || a.emissao || '')));
+        }
 
-            contador.textContent = `${sobras.length} sobra${sobras.length === 1 ? '' : 's'} cadastrada${sobras.length === 1 ? '' : 's'}`;
+        function renderizarTabelaSobras(corpo, sobras) {
+            if (!corpo) return;
             corpo.innerHTML = '';
             if (!sobras.length) {
                 corpo.innerHTML = '<tr><td colspan="10" class="historico-vazio">Nenhuma sobra cadastrada.</td></tr>';
@@ -1504,6 +1532,30 @@
                 }
                 corpo.appendChild(linha);
             });
+        }
+
+        function renderizarSobras() {
+            const corpo = document.getElementById('tabelaSobras');
+            const contador = document.getElementById('sobrasContador');
+            if (!corpo || !contador) return;
+            const sobras = obterRegistrosSobras();
+            contador.textContent = `${sobras.length} sobra${sobras.length === 1 ? '' : 's'} cadastrada${sobras.length === 1 ? '' : 's'}`;
+            renderizarTabelaSobras(corpo, sobras);
+        }
+
+        function renderizarSobrasMenu() {
+            const corpo = document.getElementById('tabelaSobrasMenu');
+            const contador = document.getElementById('sobrasMenuContador');
+            const filtro = document.getElementById('filtroSobrasDiaTrabalho');
+            if (!corpo || !contador || !filtro) return;
+            const todas = obterRegistrosSobras();
+            preencherSelect('filtroSobrasDiaTrabalho', todas.map(obterDataTrabalhoRegistro), 'Todos os dias', formatarDataImportacao);
+            const diaSelecionado = filtro.value;
+            const sobras = diaSelecionado === '__BRANCO__'
+                ? todas.filter(registro => !obterDataTrabalhoRegistro(registro))
+                : todas.filter(registro => !diaSelecionado || obterDataTrabalhoRegistro(registro) === diaSelecionado);
+            contador.textContent = String(sobras.length);
+            renderizarTabelaSobras(corpo, sobras);
         }
 
         function iniciarEdicaoSobra(registro) {
@@ -1833,17 +1885,26 @@
             limparCadastroSobra(false);
             contextoBuscaDeposito = { tipo, termo };
             const termoNormalizado = normalizarTexto(termo);
+            const diaTrabalhoAtual = obterDiaTrabalhoAtualParaSobra();
             const exatos = dadosLocais.filter(registro => normalizarTexto(obterValorBuscaDeposito(registro, tipo)) === termoNormalizado);
+            const exatosDoDiaAtual = exatos.filter(registro => obterDataTrabalhoRegistro(registro) === diaTrabalhoAtual);
 
-            if (exatos.length === 1) {
-                if (!silenciosa) mostrarAlerta('<b>Status:</b> registro localizado exatamente. Revise os quatro campos e atualize.', 'sucesso');
-                preencherRegistroDeposito(exatos[0]);
+            if (exatosDoDiaAtual.length === 1) {
+                if (!silenciosa) mostrarAlerta('<b>Status:</b> registro localizado no dia de trabalho atual. Revise os quatro campos e atualize.', 'sucesso');
+                preencherRegistroDeposito(exatosDoDiaAtual[0]);
                 return;
             }
 
-            if (exatos.length > 1) {
-                mostrarSugestoesDeposito(exatos, tipo, termo, true);
-                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> existem ${exatos.length} registros com o mesmo valor. Selecione o correto ou cadastre uma sobra.`, 'info');
+            if (exatosDoDiaAtual.length > 1) {
+                mostrarSugestoesDeposito(exatosDoDiaAtual, tipo, termo, true);
+                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> existem ${exatosDoDiaAtual.length} registros no dia de trabalho atual com o mesmo valor. Selecione o correto ou cadastre uma sobra.`, 'info');
+                return;
+            }
+
+            if (exatos.length) {
+                limparRegistroDeposito(false, false);
+                mostrarSugestoesDeposito(exatos, tipo, termo, true, true, diaTrabalhoAtual);
+                if (!silenciosa) mostrarAlerta(`<b>Atenção:</b> o registro encontrado está em outro dia de trabalho. Para lançar este movimento no dia ${formatarDataImportacao(diaTrabalhoAtual)}, cadastre-o como sobra.`, 'info');
                 return;
             }
 
@@ -1864,10 +1925,12 @@
             if (!silenciosa) mostrarAlerta(`<b>Não encontrado:</b> nenhum registro corresponde à busca por ${tipo.toUpperCase()} "${escaparHtml(termo)}". Você pode cadastrar uma sobra.`, 'erro');
         }
 
-        function mostrarSugestoesDeposito(registros, tipo, termo, exato = false) {
+        function mostrarSugestoesDeposito(registros, tipo, termo, exato = false, foraDoDia = false, diaTrabalhoAtual = '') {
             sugestoesDeposito = registros;
-            document.getElementById('sugestoesTitulo').textContent = exato ? 'Existem múltiplos registros para esta busca' : 'Encontramos registros semelhantes';
-            document.getElementById('sugestoesSubtitulo').textContent = exato ? 'Selecione o registro correto ou cadastre uma sobra.' : `A busca por ${tipo.toUpperCase()} "${termo}" não foi exata. Confira antes de continuar.`;
+            document.getElementById('sugestoesTitulo').textContent = foraDoDia ? 'Registro localizado em outro dia' : (exato ? 'Existem múltiplos registros para esta busca' : 'Encontramos registros semelhantes');
+            document.getElementById('sugestoesSubtitulo').textContent = foraDoDia
+                ? `O registro encontrado não pertence ao dia de trabalho atual (${formatarDataImportacao(diaTrabalhoAtual)}). Se o lançamento deve entrar neste dia, cadastre-o como sobra.`
+                : (exato ? 'Selecione o registro correto ou cadastre uma sobra.' : `A busca por ${tipo.toUpperCase()} "${termo}" não foi exata. Confira antes de continuar.`);
             const lista = document.getElementById('sugestoesLista');
             lista.innerHTML = '';
             registros.forEach((registro, indice) => {
@@ -1921,7 +1984,7 @@
             if (campoCte) campoCte.value = tipo === 'cte' ? termo : '';
             if (campoNf) campoNf.value = tipo === 'nf' ? termo : '';
             const campoEmissao = document.getElementById('sobra-emissao');
-            if (campoEmissao && !campoEmissao.value) campoEmissao.value = new Date().toISOString().slice(0, 10);
+            if (campoEmissao && !campoEmissao.value) campoEmissao.value = obterDiaTrabalhoAtualParaSobra();
             document.getElementById('sobraMensagem').textContent = `A busca por ${tipo.toUpperCase()} não encontrou resultado. Confira os dados e cadastre a sobra.`;
             document.getElementById('sobraCadastro').classList.add('visivel');
             document.getElementById('sobraCadastro').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
