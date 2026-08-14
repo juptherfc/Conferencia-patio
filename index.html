@@ -2642,9 +2642,10 @@
                     filtrarTabela();
                     atualizarFiltrosHistorico();
                     renderizarHistorico();
-                    renderizarSobras();
+                                        renderizarSobras();
+                    renderizarSobrasMenu();
                     mostrarAlerta('<b>Status:</b> sobra atualizada com sucesso. Todos os campos foram limpos.', 'sucesso');
-                    mudarAba('conf');
+
                 }).catch(error => {
                     console.error('Erro ao editar sobra:', error);
                     liberarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra);
@@ -2678,9 +2679,10 @@
                 limparCadastroSobra(false);
                 limparCamposBuscaDeposito();
                 limparSugestoesDeposito(false);
-                                    mostrarAlerta(`<b>Status:</b> sobra cadastrada com sucesso e adicionada ao Painel.${indiceSobraIndisponivel ? ' A validação foi feita pelos registros reais porque o índice transacional estava indisponível.' : ''}`, 'sucesso');
+                                                                        renderizarSobras();
+                renderizarSobrasMenu();
+                mostrarAlerta(`<b>Status:</b> sobra cadastrada com sucesso e adicionada ao Painel.${indiceSobraIndisponivel ? ' A validação foi feita pelos registros reais porque o índice transacional estava indisponível.' : ''}`, 'sucesso');
 
-                mudarAba('conf');
             }).catch(error => {
                 console.error('Erro ao cadastrar sobra:', error);
                 liberarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra);
