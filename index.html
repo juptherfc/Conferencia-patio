@@ -3277,8 +3277,10 @@
                 const subtitulo = document.getElementById('detalhesRegistroSubtitulo');
                 const aviso = document.getElementById('detalhesEdicaoAviso');
                 if (subtitulo) subtitulo.textContent = 'Alterações salvas. Você pode continuar revisando este registro.';
-                if (aviso) aviso.textContent = 'Alterações salvas com sucesso.';
+                                if (aviso) aviso.textContent = 'Alterações salvas com sucesso.';
                 mostrarAlerta('<b>Status:</b> Qtd, ROTA, Tipo e Qtd Sec foram atualizados no registro.', 'sucesso');
+                fecharDetalhesRegistro();
+
             }).catch(error => {
                 console.error('Erro ao atualizar detalhes do CTe:', error);
                 mostrarAlerta('<b>Erro:</b> não foi possível salvar as alterações do card.', 'erro');
@@ -3313,20 +3315,31 @@
 
         const largurasColunasPadrao = [112, 82, 92, 70, 76, 105, 92, 92, 190, 190, 145, 150, 145, 145, 145, 220, 100, 165];
 
-        function aplicarLarguraColunas(percentual) {
+                function aplicarLarguraColunas(percentual) {
             const tabela = document.querySelector('.tabela-painel');
             const regulador = document.getElementById('reguladorLarguraColunas');
             const saida = document.getElementById('valorLarguraColunas');
             if (!tabela) return;
             const escala = Math.min(1.4, Math.max(.7, Number(percentual || 100) / 100));
+            const larguraTotal = Math.round(largurasColunasPadrao.reduce((total, largura) => total + largura, 0) * escala);
             let colgroup = tabela.querySelector('colgroup');
             if (!colgroup) {
                 colgroup = document.createElement('colgroup');
                 tabela.insertBefore(colgroup, tabela.firstChild);
             }
-            colgroup.innerHTML = largurasColunasPadrao.map(largura => `<col style="width:${Math.round(largura * escala)}px">`).join('');
-            tabela.style.width = `${Math.round(largurasColunasPadrao.reduce((total, largura) => total + largura, 0) * escala)}px`;
+            colgroup.replaceChildren(...largurasColunasPadrao.map(largura => {
+                const coluna = document.createElement('col');
+                coluna.style.width = `${Math.round(largura * escala)}px`;
+                return coluna;
+            }));
+            tabela.style.removeProperty('width');
+            tabela.style.width = `${larguraTotal}px`;
+            tabela.style.minWidth = `${larguraTotal}px`;
+            tabela.offsetWidth;
+            const container = tabela.closest('.tabela-container');
+            if (container && escala === 1) container.scrollLeft = 0;
             const valor = Math.round(escala * 100);
+
             if (regulador) regulador.value = String(valor);
             if (saida) saida.value = `${valor}%`;
             if (saida) saida.textContent = `${valor}%`;
@@ -3338,6 +3351,8 @@
         }
 
         function restaurarLarguraColunas() {
+            const regulador = document.getElementById('reguladorLarguraColunas');
+            if (regulador) regulador.value = '100';
             aplicarLarguraColunas(100);
             try { localStorage.setItem('expresso-sm-largura-colunas', '100'); } catch (erro) { console.warn('Não foi possível restaurar a largura das colunas.', erro); }
         }
