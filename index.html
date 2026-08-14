@@ -4,11 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conferência - Expresso SM</title>
+<script>
+    try {
+        if (sessionStorage.getItem('expresso-sm-sessao-ativa') === 'true') {
+            document.documentElement.classList.add('sessao-esperada');
+        }
+    } catch (erro) {
+        console.warn('Não foi possível ler o estado temporário da sessão.', erro);
+    }
+</script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         :root {
@@ -66,11 +76,6 @@
 
         .sidebar-rodape { margin-top: auto; border-top: 1px solid #f0f1f3; padding: 14px 8px 2px; color: #9ca3af; font-size: 10px; line-height: 1.45; }
         .btn-toggle-menu { display: none; }
-        .btn-recolher-topo-mobile { display: none; align-items: center; gap: 4px; flex: 0 0 auto; height: 28px; border: 1px solid #c7d8ec; border-radius: 7px; padding: 0 8px; background: #f4f8fe; color: #3563a0; font-size: 10px; font-weight: 750; white-space: nowrap; }
-        .btn-recolher-topo-mobile:hover { background: #eaf3ff; border-color: #9fbfe3; }
-        body.mobile-topo-recolhido #dashboardArea,
-        body.mobile-topo-recolhido #alertaStatus { display: none !important; }
-        body.mobile-topo-recolhido .topbar-subtitulo { display: none; }
 
         main { flex: 1; min-width: 0; height: 100vh; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
         .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
@@ -85,6 +90,7 @@
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
         .tela-acesso.inicializando .acesso-card { visibility: hidden; opacity: 0; }
         .tela-acesso.inicializando::after { content: 'Verificando sessão...'; position: absolute; left: 50%; top: 50%; color: #64748b; font-size: 12px; font-weight: 700; transform: translate(-50%, -50%); }
+        .tela-acesso.inicializando { visibility: hidden; opacity: 0; pointer-events: none; }
         .tela-acesso.oculta { display: none; }
         .oculto-permissao { display: none !important; }
         [disabled] { cursor: not-allowed; opacity: .58; }
@@ -232,10 +238,10 @@
         tbody tr:hover td { background: #fbfcff; }
         tbody tr.linha-bo td { background: #f9dfd1 !important; }
         tbody tr.linha-entrega td { background: #e6efc9 !important; }
-        tbody tr.linha-previsao-futura td { background: #e7efff !important; }
+        tbody tr.linha-previsao-futura td { background: #d3e2ff !important; }
         tbody tr.linha-bo:hover td { background: #f3d1bf !important; }
         tbody tr.linha-entrega:hover td { background: #dce9b9 !important; }
-        tbody tr.linha-previsao-futura:hover td { background: #d9e7ff !important; }
+        tbody tr.linha-previsao-futura:hover td { background: #c1d5ff !important; }
         tbody tr:last-child td { border-bottom: 0; }
         td:first-child, th:first-child { padding-left: 12px; }
         .tabela-painel th, .tabela-painel td { min-width: 0; }
@@ -251,6 +257,11 @@
         body.modal-aberto { overflow: hidden; }
         .detalhes-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(20, 39, 64, .42); backdrop-filter: blur(4px); }
         .detalhes-card { width: min(920px, 100%); max-height: min(760px, calc(100vh - 48px)); overflow-y: auto; border: 1px solid #dce6f1; border-radius: 18px; background: #fff; box-shadow: 0 24px 80px rgba(20, 49, 88, .22); animation: detalhesEntrar .2s ease-out both; }
+        .qr-card { width: min(420px, 100%); }
+        .qr-video-wrap { position: relative; margin: 4px 22px 0; border-radius: 12px; overflow: hidden; background: #0b1220; aspect-ratio: 1 / 1; }
+        .qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .qr-mira { position: absolute; inset: 14%; border: 2px solid rgba(255, 255, 255, .75); border-radius: 14px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .28); pointer-events: none; }
+        .qr-status { margin: 12px 22px 4px; color: #64748b; font-size: 12px; text-align: center; }
         .detalhes-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid #e8eef5; background: linear-gradient(135deg, #f8fbff, #fff); }
         .detalhes-kicker { color: #7b8ba0; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
         .detalhes-titulo { margin-top: 5px; color: #18355e; font-size: 22px; font-weight: 800; letter-spacing: -.025em; }
@@ -296,6 +307,8 @@
         .busca-deposito input::placeholder { color: #a0a8b1; }
         .btn-buscar-deposito { flex: 0 0 auto; border: 0; border-radius: 6px; padding: 8px 10px; background: #eef4ff; color: #2563eb; font-size: 11px; font-weight: 750; transition: background .2s ease, transform .2s ease; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
+        .btn-qr-etiqueta { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #e0e4e8; border-radius: 6px; background: #fff; color: #66717e; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-qr-etiqueta:hover { background: #f7f9fc; border-color: #b9c5d1; color: #172033; }
         .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
         .deposito-resultado.visivel { display: block; animation: abaEntrar .24s ease both; }
         .resultado-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -471,16 +484,7 @@
 
         @media (max-width: 760px) {
             body { min-width: 0; background: #f5f8fc; }
-                        aside { position: sticky; top: 0; z-index: 20; width: 100%; padding: 10px 10px 8px; border-bottom-color: #dce5ef; box-shadow: 0 4px 16px rgba(32, 57, 91, .08); transition: padding .22s ease, box-shadow .22s ease; }
-            .btn-recolher-topo-mobile { display: inline-flex; margin-left: auto; }
-            .marca { justify-content: flex-start; transition: padding .22s ease, border-color .22s ease; }
-            body.mobile-topo-recolhido aside { padding: 7px 10px; box-shadow: 0 3px 10px rgba(32, 57, 91, .1); }
-            body.mobile-topo-recolhido .marca { padding: 0 4px; border-bottom-color: transparent; }
-            body.mobile-topo-recolhido .marca-textos { max-width: 0; opacity: 0; }
-            body.mobile-topo-recolhido .menu-navegacao,
-            body.mobile-topo-recolhido .sidebar-rodape { display: none; }
-            body.mobile-topo-recolhido .btn-recolher-topo-mobile { background: #eaf3ff; }
-
+            aside { position: sticky; top: 0; z-index: 20; width: 100%; padding: 10px 10px 8px; border-bottom-color: #dce5ef; box-shadow: 0 4px 16px rgba(32, 57, 91, .08); }
             .marca { padding: 0 4px 10px; }
             .marca-icone { width: 34px; height: 34px; }
             .menu-navegacao { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding-top: 8px; }
@@ -656,16 +660,13 @@
         </form>
     </div>
     <aside id="menuLateral">
-            <div class="marca">
-                <span class="marca-icone">SM</span>
-                <div class="marca-textos">
-                    <span class="marca-texto">Conferência</span>
-                    <span class="marca-subtexto">Entregas</span>
-                </div>
-                <button type="button" id="btnAlternarTopoMobile" class="btn-recolher-topo-mobile" aria-expanded="true" aria-controls="menuLateral dashboardArea alertaStatus" onclick="alternarTopoMobile()" title="Recolher área superior no celular">
-                    <span aria-hidden="true">⌃</span><span class="btn-recolher-topo-texto">Recolher</span>
-                </button>
+        <div class="marca">
+            <span class="marca-icone">SM</span>
+            <div class="marca-textos">
+                <span class="marca-texto">Conferência</span>
+                <span class="marca-subtexto">Entregas</span>
             </div>
+        </div>
 
         <nav class="menu-navegacao" aria-label="Navegação principal">
             <button type="button" id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')" aria-current="page" title="Conferência">
@@ -838,6 +839,9 @@
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
                         <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <button type="button" class="btn-qr-etiqueta" title="Ler QR Code" aria-label="Ler etiqueta com a câmera" onclick="abrirLeitorQrEtiqueta()">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+                        </button>
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
@@ -1022,6 +1026,30 @@
                 </footer>
             </article>
         </div>
+        <div id="leitorQrModal" class="detalhes-modal qr-modal" hidden role="dialog" aria-modal="true" aria-labelledby="qrModalTitulo" onclick="fecharLeitorQrAoClicarFundo(event)">
+            <article class="detalhes-card qr-card" role="document" onclick="event.stopPropagation()">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker">Conf. Depósito</span>
+                        <h2 id="qrModalTitulo" class="detalhes-titulo">Ler etiqueta (QR Code)</h2>
+                        <p class="detalhes-subtitulo">Aponte a câmera para o QR Code da etiqueta.</p>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar leitor de QR Code" onclick="fecharLeitorQrEtiqueta()">×</button>
+                </header>
+                <div class="qr-video-wrap">
+                    <video id="qrVideo" class="qr-video" playsinline muted autoplay></video>
+                    <div class="qr-mira" aria-hidden="true"></div>
+                </div>
+                <p id="qrStatus" class="qr-status">Iniciando câmera...</p>
+                <canvas id="qrCanvas" hidden></canvas>
+                <footer class="detalhes-acoes">
+                    <span></span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharLeitorQrEtiqueta()">Cancelar</button>
+                    </div>
+                </footer>
+            </article>
+        </div>
     </main>
 
     <script>
@@ -1050,9 +1078,6 @@
         let modoEdicaoSobra = false;
         let tentativasInicializacaoFirebase = 0;
         let temporizadorSessaoNula = null;
-        let topoMobileRecolhido = false;
-        let ultimaRolagemMobile = 0;
-        let bloqueioExpansaoAutomaticaMobile = false;
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -1216,7 +1241,6 @@
         }
 
         function gerenciarSessao(user) {
-            const tela = document.getElementById('telaAcesso');
             const botao = document.getElementById('btnEntrar');
             if (temporizadorSessaoNula) {
                 clearTimeout(temporizadorSessaoNula);
@@ -1239,9 +1263,11 @@
                 mostrarTelaAcesso();
                 return;
             }
-            // A autenticação já respondeu; não mantenha a tela inteira coberta enquanto
-            // a autorização do UID é consultada no Realtime Database.
-            tela?.classList.remove('inicializando');
+            // A autenticação já respondeu e está validando a autorização do UID no
+            // Realtime Database. Mantemos a tela de acesso OCULTA (classe "inicializando")
+            // durante essa checagem para não revelar o card de login por um instante -
+            // ele só é exibido de fato se a autorização falhar (mostrarTelaAcesso) ou
+            // liberado por completo se for bem-sucedida (liberarPainel, que usa "oculta").
             if (botao) { botao.disabled = true; botao.textContent = 'Validando...'; }
             definirMensagemAcesso('Validando autorização...', false);
             firebase.database().ref(`usuariosAutorizados/${user.uid}`).once('value').then(snapshot => {
@@ -1306,21 +1332,17 @@
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
-                // Configure a persistência antes de registrar o listener. No recarregamento,
-                // isso evita que o primeiro estado `null` apareça antes da sessão SESSION ser restaurada.
+                // Solução de persistência utilizada na primeira versão estável:
+                // aguarde o Firebase concluir SESSION antes de registrar o listener.
                 const persistenciaSessao = firebase.auth.Auth?.Persistence?.SESSION || 'session';
-                let listenerAutenticacaoRegistrado = false;
-                const registrarListenerAutenticacao = () => {
-                    if (listenerAutenticacaoRegistrado) return;
-                    listenerAutenticacaoRegistrado = true;
+                auth.setPersistence(persistenciaSessao).then(() => {
                     auth.onAuthStateChanged(gerenciarSessao);
-                };
-                auth.setPersistence(persistenciaSessao).then(registrarListenerAutenticacao).catch(error => {
-                    console.warn('Não foi possível configurar a sessão temporária; o login continuará disponível:', error);
-                    registrarListenerAutenticacao();
+                }).catch(error => {
+                    console.error('Falha ao configurar a sessão do Firebase Auth:', error);
+                    // Mesmo em caso de falha, mantém o login funcional sem duplicar listeners.
+                    auth.onAuthStateChanged(gerenciarSessao);
+                    definirMensagemAcesso('Não foi possível configurar a sessão deste navegador.');
                 });
-                // Fallback para redes ou navegadores que deixam setPersistence pendente.
-                window.setTimeout(registrarListenerAutenticacao, 2500);
                 window.setTimeout(() => {
                     const tela = document.getElementById('telaAcesso');
                     if (tela?.classList.contains('inicializando')) {
@@ -2252,6 +2274,99 @@
             if (tipo === 'nf') return valorRegistro(registro, 'notas');
             return '';
         }
+
+        let streamQrEtiqueta = null;
+        let frameQrEtiqueta = null;
+
+        function definirStatusQr(mensagem) {
+            const status = document.getElementById('qrStatus');
+            if (status) status.textContent = mensagem;
+        }
+
+        async function abrirLeitorQrEtiqueta() {
+            if (typeof jsQR !== 'function') {
+                mostrarAlerta('<b>Atenção:</b> a biblioteca de leitura de QR Code não carregou. Verifique sua conexão e recarregue a página.', 'erro');
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                mostrarAlerta('<b>Atenção:</b> este navegador não permite acessar a câmera (é necessário HTTPS).', 'erro');
+                return;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (!modal || !video) return;
+            modal.hidden = false;
+            document.body.classList.add('modal-aberto');
+            definirStatusQr('Iniciando câmera...');
+            try {
+                streamQrEtiqueta = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+                video.srcObject = streamQrEtiqueta;
+                await video.play();
+                definirStatusQr('Aponte a câmera para o QR Code da etiqueta.');
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+            } catch (error) {
+                console.error('Falha ao acessar a câmera:', error);
+                definirStatusQr('Não foi possível acessar a câmera.');
+                mostrarAlerta('<b>Atenção:</b> não foi possível acessar a câmera. Verifique as permissões do navegador.', 'erro');
+            }
+        }
+
+        function lerQuadroQrEtiqueta() {
+            const video = document.getElementById('qrVideo');
+            const canvas = document.getElementById('qrCanvas');
+            if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const contexto = canvas.getContext('2d', { willReadFrequently: true });
+            contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imagem = contexto.getImageData(0, 0, canvas.width, canvas.height);
+            const resultado = jsQR(imagem.data, imagem.width, imagem.height, { inversionAttempts: 'dontInvert' });
+            if (resultado && resultado.data) {
+                processarLeituraQrEtiqueta(resultado.data);
+                return;
+            }
+            frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+        }
+
+        function processarLeituraQrEtiqueta(valorLido) {
+            const campo = document.getElementById('d-etiqueta');
+            const valor = String(valorLido || '').trim().toUpperCase();
+            fecharLeitorQrEtiqueta();
+            if (!valor) return;
+            if (campo) campo.value = valor;
+            buscarRegistroDeposito('etiqueta');
+        }
+
+        function fecharLeitorQrEtiqueta() {
+            if (frameQrEtiqueta) {
+                cancelAnimationFrame(frameQrEtiqueta);
+                frameQrEtiqueta = null;
+            }
+            if (streamQrEtiqueta) {
+                streamQrEtiqueta.getTracks().forEach(faixa => faixa.stop());
+                streamQrEtiqueta = null;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (video) video.srcObject = null;
+            if (modal) modal.hidden = true;
+            document.body.classList.remove('modal-aberto');
+        }
+
+        function fecharLeitorQrAoClicarFundo(evento) {
+            if (evento.target?.id === 'leitorQrModal') fecharLeitorQrEtiqueta();
+        }
+
+        document.addEventListener('keydown', evento => {
+            const modal = document.getElementById('leitorQrModal');
+            if (evento.key === 'Escape' && modal && !modal.hidden) fecharLeitorQrEtiqueta();
+        });
 
         function buscarRegistroDeposito(tipo, opcoes = {}) {
             const silenciosa = opcoes.silenciosa === true;
@@ -3185,59 +3300,7 @@
             if (campo && !campo.value) campo.value = obterDataAtualLocalISO();
         }
 
-                function ehTelaMobile() {
-            return window.matchMedia?.('(max-width: 760px)').matches === true;
-        }
-
-        function atualizarBotaoTopoMobile() {
-            const botao = document.getElementById('btnAlternarTopoMobile');
-            if (!botao) return;
-            const expandido = !topoMobileRecolhido;
-            botao.setAttribute('aria-expanded', String(expandido));
-            botao.title = expandido ? 'Recolher área superior no celular' : 'Expandir área superior no celular';
-            botao.innerHTML = `<span aria-hidden="true">${expandido ? '⌃' : '⌄'}</span><span class="btn-recolher-topo-texto">${expandido ? 'Recolher' : 'Expandir'}</span>`;
-        }
-
-        function definirTopoMobileRecolhido(recolhido, salvar = false) {
-            if (!ehTelaMobile()) return;
-            topoMobileRecolhido = Boolean(recolhido);
-            document.body.classList.toggle('mobile-topo-recolhido', topoMobileRecolhido);
-            atualizarBotaoTopoMobile();
-            if (salvar) {
-                try { localStorage.setItem('expresso-sm-topo-mobile-recolhido', String(topoMobileRecolhido)); } catch (erro) { console.warn('Não foi possível salvar a preferência mobile.', erro); }
-            }
-        }
-
-        function alternarTopoMobile() {
-            if (!ehTelaMobile()) return;
-            bloqueioExpansaoAutomaticaMobile = true;
-            definirTopoMobileRecolhido(!topoMobileRecolhido, true);
-            window.setTimeout(() => { bloqueioExpansaoAutomaticaMobile = false; }, 900);
-        }
-
-        function inicializarTopoMobile() {
-            const media = window.matchMedia?.('(max-width: 760px)');
-            try { topoMobileRecolhido = media?.matches && localStorage.getItem('expresso-sm-topo-mobile-recolhido') === 'true'; } catch (erro) { topoMobileRecolhido = false; }
-            if (ehTelaMobile()) definirTopoMobileRecolhido(topoMobileRecolhido, false);
-            ultimaRolagemMobile = window.scrollY || 0;
-            window.addEventListener('scroll', () => {
-                if (!ehTelaMobile() || bloqueioExpansaoAutomaticaMobile) return;
-                const atual = window.scrollY || 0;
-                if (atual > 70 && atual > ultimaRolagemMobile + 5 && !topoMobileRecolhido) definirTopoMobileRecolhido(true, false);
-                if (atual <= 8 && atual < ultimaRolagemMobile - 5 && topoMobileRecolhido) definirTopoMobileRecolhido(false, false);
-                ultimaRolagemMobile = atual;
-            }, { passive: true });
-            media?.addEventListener?.('change', evento => {
-                if (evento.matches) {
-                    atualizarBotaoTopoMobile();
-                } else {
-                    document.body.classList.remove('mobile-topo-recolhido');
-                }
-            });
-        }
-
         function alternarDashboard() {
-
             const dashboard = document.getElementById('dashboardConferencia');
             const botao = document.getElementById('btnAlternarDashboard');
             if (!dashboard || !botao) return;
@@ -3272,9 +3335,7 @@
             atualizarDataAtual();
             configurarEfeitoCliqueMenu();
             configurarEventosDetalhesRegistro();
-                        configurarCamposEmCaixaAlta();
-            inicializarTopoMobile();
-
+            configurarCamposEmCaixaAlta();
         } catch (error) {
             console.error('Falha ao preparar a interface inicial:', error);
         } finally {
