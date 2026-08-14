@@ -68,8 +68,7 @@
         .btn-toggle-menu { display: none; }
         .btn-recolher-topo-mobile { display: none; align-items: center; gap: 4px; flex: 0 0 auto; height: 28px; border: 1px solid #c7d8ec; border-radius: 7px; padding: 0 8px; background: #f4f8fe; color: #3563a0; font-size: 10px; font-weight: 750; white-space: nowrap; }
         .btn-recolher-topo-mobile:hover { background: #eaf3ff; border-color: #9fbfe3; }
-        body.mobile-topo-recolhido #dashboardArea,
-        body.mobile-topo-recolhido #alertaStatus { display: none !important; }
+        body.mobile-topo-recolhido #dashboardArea { display: none !important; }
         body.mobile-topo-recolhido .topbar-subtitulo { display: none; }
 
         main { flex: 1; min-width: 0; height: 100vh; padding: 18px 28px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
@@ -100,7 +99,7 @@
         .acesso-erro { min-height: 18px; margin-top: 12px; color: #b13b3b; font-size: 11px; line-height: 1.4; }
         .acesso-botao { width: 100%; margin-top: 4px; }
         .acesso-ajuda { margin-top: 16px; color: #9aa3ad; font-size: 10px; line-height: 1.5; text-align: center; }
-        @media (max-width: 760px) { .topbar-usuario { display: none; } .btn-sair { padding: 6px 8px; } .topbar-status { max-width: 100%; } }
+        @media (max-width: 760px) { .topbar-usuario { display: none; } .btn-sair { padding: 6px 8px; } }
 
         .dashboard-area { display: flex; flex-direction: column; gap: 10px; flex: 0 0 auto; }
         .dashboard-area.oculto { display: none; }
@@ -602,10 +601,6 @@
         .menu-icone, .btn-menu.active .menu-icone { color: #f7c948; }
                 .topbar { padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.62); border: 1px solid rgba(148,180,218,.28); box-shadow: 0 8px 26px rgba(35,79,128,.07); }
         .topbar > div:first-child { min-width: 0; flex: 1 1 auto; }
-        .topbar-status { width: fit-content; max-width: min(100%, 760px); margin-top: 6px; padding: 5px 9px; border-radius: 6px; font-size: 10px; line-height: 1.35; box-shadow: 0 3px 8px rgba(35,79,128,.08); }
-        .topbar-status.alerta-info { background: linear-gradient(135deg, #eef6ff, #e1efff); border-color: #b9d5f3; color: #245b91; }
-        .topbar-status.alerta-sucesso { background: linear-gradient(135deg, #e9f8f1, #ddf3e9); border-color: #b7e2cf; color: #176c50; }
-        .topbar-status.alerta-erro { background: linear-gradient(135deg, #fff0ef, #ffe4e1); border-color: #efb9b3; color: #a33e36; }
         .topbar-titulo { color: #173d70; }
 
         .topbar-subtitulo { color: #6f88a5; }
@@ -655,30 +650,20 @@
         .tabela-painel tbody td:nth-child(6) { color: #3f4b5c; }
         @media (max-width: 900px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); } }
         @media (max-width: 600px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .sobra-resumo-card { min-height: 82px; padding: 11px; } .sobra-resumo-card strong { font-size: 21px; } .sobras-acoes-menu { justify-content: stretch; } .sobras-acoes-menu button { flex: 1; } .auditoria-filtros { grid-template-columns: 1fr; } }
-            .sidebar-cabecalho { display: flex; flex-direction: column; gap: 4px; padding: 12px 8px 13px; border-bottom: 1px solid rgba(255,255,255,.16); }
-        .sidebar-cabecalho .topbar-titulo { color: #fff; font-size: 19px; letter-spacing: -.025em; }
-        .sidebar-cabecalho .topbar-subtitulo { color: rgba(231,241,255,.74); font-size: 10px; }
-        .sidebar-cabecalho .topbar-status { width: 100%; max-width: none; margin-top: 5px; padding: 6px 7px; border-radius: 6px; font-size: 9px; line-height: 1.35; box-shadow: 0 3px 8px rgba(8,31,61,.16); }
-        .sidebar-cabecalho .topbar-status.alerta-info { background: rgba(225,240,255,.16); border-color: rgba(189,220,251,.4); color: #e9f4ff; }
-        .sidebar-cabecalho .topbar-status.alerta-sucesso { background: rgba(157,235,201,.17); border-color: rgba(160,241,205,.42); color: #e4fff1; }
-        .sidebar-cabecalho .topbar-status.alerta-erro { background: rgba(255,185,177,.16); border-color: rgba(255,194,187,.42); color: #fff0ee; }
-        .sidebar-cabecalho .topbar-direita { justify-content: flex-start; gap: 7px; min-height: 28px; }
-        .sidebar-cabecalho .topbar-data, .sidebar-cabecalho .topbar-usuario { color: rgba(231,241,255,.78); font-size: 9px; }
-        .sidebar-cabecalho .topbar-usuario { max-width: 130px; }
-        .sidebar-cabecalho .avatar { width: 27px; height: 27px; background: rgba(225,240,255,.18); color: #fff; border-color: rgba(255,255,255,.68); box-shadow: none; font-size: 10px; }
-        .sidebar-cabecalho .btn-sair { min-height: 28px; padding: 5px 8px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; font-size: 10px; }
-        .sidebar-cabecalho .btn-sair:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
+            .sidebar-login { display: flex; justify-content: flex-start; padding: 10px 8px 12px; border-bottom: 1px solid rgba(255,255,255,.16); }
+        .sidebar-login .topbar-direita { justify-content: flex-start; gap: 7px; min-height: 28px; flex-wrap: wrap; }
+        .sidebar-login .topbar-usuario { max-width: 130px; color: rgba(231,241,255,.82); font-size: 9px; }
+        .sidebar-login .avatar { width: 27px; height: 27px; background: rgba(225,240,255,.18); color: #fff; border-color: rgba(255,255,255,.68); box-shadow: none; font-size: 10px; }
+        .sidebar-login .btn-sair { min-height: 28px; padding: 5px 8px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; font-size: 10px; }
+        .sidebar-login .btn-sair:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
         main { padding-top: 14px; }
         @media (max-width: 760px) {
-            .sidebar-cabecalho { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 2px; padding: 7px 4px 8px; }
-            .sidebar-cabecalho .topbar-titulo { font-size: 17px; }
-            .sidebar-cabecalho .topbar-status { grid-column: 1 / -1; margin-top: 3px; }
-            .sidebar-cabecalho .topbar-direita { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: wrap; justify-content: flex-end; max-width: 138px; }
-            .sidebar-cabecalho .topbar-data { display: none; }
-            .sidebar-cabecalho .topbar-usuario { display: none; }
-            .sidebar-cabecalho .avatar { width: 26px; height: 26px; }
-            .sidebar-cabecalho .btn-sair { min-height: 28px; }
-            body.mobile-topo-recolhido .sidebar-cabecalho { display: none; }
+            .sidebar-login { padding: 7px 4px 8px; }
+            .sidebar-login .topbar-direita { justify-content: flex-start; max-width: 100%; }
+            .sidebar-login .topbar-usuario { max-width: 150px; }
+            .sidebar-login .avatar { width: 26px; height: 26px; }
+            .sidebar-login .btn-sair { min-height: 28px; }
+            body.mobile-topo-recolhido .sidebar-login { display: none; }
             main { padding-top: 10px; }
         }
     </style>
@@ -708,17 +693,13 @@
                     <span class="marca-texto">Conferência</span>
                     <span class="marca-subtexto">Entregas</span>
                 </div>
-                <button type="button" id="btnAlternarTopoMobile" class="btn-recolher-topo-mobile" aria-expanded="true" aria-controls="menuLateral dashboardArea alertaStatus" onclick="alternarTopoMobile()" title="Recolher área superior no celular">
+                <button type="button" id="btnAlternarTopoMobile" class="btn-recolher-topo-mobile" aria-expanded="true" aria-controls="menuLateral dashboardArea" onclick="alternarTopoMobile()" title="Recolher área superior no celular">
                     <span aria-hidden="true">⌃</span><span class="btn-recolher-topo-texto">Recolher</span>
                 </button>
             </div>
 
-                <section class="sidebar-cabecalho" aria-label="Identificação e status do painel">
-            <h1 class="topbar-titulo">Conferência</h1>
-            <p class="topbar-subtitulo">Acompanhamento de entregas e ocorrências</p>
-            <div id="alertaStatus" class="alerta alerta-info topbar-status" role="status" aria-live="polite">Conectando ao banco de dados...</div>
+        <section class="sidebar-login" aria-label="Sessão do usuário">
             <div class="topbar-direita">
-                <span class="topbar-data" id="dataAtual"></span>
                 <span class="topbar-usuario" id="usuarioSessao"></span>
                 <span class="avatar" id="avatarSessao">SM</span>
                 <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
@@ -1429,12 +1410,8 @@
 
         }
 
-        function mostrarAlerta(mensagem, tipo) {
-            const alerta = document.getElementById('alertaStatus');
-            if (alerta) {
-                alerta.className = `alerta topbar-status alerta-${tipo}`;
-                alerta.innerHTML = mensagem;
-            }
+        function mostrarAlerta() {
+            return;
         }
 
         function normalizarTexto(texto) {
