@@ -1086,6 +1086,8 @@
         let registrosFiltradosAtuais = [];
         let registrosSelecionados = new Set();
         let filtroCardAtivo = 'todos';
+        let primeiroCarregamentoDadosConcluido = false;
+        let larguraColunasAjustadaManualmente = false;
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
         let sugestoesDeposito = [];
@@ -1349,6 +1351,12 @@
                 renderizarHistorico();
                 renderizarSobras();
                 mostrarAlerta('<b>Status:</b> Conectado em tempo real com a nuvem Expresso SM.', 'sucesso');
+                if (!primeiroCarregamentoDadosConcluido) {
+                    primeiroCarregamentoDadosConcluido = true;
+                    if (!larguraColunasAjustadaManualmente) {
+                        try { aplicarLarguraColunas(100); } catch (erro) { console.error('Falha ao aplicar a largura padrão das colunas após o carregamento:', erro); }
+                    }
+                }
             }, error => {
                 console.error('Falha ao carregar dados do Firebase:', error);
                 mostrarAlerta('<b>Atenção:</b> não foi possível carregar os dados da nuvem.', 'erro');
@@ -3345,6 +3353,7 @@
         }
 
         function alterarLarguraColunas(valor) {
+            larguraColunasAjustadaManualmente = true;
             aplicarLarguraColunas(valor);
             try { localStorage.setItem('expresso-sm-largura-colunas', String(valor)); } catch (erro) { console.warn('Não foi possível salvar a largura das colunas.', erro); }
         }
@@ -3482,7 +3491,6 @@
         try {
             inicializarEstadoDashboard();
             mudarFiltroCard('todos');
-            inicializarLarguraColunas();
             definirDataTrabalhoPadrao();
             atualizarDataAtual();
             configurarEfeitoCliqueMenu();
@@ -3492,9 +3500,15 @@
 
         } catch (error) {
             console.error('Falha ao preparar a interface inicial:', error);
-        } finally {
-            inicializarFirebase();
         }
+        try {
+            // Isolado do bloco acima de propósito: a largura padrão das colunas precisa
+            // ser aplicada sempre, mesmo que alguma outra função de inicialização falhe antes dela.
+            inicializarLarguraColunas();
+        } catch (error) {
+            console.error('Falha ao aplicar a largura padrão das colunas:', error);
+        }
+        inicializarFirebase();
     </script>
 </body>
 </html>
