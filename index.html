@@ -1012,9 +1012,11 @@
                     <input type="date" id="filtroAuditoriaDia" class="input-filtro" onchange="renderizarAuditoria()" aria-label="Filtrar auditoria por dia">
                     <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosAuditoria()">Limpar filtros</button>
                 </div>
-                <div class="historico-resumo">
+                                <div class="historico-resumo">
                     <span><strong id="auditoriaContador">0</strong> eventos encontrados</span>
+                    <span id="auditoriaStatus" class="auditoria-subtexto">Aguardando carregamento dos eventos...</span>
                 </div>
+
             </div>
             <div class="tabela-container historico-tabela-container">
                 <table class="historico-tabela auditoria-tabela">
@@ -1304,21 +1306,38 @@
             });
         }
 
+                function inicializarListenerAuditoria() {
+            if (!temPermissao('verAuditoria') || !firebase?.database) return false;
+            if (auditoriaRef) return true;
+            const status = document.getElementById('auditoriaStatus');
+            if (status) status.textContent = 'Carregando eventos de auditoria...';
+            auditoriaRef = firebase.database().ref('auditoria').limitToLast(500);
+            auditoriaRef.on('value', snap => {
+                const val = snap.val();
+                auditoriaLocais = val ? Object.entries(val).map(([firebaseKey, evento]) => ({ ...evento, _firebaseKey: firebaseKey })) : [];
+                const campoStatus = document.getElementById('auditoriaStatus');
+                if (campoStatus) campoStatus.textContent = auditoriaLocais.length ? `${auditoriaLocais.length} eventos carregados do Firebase.` : 'Nenhum evento registrado no nó de auditoria.';
+                renderizarAuditoria();
+            }, error => {
+                console.error('Falha ao carregar a auditoria:', error);
+                auditoriaLocais = [];
+                if (auditoriaRef && typeof auditoriaRef.off === 'function') auditoriaRef.off();
+                auditoriaRef = null;
+                const campoStatus = document.getElementById('auditoriaStatus');
+                if (campoStatus) campoStatus.textContent = 'Não foi possível ler o nó de auditoria. Verifique as regras e o perfil adm.';
+                renderizarAuditoria();
+            });
+            return true;
+        }
+
         function inicializarBancoAutorizado() {
-            if (db) return;
-            db = firebase.database().ref('patio_sao_miguel');
-            if (temPermissao('verAuditoria')) {
-                auditoriaRef = firebase.database().ref('auditoria').limitToLast(500);
-                auditoriaRef.on('value', snap => {
-                    const val = snap.val();
-                    auditoriaLocais = val ? Object.entries(val).map(([firebaseKey, evento]) => ({ ...evento, _firebaseKey: firebaseKey })) : [];
-                    renderizarAuditoria();
-                }, error => {
-                    console.error('Falha ao carregar a auditoria:', error);
-                    auditoriaLocais = [];
-                    renderizarAuditoria();
-                });
+            if (db) {
+                inicializarListenerAuditoria();
+                return;
             }
+            db = firebase.database().ref('patio_sao_miguel');
+            inicializarListenerAuditoria();
+
             db.on('value', snap => {
                 const val = snap.val();
                 dadosLocais = val ? Object.entries(val).map(([firebaseKey, registro]) => ({ ...registro, _firebaseKey: firebaseKey })) : [];
@@ -1405,7 +1424,10 @@
             }
                         if (id === 'hist') renderizarHistorico();
             if (id === 'sobras') renderizarSobrasMenu();
-            if (id === 'auditoria') renderizarAuditoria();
+            if (id === 'auditoria') {
+                inicializarListenerAuditoria();
+                renderizarAuditoria();
+            }
             if (id === 'dep') focarBuscaNfDeposito();
 
         }
@@ -1800,7 +1822,9 @@
                 editar_deposito: 'Editar depósito',
                 editar_detalhes: 'Editar card de detalhes',
                 importar_lote: 'Importar lote',
-                excluir_lote: 'Excluir lote'
+                                excluir_lote: 'Excluir lote',
+                excluir_sobra: 'Excluir sobra'
+
             };
             return rotulos[acao] || acao || '-';
         }
@@ -1809,8 +1833,11 @@
             const corpo = document.getElementById('tabelaAuditoria');
             const contador = document.getElementById('auditoriaContador');
             const filtroAcao = document.getElementById('filtroAuditoriaAcao');
-            const filtroDia = document.getElementById('filtroAuditoriaDia');
+                        const filtroDia = document.getElementById('filtroAuditoriaDia');
+            const status = document.getElementById('auditoriaStatus');
             if (!corpo || !contador || !filtroAcao || !filtroDia) return;
+            if (status && !auditoriaLocais.length && !auditoriaRef) status.textContent = 'Aguardando carregamento dos eventos...';
+
             preencherSelect('filtroAuditoriaAcao', auditoriaLocais.map(evento => evento.acao), 'Todas as ações', rotuloAcaoAuditoria);
             const acaoSelecionada = filtroAcao.value;
             const diaSelecionado = filtroDia.value;
@@ -3315,12 +3342,9 @@
         }
 
         function inicializarLarguraColunas() {
-            let percentual = 100;
-            try {
-                const salvo = Number(localStorage.getItem('expresso-sm-largura-colunas'));
-                if (Number.isFinite(salvo) && salvo >= 70 && salvo <= 140) percentual = salvo;
-            } catch (erro) { console.warn('Não foi possível ler a largura das colunas.', erro); }
-            aplicarLarguraColunas(percentual);
+            // A largura padrão deve iniciar sempre em 100%, independentemente de uma preferência antiga.
+            aplicarLarguraColunas(100);
+            try { localStorage.removeItem('expresso-sm-largura-colunas'); } catch (erro) { console.warn('Não foi possível limpar a preferência antiga de largura.', erro); }
         }
 
         function configurarEfeitoCliqueMenu() {
