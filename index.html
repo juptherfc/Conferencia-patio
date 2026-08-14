@@ -115,10 +115,10 @@
         .btn-limpar-cabecalho:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .cabecalho-coluna { display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-width: 0; }
         .cabecalho-coluna > span { display: block; min-height: 13px; line-height: 1.15; }
-        .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 0; height: 28px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 7px; background: #fff; color: #53657a; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
+        .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
         .filtro-coluna-input[type="date"] { padding-right: 5px; }
         .cabecalho-coluna-datas { gap: 4px; }
-        .filtro-coluna-input:focus, .filtro-coluna-select:focus { border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
+        .filtro-coluna-input:focus, .filtro-coluna-select:focus { background: #fff; border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
         .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
         .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
@@ -1098,8 +1098,8 @@
         let tentativasInicializacaoFirebase = 0;
         let temporizadorSessaoNula = null;
         let topoMobileRecolhido = false;
-        let ultimaRolagemMobile = 0;
         let bloqueioExpansaoAutomaticaMobile = false;
+        const ultimasRolagensMobilePorElemento = new WeakMap();
 
         function definirMensagemAcesso(mensagem, erro = true) {
             const campo = document.getElementById('acessoMensagem');
@@ -3421,18 +3421,27 @@
             window.setTimeout(() => { bloqueioExpansaoAutomaticaMobile = false; }, 900);
         }
 
+        function tratarRolagemMobile(evento) {
+            if (!ehTelaMobile() || bloqueioExpansaoAutomaticaMobile) return;
+            const alvoBruto = evento.target;
+            const ehJanela = alvoBruto === document || alvoBruto === document.documentElement || alvoBruto === document.body;
+            const alvo = ehJanela ? (document.scrollingElement || document.documentElement) : alvoBruto;
+            const atual = ehJanela ? (window.scrollY || 0) : (alvo.scrollTop || 0);
+            const anterior = ultimasRolagensMobilePorElemento.get(alvo);
+            ultimasRolagensMobilePorElemento.set(alvo, atual);
+            if (anterior === undefined) return;
+            if (atual > 70 && atual > anterior + 5 && !topoMobileRecolhido) definirTopoMobileRecolhido(true, false);
+            if (atual <= 8 && atual < anterior - 5 && topoMobileRecolhido) definirTopoMobileRecolhido(false, false);
+        }
+
         function inicializarTopoMobile() {
             const media = window.matchMedia?.('(max-width: 760px)');
             try { topoMobileRecolhido = media?.matches && localStorage.getItem('expresso-sm-topo-mobile-recolhido') === 'true'; } catch (erro) { topoMobileRecolhido = false; }
             if (ehTelaMobile()) definirTopoMobileRecolhido(topoMobileRecolhido, false);
-            ultimaRolagemMobile = window.scrollY || 0;
-            window.addEventListener('scroll', () => {
-                if (!ehTelaMobile() || bloqueioExpansaoAutomaticaMobile) return;
-                const atual = window.scrollY || 0;
-                if (atual > 70 && atual > ultimaRolagemMobile + 5 && !topoMobileRecolhido) definirTopoMobileRecolhido(true, false);
-                if (atual <= 8 && atual < ultimaRolagemMobile - 5 && topoMobileRecolhido) definirTopoMobileRecolhido(false, false);
-                ultimaRolagemMobile = atual;
-            }, { passive: true });
+            // Escuta em fase de captura no document: pega tanto a rolagem da janela quanto
+            // a rolagem de qualquer área interna com scroll próprio (tabela de registros,
+            // histórico, sobras etc.), então o recolhimento automático funciona em todas as abas.
+            document.addEventListener('scroll', tratarRolagemMobile, { capture: true, passive: true });
             media?.addEventListener?.('change', evento => {
                 if (evento.matches) {
                     atualizarBotaoTopoMobile();
