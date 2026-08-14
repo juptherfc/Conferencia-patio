@@ -1593,7 +1593,7 @@
         }
 
         async function reservarIndiceSobra(diaTrabalho, cte, nf, chaveRegistro, registroAnterior = null, registrosAtuais = []) {
-            if (!db?.root || typeof db.root.child('indiceSobras').child(diaTrabalho).transaction !== 'function') return true;
+            if (!db?.root || typeof db.root.child('indiceSobras').child(diaTrabalho).transaction !== 'function') return null;
             const indiceRef = db.root.child('indiceSobras').child(normalizarChaveIndiceSobra(diaTrabalho));
             const chavesNovas = obterChavesIndiceSobra(diaTrabalho, cte, nf);
             const chavesAntigas = obterChavesIndiceSobra(diaTrabalho, valorRegistro(registroAnterior, 'cte'), valorRegistro(registroAnterior, 'notas'));
@@ -1604,19 +1604,24 @@
                 if (!chaveReal || chaveReal === chaveRegistro) return;
                 obterChavesIndiceSobra(diaTrabalho, valorRegistro(registro, 'cte'), valorRegistro(registro, 'notas')).forEach(chave => chavesDeSobrasReais.set(chave, chaveReal));
             });
-            const resultado = await indiceRef.transaction(indiceAtual => {
-                const indice = { ...(indiceAtual || {}) };
-                Object.keys(indice).forEach(chave => {
-                    if (!chavesDeSobrasReais.has(chave) && indice[chave] !== chaveRegistro) delete indice[chave];
-                });
-                chavesAntigas.forEach(chave => {
-                    if (indice[chave] === chaveRegistro) delete indice[chave];
-                });
-                if (chavesNovas.some(chave => chavesDeSobrasReais.has(chave) && chavesDeSobrasReais.get(chave) !== chaveRegistro)) return;
-                chavesNovas.forEach(chave => { indice[chave] = chaveRegistro; });
-                return indice;
-            }, undefined, false);
-            return Boolean(resultado?.committed);
+            try {
+                const resultado = await indiceRef.transaction(indiceAtual => {
+                    const indice = { ...(indiceAtual || {}) };
+                    Object.keys(indice).forEach(chave => {
+                        if (!chavesDeSobrasReais.has(chave) && indice[chave] !== chaveRegistro) delete indice[chave];
+                    });
+                    chavesAntigas.forEach(chave => {
+                        if (indice[chave] === chaveRegistro) delete indice[chave];
+                    });
+                    if (chavesNovas.some(chave => chavesDeSobrasReais.has(chave) && chavesDeSobrasReais.get(chave) !== chaveRegistro)) return;
+                    chavesNovas.forEach(chave => { indice[chave] = chaveRegistro; });
+                    return indice;
+                }, undefined, false);
+                return Boolean(resultado?.committed);
+            } catch (error) {
+                console.warn('Índice transacional de sobras indisponível; a validação principal continuará ativa:', error);
+                return null;
+            }
         }
 
         async function liberarIndiceSobra(diaTrabalho, cte, nf, chaveRegistro) {
@@ -2505,20 +2510,31 @@
             }
             const registroAntes = emEdicao ? JSON.parse(JSON.stringify(registroSobraSelecionada)) : null;
             const chaveRegistroSobra = emEdicao ? chaveAtual : obterChaveRegistro(cte || nf, diaTrabalhoAtual);
-            let indiceReservado = false;
+                        let indiceReservado = null;
+            let indiceSobraIndisponivel = false;
             try {
-                                indiceReservado = await reservarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra, registroAntes, registrosParaValidar);
-
+                indiceReservado = await reservarIndiceSobra(diaTrabalhoAtual, cte, nf, chaveRegistroSobra, registroAntes, registrosParaValidar);
             } catch (error) {
-                console.error('Erro ao reservar índice de sobra:', error);
+                console.error('Erro inesperado ao reservar índice de sobra; seguindo com a validação principal:', error);
             }
-            if (!indiceReservado) {
-                const ident = cte || nf;
-                mostrarAlerta(`<b>Atenção:</b> já existe uma sobra com ${cte ? 'CTe' : 'NF'} ${ident} no Dia de Trabalho ${formatarDataImportacao(diaTrabalhoAtual)}. O lançamento foi bloqueado.`, 'erro');
-                return;
+                        if (indiceReservado === false) {
+                const conflitoReal = registrosParaValidar.some(registro => {
+                    if (!ehRegistroSobra(registro)) return false;
+                    if (emEdicao && obterChaveRegistroAtual(registro) === chaveAtual) return false;
+                    if (obterDataTrabalhoRegistro(registro) !== diaTrabalhoAtual) return false;
+                    return Boolean((cte && valorRegistro(registro, 'cte') === cte) || (nf && valorRegistro(registro, 'notas') === nf));
+                });
+                if (conflitoReal) {
+                    const ident = cte || nf;
+                    mostrarAlerta(`<b>Atenção:</b> já existe uma sobra com ${cte ? 'CTe' : 'NF'} ${ident} no Dia de Trabalho ${formatarDataImportacao(diaTrabalhoAtual)}. O lançamento foi bloqueado.`, 'erro');
+                    return;
+                }
+                indiceSobraIndisponivel = true;
             }
+            if (indiceReservado === null) indiceSobraIndisponivel = true;
 
             if (emEdicao) {
+
                 db.child(chaveRegistroSobra).update(valoresAtualizacao).then(() => {
                     Object.assign(registroSobraSelecionada, valoresAtualizacao);
                     const registroDepois = JSON.parse(JSON.stringify(registroSobraSelecionada));
@@ -2566,7 +2582,8 @@
                 limparCadastroSobra(false);
                 limparCamposBuscaDeposito();
                 limparSugestoesDeposito(false);
-                mostrarAlerta('<b>Status:</b> sobra cadastrada com sucesso e adicionada ao Painel.', 'sucesso');
+                                    mostrarAlerta(`<b>Status:</b> sobra cadastrada com sucesso e adicionada ao Painel.${indiceSobraIndisponivel ? ' A validação foi feita pelos registros reais porque o índice transacional estava indisponível.' : ''}`, 'sucesso');
+
                 mudarAba('conf');
             }).catch(error => {
                 console.error('Erro ao cadastrar sobra:', error);
