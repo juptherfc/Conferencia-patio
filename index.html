@@ -655,8 +655,35 @@
         .tabela-painel tbody td:nth-child(6) { color: #3f4b5c; }
         @media (max-width: 900px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); } }
         @media (max-width: 600px) { .sobra-resumo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .sobra-resumo-card { min-height: 82px; padding: 11px; } .sobra-resumo-card strong { font-size: 21px; } .sobras-acoes-menu { justify-content: stretch; } .sobras-acoes-menu button { flex: 1; } .auditoria-filtros { grid-template-columns: 1fr; } }
+            .sidebar-cabecalho { display: flex; flex-direction: column; gap: 4px; padding: 12px 8px 13px; border-bottom: 1px solid rgba(255,255,255,.16); }
+        .sidebar-cabecalho .topbar-titulo { color: #fff; font-size: 19px; letter-spacing: -.025em; }
+        .sidebar-cabecalho .topbar-subtitulo { color: rgba(231,241,255,.74); font-size: 10px; }
+        .sidebar-cabecalho .topbar-status { width: 100%; max-width: none; margin-top: 5px; padding: 6px 7px; border-radius: 6px; font-size: 9px; line-height: 1.35; box-shadow: 0 3px 8px rgba(8,31,61,.16); }
+        .sidebar-cabecalho .topbar-status.alerta-info { background: rgba(225,240,255,.16); border-color: rgba(189,220,251,.4); color: #e9f4ff; }
+        .sidebar-cabecalho .topbar-status.alerta-sucesso { background: rgba(157,235,201,.17); border-color: rgba(160,241,205,.42); color: #e4fff1; }
+        .sidebar-cabecalho .topbar-status.alerta-erro { background: rgba(255,185,177,.16); border-color: rgba(255,194,187,.42); color: #fff0ee; }
+        .sidebar-cabecalho .topbar-direita { justify-content: flex-start; gap: 7px; min-height: 28px; }
+        .sidebar-cabecalho .topbar-data, .sidebar-cabecalho .topbar-usuario { color: rgba(231,241,255,.78); font-size: 9px; }
+        .sidebar-cabecalho .topbar-usuario { max-width: 130px; }
+        .sidebar-cabecalho .avatar { width: 27px; height: 27px; background: rgba(225,240,255,.18); color: #fff; border-color: rgba(255,255,255,.68); box-shadow: none; font-size: 10px; }
+        .sidebar-cabecalho .btn-sair { min-height: 28px; padding: 5px 8px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; font-size: 10px; }
+        .sidebar-cabecalho .btn-sair:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
+        main { padding-top: 14px; }
+        @media (max-width: 760px) {
+            .sidebar-cabecalho { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 2px; padding: 7px 4px 8px; }
+            .sidebar-cabecalho .topbar-titulo { font-size: 17px; }
+            .sidebar-cabecalho .topbar-status { grid-column: 1 / -1; margin-top: 3px; }
+            .sidebar-cabecalho .topbar-direita { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: wrap; justify-content: flex-end; max-width: 138px; }
+            .sidebar-cabecalho .topbar-data { display: none; }
+            .sidebar-cabecalho .topbar-usuario { display: none; }
+            .sidebar-cabecalho .avatar { width: 26px; height: 26px; }
+            .sidebar-cabecalho .btn-sair { min-height: 28px; }
+            body.mobile-topo-recolhido .sidebar-cabecalho { display: none; }
+            main { padding-top: 10px; }
+        }
     </style>
 </head>
+
 <body>
     <div id="telaAcesso" class="tela-acesso inicializando" role="dialog" aria-modal="true" aria-labelledby="acessoTitulo">
         <form class="acesso-card" onsubmit="entrarNoPainel(event)">
@@ -686,7 +713,20 @@
                 </button>
             </div>
 
+                <section class="sidebar-cabecalho" aria-label="Identificação e status do painel">
+            <h1 class="topbar-titulo">Conferência</h1>
+            <p class="topbar-subtitulo">Acompanhamento de entregas e ocorrências</p>
+            <div id="alertaStatus" class="alerta alerta-info topbar-status" role="status" aria-live="polite">Conectando ao banco de dados...</div>
+            <div class="topbar-direita">
+                <span class="topbar-data" id="dataAtual"></span>
+                <span class="topbar-usuario" id="usuarioSessao"></span>
+                <span class="avatar" id="avatarSessao">SM</span>
+                <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
+            </div>
+        </section>
+
         <nav class="menu-navegacao" aria-label="Navegação principal">
+
             <button type="button" id="menu-conf" class="btn-menu active" onclick="mudarAba('conf')" aria-current="page" title="Conferência">
                 <span class="menu-icone" aria-hidden="true">▣</span><span class="menu-texto">Conferência</span>
             </button>
@@ -711,20 +751,8 @@
     </aside>
 
     <main>
-        <header class="topbar">
-            <div>
-                <h1 class="topbar-titulo">Conferência</h1>
-                                <p class="topbar-subtitulo">Acompanhamento de entregas e ocorrências</p>
-                <div id="alertaStatus" class="alerta alerta-info topbar-status" role="status" aria-live="polite">Conectando ao banco de dados...</div>
-            </div>
+        
 
-            <div class="topbar-direita">
-                <span class="topbar-data" id="dataAtual"></span>
-                <span class="topbar-usuario" id="usuarioSessao"></span>
-                <span class="avatar" id="avatarSessao">SM</span>
-                <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
-            </div>
-        </header>
 
         <div id="dashboardArea" class="dashboard-area">
             <div class="dashboard-cabecalho">
