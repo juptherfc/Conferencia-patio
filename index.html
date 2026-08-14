@@ -1206,7 +1206,6 @@
         }
 
         function gerenciarSessao(user) {
-            const tela = document.getElementById('telaAcesso');
             const botao = document.getElementById('btnEntrar');
             if (temporizadorSessaoNula) {
                 clearTimeout(temporizadorSessaoNula);
@@ -1229,9 +1228,11 @@
                 mostrarTelaAcesso();
                 return;
             }
-            // A autenticação já respondeu; não mantenha a tela inteira coberta enquanto
-            // a autorização do UID é consultada no Realtime Database.
-            tela?.classList.remove('inicializando');
+            // A autenticação já respondeu e está validando a autorização do UID no
+            // Realtime Database. Mantemos a tela de acesso OCULTA (classe "inicializando")
+            // durante essa checagem para não revelar o card de login por um instante -
+            // ele só é exibido de fato se a autorização falhar (mostrarTelaAcesso) ou
+            // liberado por completo se for bem-sucedida (liberarPainel, que usa "oculta").
             if (botao) { botao.disabled = true; botao.textContent = 'Validando...'; }
             definirMensagemAcesso('Validando autorização...', false);
             firebase.database().ref(`usuariosAutorizados/${user.uid}`).once('value').then(snapshot => {
