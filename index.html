@@ -18,6 +18,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         :root {
@@ -256,6 +257,11 @@
         body.modal-aberto { overflow: hidden; }
         .detalhes-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(20, 39, 64, .42); backdrop-filter: blur(4px); }
         .detalhes-card { width: min(920px, 100%); max-height: min(760px, calc(100vh - 48px)); overflow-y: auto; border: 1px solid #dce6f1; border-radius: 18px; background: #fff; box-shadow: 0 24px 80px rgba(20, 49, 88, .22); animation: detalhesEntrar .2s ease-out both; }
+        .qr-card { width: min(420px, 100%); }
+        .qr-video-wrap { position: relative; margin: 4px 22px 0; border-radius: 12px; overflow: hidden; background: #0b1220; aspect-ratio: 1 / 1; }
+        .qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .qr-mira { position: absolute; inset: 14%; border: 2px solid rgba(255, 255, 255, .75); border-radius: 14px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .28); pointer-events: none; }
+        .qr-status { margin: 12px 22px 4px; color: #64748b; font-size: 12px; text-align: center; }
         .detalhes-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid #e8eef5; background: linear-gradient(135deg, #f8fbff, #fff); }
         .detalhes-kicker { color: #7b8ba0; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
         .detalhes-titulo { margin-top: 5px; color: #18355e; font-size: 22px; font-weight: 800; letter-spacing: -.025em; }
@@ -301,6 +307,8 @@
         .busca-deposito input::placeholder { color: #a0a8b1; }
         .btn-buscar-deposito { flex: 0 0 auto; border: 0; border-radius: 6px; padding: 8px 10px; background: #eef4ff; color: #2563eb; font-size: 11px; font-weight: 750; transition: background .2s ease, transform .2s ease; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
+        .btn-qr-etiqueta { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #e0e4e8; border-radius: 6px; background: #fff; color: #66717e; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-qr-etiqueta:hover { background: #f7f9fc; border-color: #b9c5d1; color: #172033; }
         .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
         .deposito-resultado.visivel { display: block; animation: abaEntrar .24s ease both; }
         .resultado-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -831,6 +839,9 @@
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
                         <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <button type="button" class="btn-qr-etiqueta" title="Ler QR Code" aria-label="Ler etiqueta com a câmera" onclick="abrirLeitorQrEtiqueta()">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+                        </button>
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
@@ -1011,6 +1022,30 @@
                     <div class="detalhes-acoes-botoes">
                         <button type="button" class="btn-secundario" onclick="fecharDetalhesRegistro()">Fechar</button>
                         <button type="button" id="btnSalvarDetalhesRegistro" class="btn-salvar-detalhes" data-permissao="editarDeposito" onclick="salvarDetalhesRegistro()">Salvar alterações</button>
+                    </div>
+                </footer>
+            </article>
+        </div>
+        <div id="leitorQrModal" class="detalhes-modal qr-modal" hidden role="dialog" aria-modal="true" aria-labelledby="qrModalTitulo" onclick="fecharLeitorQrAoClicarFundo(event)">
+            <article class="detalhes-card qr-card" role="document" onclick="event.stopPropagation()">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker">Conf. Depósito</span>
+                        <h2 id="qrModalTitulo" class="detalhes-titulo">Ler etiqueta (QR Code)</h2>
+                        <p class="detalhes-subtitulo">Aponte a câmera para o QR Code da etiqueta.</p>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar leitor de QR Code" onclick="fecharLeitorQrEtiqueta()">×</button>
+                </header>
+                <div class="qr-video-wrap">
+                    <video id="qrVideo" class="qr-video" playsinline muted autoplay></video>
+                    <div class="qr-mira" aria-hidden="true"></div>
+                </div>
+                <p id="qrStatus" class="qr-status">Iniciando câmera...</p>
+                <canvas id="qrCanvas" hidden></canvas>
+                <footer class="detalhes-acoes">
+                    <span></span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharLeitorQrEtiqueta()">Cancelar</button>
                     </div>
                 </footer>
             </article>
@@ -2239,6 +2274,99 @@
             if (tipo === 'nf') return valorRegistro(registro, 'notas');
             return '';
         }
+
+        let streamQrEtiqueta = null;
+        let frameQrEtiqueta = null;
+
+        function definirStatusQr(mensagem) {
+            const status = document.getElementById('qrStatus');
+            if (status) status.textContent = mensagem;
+        }
+
+        async function abrirLeitorQrEtiqueta() {
+            if (typeof jsQR !== 'function') {
+                mostrarAlerta('<b>Atenção:</b> a biblioteca de leitura de QR Code não carregou. Verifique sua conexão e recarregue a página.', 'erro');
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                mostrarAlerta('<b>Atenção:</b> este navegador não permite acessar a câmera (é necessário HTTPS).', 'erro');
+                return;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (!modal || !video) return;
+            modal.hidden = false;
+            document.body.classList.add('modal-aberto');
+            definirStatusQr('Iniciando câmera...');
+            try {
+                streamQrEtiqueta = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+                video.srcObject = streamQrEtiqueta;
+                await video.play();
+                definirStatusQr('Aponte a câmera para o QR Code da etiqueta.');
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+            } catch (error) {
+                console.error('Falha ao acessar a câmera:', error);
+                definirStatusQr('Não foi possível acessar a câmera.');
+                mostrarAlerta('<b>Atenção:</b> não foi possível acessar a câmera. Verifique as permissões do navegador.', 'erro');
+            }
+        }
+
+        function lerQuadroQrEtiqueta() {
+            const video = document.getElementById('qrVideo');
+            const canvas = document.getElementById('qrCanvas');
+            if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const contexto = canvas.getContext('2d', { willReadFrequently: true });
+            contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imagem = contexto.getImageData(0, 0, canvas.width, canvas.height);
+            const resultado = jsQR(imagem.data, imagem.width, imagem.height, { inversionAttempts: 'dontInvert' });
+            if (resultado && resultado.data) {
+                processarLeituraQrEtiqueta(resultado.data);
+                return;
+            }
+            frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+        }
+
+        function processarLeituraQrEtiqueta(valorLido) {
+            const campo = document.getElementById('d-etiqueta');
+            const valor = String(valorLido || '').trim().toUpperCase();
+            fecharLeitorQrEtiqueta();
+            if (!valor) return;
+            if (campo) campo.value = valor;
+            buscarRegistroDeposito('etiqueta');
+        }
+
+        function fecharLeitorQrEtiqueta() {
+            if (frameQrEtiqueta) {
+                cancelAnimationFrame(frameQrEtiqueta);
+                frameQrEtiqueta = null;
+            }
+            if (streamQrEtiqueta) {
+                streamQrEtiqueta.getTracks().forEach(faixa => faixa.stop());
+                streamQrEtiqueta = null;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (video) video.srcObject = null;
+            if (modal) modal.hidden = true;
+            document.body.classList.remove('modal-aberto');
+        }
+
+        function fecharLeitorQrAoClicarFundo(evento) {
+            if (evento.target?.id === 'leitorQrModal') fecharLeitorQrEtiqueta();
+        }
+
+        document.addEventListener('keydown', evento => {
+            const modal = document.getElementById('leitorQrModal');
+            if (evento.key === 'Escape' && modal && !modal.hidden) fecharLeitorQrEtiqueta();
+        });
 
         function buscarRegistroDeposito(tipo, opcoes = {}) {
             const silenciosa = opcoes.silenciosa === true;
