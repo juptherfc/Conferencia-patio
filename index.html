@@ -1296,21 +1296,17 @@
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 auth = firebase.auth();
-                // Configure a persistência antes de registrar o listener. No recarregamento,
-                // isso evita que o primeiro estado `null` apareça antes da sessão SESSION ser restaurada.
+                // Solução de persistência utilizada na primeira versão estável:
+                // aguarde o Firebase concluir SESSION antes de registrar o listener.
                 const persistenciaSessao = firebase.auth.Auth?.Persistence?.SESSION || 'session';
-                let listenerAutenticacaoRegistrado = false;
-                const registrarListenerAutenticacao = () => {
-                    if (listenerAutenticacaoRegistrado) return;
-                    listenerAutenticacaoRegistrado = true;
+                auth.setPersistence(persistenciaSessao).then(() => {
                     auth.onAuthStateChanged(gerenciarSessao);
-                };
-                auth.setPersistence(persistenciaSessao).then(registrarListenerAutenticacao).catch(error => {
-                    console.warn('Não foi possível configurar a sessão temporária; o login continuará disponível:', error);
-                    registrarListenerAutenticacao();
+                }).catch(error => {
+                    console.error('Falha ao configurar a sessão do Firebase Auth:', error);
+                    // Mesmo em caso de falha, mantém o login funcional sem duplicar listeners.
+                    auth.onAuthStateChanged(gerenciarSessao);
+                    definirMensagemAcesso('Não foi possível configurar a sessão deste navegador.');
                 });
-                // Fallback para redes ou navegadores que deixam setPersistence pendente.
-                window.setTimeout(registrarListenerAutenticacao, 2500);
                 window.setTimeout(() => {
                     const tela = document.getElementById('telaAcesso');
                     if (tela?.classList.contains('inicializando')) {
