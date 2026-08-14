@@ -348,7 +348,11 @@
         .sugestao-volumes { display: inline-flex; align-items: center; gap: 5px; width: fit-content; padding: 5px 8px; border-radius: 7px; background: #eaf3ff; color: #245fae; font-size: 10px; font-weight: 800; letter-spacing: .03em; }
         .sugestao-volumes strong { color: #173d70; font-size: 15px; }
 
-        .sugestao-linha small { display: block; margin-top: 2px; color: #9aa3ad; font-size: 10px; }
+                .sugestao-linha small { display: block; margin-top: 2px; color: #9aa3ad; font-size: 10px; }
+        .sobra-acao { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; }
+        .btn-excluir-sobra { border: 1px solid #efb5ae; border-radius: 6px; padding: 7px 9px; background: #fff5f3; color: #b44336; font-size: 10px; font-weight: 750; }
+        .btn-excluir-sobra:hover { background: #ffe8e4; border-color: #df8d84; }
+
         .btn-selecionar-sugestao { border: 1px solid #cdddfb; border-radius: 6px; padding: 7px 9px; background: #eef4ff; color: #2563eb; font-size: 10px; font-weight: 750; }
         .sugestoes-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
         .sobras-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #edf0f2; }
@@ -1890,9 +1894,17 @@
                     botao.type = 'button';
                     botao.className = 'btn-ferramenta-tabela btn-primario';
                     botao.textContent = 'Editar';
-                    botao.title = 'Editar todos os campos desta sobra';
+                                        botao.title = 'Editar todos os campos desta sobra';
                     botao.addEventListener('click', () => iniciarEdicaoSobra(registro));
                     acao.appendChild(botao);
+                    const excluir = document.createElement('button');
+                    excluir.type = 'button';
+                    excluir.className = 'btn-excluir-sobra';
+                    excluir.textContent = 'Excluir';
+                    excluir.title = 'Excluir esta sobra';
+                    excluir.addEventListener('click', () => excluirSobra(registro));
+                    acao.appendChild(excluir);
+
                 } else {
                     acao.textContent = 'Somente adm';
                     acao.style.color = '#9aa3ad';
@@ -1987,9 +1999,11 @@
             janela.document.close();
         }
 
-        function iniciarEdicaoSobra(registro) {
+                function iniciarEdicaoSobra(registro) {
             if (!registro || !exigirPermissao('editarDeposito')) return;
+            mudarAba('dep');
             registroSobraSelecionada = registro;
+
             modoEdicaoSobra = true;
             const valores = {
                 'sobra-cte': valorRegistro(registro, 'cte'),
@@ -2012,13 +2026,47 @@
             if (titulo) titulo.textContent = 'Editar sobra cadastrada';
             if (botao) botao.textContent = 'Salvar alterações';
             if (mensagem) mensagem.textContent = 'Atualize todos os campos necessários e salve as alterações deste lançamento.';
-            const badge = document.querySelector('#sobraCadastro .sobra-badge');
+                        const badge = document.querySelector('#sobraCadastro .sobra-badge');
             if (badge) badge.textContent = 'Edição';
-            document.getElementById('sobraCadastro')?.classList.add('visivel');
-            document.getElementById('sobraCadastro')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const formulario = document.getElementById('sobraCadastro');
+            formulario?.classList.add('visivel');
+            formulario?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            document.getElementById('sobra-cte')?.focus();
+
+        }
+
+                async function excluirSobra(registro) {
+            if (!registro || !exigirPermissao('editarDeposito')) return;
+            const chave = obterChaveRegistroAtual(registro);
+            if (!chave) {
+                mostrarAlerta('<b>Atenção:</b> não foi possível identificar a chave desta sobra.', 'erro');
+                return;
+            }
+            const cte = valorRegistro(registro, 'cte');
+            const nf = valorRegistro(registro, 'notas');
+            const identificacao = cte ? `CTe ${cte}` : (nf ? `NF ${nf}` : 'registro sem CTe/NF');
+            const confirmou = window.confirm(`Deseja excluir a sobra ${identificacao} do Dia de Trabalho ${formatarDataImportacao(obterDataTrabalhoRegistro(registro))}? Esta ação não poderá ser desfeita.`);
+            if (!confirmou) return;
+            const diaTrabalho = obterDataTrabalhoRegistro(registro);
+            try {
+                await db.child(chave).remove();
+                await liberarIndiceSobra(diaTrabalho, cte, nf, chave);
+                dadosLocais = dadosLocais.filter(item => obterChaveRegistroAtual(item) !== chave);
+                if (registroSobraSelecionada && obterChaveRegistroAtual(registroSobraSelecionada) === chave) {
+                    limparCadastroSobra(false);
+                }
+                renderizarSobras();
+                renderizarSobrasMenu();
+                registrarAuditoria('excluir_sobra', chave, registro, null, { dataTrabalho: diaTrabalho, detalhes: `Exclusão manual de ${identificacao}` });
+                mostrarAlerta(`<b>Status:</b> sobra ${identificacao} excluída com sucesso.`, 'sucesso');
+            } catch (error) {
+                console.error('Erro ao excluir sobra:', error);
+                mostrarAlerta('<b>Atenção:</b> não foi possível excluir a sobra. Verifique sua conexão e tente novamente.', 'erro');
+            }
         }
 
         function alternarListaSobras() {
+
             sobrasListaVisivel = !sobrasListaVisivel;
             document.getElementById('sobrasLista')?.classList.toggle('visivel', sobrasListaVisivel);
             const botao = document.getElementById('btnVerSobras');
