@@ -120,6 +120,23 @@
         .filtro-coluna-input[type="date"] { padding-right: 5px; }
         .cabecalho-coluna-datas { gap: 4px; }
         .filtro-coluna-input:focus, .filtro-coluna-select:focus { background: #fff; border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
+        .filtro-multiplo { position: relative; text-transform: none; }
+        .filtro-multiplo-botao { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 20px 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; text-align: left; cursor: pointer; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .filtro-multiplo-botao::after { content: '▾'; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); font-size: 8px; color: #5c7699; }
+        .filtro-multiplo-botao:hover, .filtro-multiplo-botao:focus-visible { background: #fff; border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); outline: none; }
+        .filtro-multiplo.ativo .filtro-multiplo-botao { background: #d7e8ff; border-color: #3d7fd6; color: #1b4d94; font-weight: 750; }
+        .filtro-multiplo-painel { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; width: max(210px, 100%); max-width: 280px; background: #fff; border: 1px solid #d3ddea; border-radius: 10px; box-shadow: 0 14px 34px rgba(20, 49, 88, .18); padding: 8px; text-transform: none; }
+        .filtro-multiplo-painel[hidden] { display: none; }
+        .filtro-multiplo-busca { width: 100%; height: 28px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 8px; font-size: 11px; margin-bottom: 6px; box-sizing: border-box; text-transform: none; font-weight: 400; }
+        .filtro-multiplo-acoes { display: flex; gap: 6px; margin-bottom: 6px; }
+        .filtro-multiplo-acoes button { flex: 1; border: 1px solid #d7e1ec; border-radius: 6px; background: #f7f9fc; color: #3d5876; font-size: 10px; font-weight: 700; padding: 5px 4px; cursor: pointer; text-transform: none; }
+        .filtro-multiplo-acoes button:hover { background: #eef4ff; }
+        .filtro-multiplo-opcoes { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+        .filtro-multiplo-opcao { display: flex; align-items: center; gap: 7px; padding: 5px 6px; border-radius: 6px; font-size: 11px; font-weight: 400; color: #384759; cursor: pointer; text-transform: none; }
+        .filtro-multiplo-opcao:hover { background: #f2f6fc; }
+        .filtro-multiplo-opcao input { margin: 0; accent-color: #2f73c9; flex: 0 0 auto; }
+        .filtro-multiplo-opcao span { overflow: hidden; text-overflow: ellipsis; }
+        .filtro-multiplo-vazio { padding: 8px 6px; font-size: 11px; color: #98a3b3; text-align: center; }
         .card { min-height: 76px; padding: 15px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: var(--branco); box-shadow: var(--sombra); cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease; }
         .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(15, 23, 42, .08); transform: translateY(-1px); }
         .card.filtrado { border-color: #9dbcf7; background: #f5f8ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, .08); }
@@ -825,21 +842,21 @@
                             <th><div class="cabecalho-coluna"><span>Dia Trabalho</span><select id="filtroCabecalhoDiaTrabalho" class="filtro-coluna-select" aria-label="Filtrar por dia de trabalho" onchange="registrarSelecaoDiaTrabalho(this)"><option value="">Todos</option></select></div></th>
                             <th><div class="cabecalho-coluna"><span>CTe</span><input id="filtroCabecalhoCte" class="filtro-coluna-input" type="search" aria-label="Pesquisar CTe" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Notas</span><input id="filtroCabecalhoNotas" class="filtro-coluna-input" type="search" aria-label="Pesquisar notas" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
-                            <th><div class="cabecalho-coluna"><span>Vol.</span><select id="filtroCabecalhoVolumes" class="filtro-coluna-select" aria-label="Filtrar volumes" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Qtd</span><select id="filtroCabecalhoQtd" class="filtro-coluna-select" aria-label="Filtrar quantidade" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>ROTA</span><select id="filtroCabecalhoRota" class="filtro-coluna-select" aria-label="Filtrar rota" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Tipo</span><select id="filtroCabecalhoTipo" class="filtro-coluna-select" aria-label="Filtrar tipo" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Qtd Sec.</span><select id="filtroCabecalhoQtdSec" class="filtro-coluna-select" aria-label="Filtrar quantidade secundária" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Remetente</span><select id="filtroCabecalhoRemetente" class="filtro-coluna-select" aria-label="Filtrar remetente" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Destino</span><select id="filtroCabecalhoDestino" class="filtro-coluna-select" aria-label="Filtrar destino" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Agência</span><select id="filtroCabecalhoAgencia" class="filtro-coluna-select" aria-label="Filtrar agência" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Emissão</span><select id="filtroCabecalhoDataEmissao" class="filtro-coluna-select" aria-label="Filtrar emissão" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Prev. Agência</span><select id="filtroCabecalhoPrevAgencia" class="filtro-coluna-select" aria-label="Filtrar previsão de agência" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Prev. Entrega</span><select id="filtroCabecalhoPrevEntrega" class="filtro-coluna-select" aria-label="Filtrar previsão de entrega" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Data Ocorr.</span><select id="filtroCabecalhoDataOcorrencia" class="filtro-coluna-select" aria-label="Filtrar data de ocorrência" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Ocorrência</span><select id="filtroCabecalhoOcorrencia" class="filtro-coluna-select" aria-label="Filtrar ocorrência" onchange="filtrarTabela()"><option value="">Todas</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Dias Atraso</span><select id="filtroCabecalhoDiasAtraso" class="filtro-coluna-select" aria-label="Filtrar dias de atraso" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
-                            <th><div class="cabecalho-coluna"><span>Últ. Ocorrência</span><select id="filtroCabecalhoUltOcorrencia" class="filtro-coluna-select" aria-label="Filtrar última ocorrência" onchange="filtrarTabela()"><option value="">Todos</option></select></div></th>
+                            <th><div class="cabecalho-coluna"><span>Vol.</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoVolumes" data-padrao="Todos" aria-label="Filtrar volumes"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Qtd</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoQtd" data-padrao="Todos" aria-label="Filtrar quantidade"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>ROTA</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoRota" data-padrao="Todas" aria-label="Filtrar rota"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Tipo</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoTipo" data-padrao="Todos" aria-label="Filtrar tipo"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Qtd Sec.</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoQtdSec" data-padrao="Todos" aria-label="Filtrar quantidade secundária"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Remetente</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoRemetente" data-padrao="Todos" aria-label="Filtrar remetente"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Destino</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoDestino" data-padrao="Todos" aria-label="Filtrar destino"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Agência</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoAgencia" data-padrao="Todas" aria-label="Filtrar agência"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Emissão</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoDataEmissao" data-padrao="Todos" aria-label="Filtrar emissão"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Prev. Agência</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoPrevAgencia" data-padrao="Todos" aria-label="Filtrar previsão de agência"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Prev. Entrega</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoPrevEntrega" data-padrao="Todos" aria-label="Filtrar previsão de entrega"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Data Ocorr.</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoDataOcorrencia" data-padrao="Todos" aria-label="Filtrar data de ocorrência"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Ocorrência</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoOcorrencia" data-padrao="Todas" aria-label="Filtrar ocorrência"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Dias Atraso</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoDiasAtraso" data-padrao="Todos" aria-label="Filtrar dias de atraso"></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Últ. Ocorrência</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoUltOcorrencia" data-padrao="Todos" aria-label="Filtrar última ocorrência"></div></div></th>
                         </tr>
                     </thead>
                     <tbody id="tabelaCorpo"><tr><td colspan="18" style="text-align:center; padding:40px;">Aguardando dados...</td></tr></tbody>
@@ -1593,6 +1610,183 @@
             return texto.split(' ')[0];
         }
 
+        const estadoFiltrosMultiplos = {};
+        const FILTROS_MULTIPLOS_IDS = ['filtroCabecalhoVolumes', 'filtroCabecalhoQtd', 'filtroCabecalhoRota', 'filtroCabecalhoTipo', 'filtroCabecalhoQtdSec', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoAgencia', 'filtroCabecalhoDataEmissao', 'filtroCabecalhoPrevAgencia', 'filtroCabecalhoPrevEntrega', 'filtroCabecalhoDataOcorrencia', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoDiasAtraso', 'filtroCabecalhoUltOcorrencia'];
+
+        function inicializarFiltrosMultiplos() {
+            document.querySelectorAll('.filtro-multiplo[data-filtro]').forEach(container => {
+                const id = container.dataset.filtro;
+                const padrao = container.dataset.padrao || 'Todos';
+                if (!estadoFiltrosMultiplos[id]) estadoFiltrosMultiplos[id] = new Set();
+                container.innerHTML = `
+                    <button type="button" class="filtro-multiplo-botao" onclick="alternarPainelFiltroMultiplo(event, '${id}')" aria-haspopup="true" aria-expanded="false">${escaparHtml(padrao)}</button>
+                    <div class="filtro-multiplo-painel" id="${id}-painel" hidden>
+                        <input type="text" class="filtro-multiplo-busca" placeholder="Buscar..." oninput="filtrarOpcoesPainelMultiplo('${id}', this.value)">
+                        <div class="filtro-multiplo-acoes">
+                            <button type="button" onclick="marcarTodosFiltroMultiplo('${id}')">Marcar todos</button>
+                            <button type="button" onclick="limparFiltroMultiploUnico('${id}')">Limpar</button>
+                        </div>
+                        <div class="filtro-multiplo-opcoes" id="${id}-opcoes"></div>
+                    </div>
+                `;
+            });
+            document.addEventListener('click', evento => {
+                document.querySelectorAll('.filtro-multiplo-painel:not([hidden])').forEach(painel => {
+                    const container = painel.closest('.filtro-multiplo');
+                    if (container && !container.contains(evento.target)) fecharPainelFiltroMultiplo(container.dataset.filtro);
+                });
+            });
+            document.addEventListener('keydown', evento => {
+                if (evento.key !== 'Escape') return;
+                document.querySelectorAll('.filtro-multiplo-painel:not([hidden])').forEach(painel => {
+                    const container = painel.closest('.filtro-multiplo');
+                    if (container) fecharPainelFiltroMultiplo(container.dataset.filtro);
+                });
+            });
+        }
+
+        function fecharPainelFiltroMultiplo(id) {
+            const painel = document.getElementById(`${id}-painel`);
+            const botao = document.querySelector(`.filtro-multiplo[data-filtro="${id}"] .filtro-multiplo-botao`);
+            if (painel) painel.hidden = true;
+            botao?.setAttribute('aria-expanded', 'false');
+        }
+
+        function alternarPainelFiltroMultiplo(evento, id) {
+            evento.stopPropagation();
+            const painelAlvo = document.getElementById(`${id}-painel`);
+            if (!painelAlvo) return;
+            const estaAberto = !painelAlvo.hidden;
+            document.querySelectorAll('.filtro-multiplo-painel:not([hidden])').forEach(painel => {
+                const container = painel.closest('.filtro-multiplo');
+                if (container) fecharPainelFiltroMultiplo(container.dataset.filtro);
+            });
+            painelAlvo.hidden = estaAberto;
+            const botao = document.querySelector(`.filtro-multiplo[data-filtro="${id}"] .filtro-multiplo-botao`);
+            botao?.setAttribute('aria-expanded', String(!estaAberto));
+            const busca = painelAlvo.querySelector('.filtro-multiplo-busca');
+            if (!estaAberto) {
+                if (busca) { busca.value = ''; window.setTimeout(() => busca.focus(), 10); }
+                filtrarOpcoesPainelMultiplo(id, '');
+            }
+        }
+
+        function preencherFiltroMultiplo(id, valores, textoPadrao, formatador = valor => valor) {
+            const container = document.querySelector(`.filtro-multiplo[data-filtro="${id}"]`);
+            const opcoesEl = document.getElementById(`${id}-opcoes`);
+            if (!container || !opcoesEl) return;
+            container.dataset.padrao = textoPadrao;
+            const valoresNormalizados = valores.map(valor => String(valor ?? '').trim());
+            const valoresPreenchidos = [...new Set(valoresNormalizados.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+            const possuiBrancos = valoresNormalizados.some(valor => !valor);
+            if (!estadoFiltrosMultiplos[id]) estadoFiltrosMultiplos[id] = new Set();
+            const selecaoAtual = estadoFiltrosMultiplos[id];
+            const disponiveis = new Set(valoresPreenchidos.map(v => v.toLowerCase()));
+            if (possuiBrancos) disponiveis.add('__branco__');
+            [...selecaoAtual].forEach(valor => { if (!disponiveis.has(valor)) selecaoAtual.delete(valor); });
+
+            opcoesEl.innerHTML = '';
+            valoresPreenchidos.forEach(valor => {
+                const valorLower = valor.toLowerCase();
+                const linha = document.createElement('label');
+                linha.className = 'filtro-multiplo-opcao';
+                linha.dataset.textoBusca = normalizarTexto(valor);
+                linha.innerHTML = `<input type="checkbox" value="${escaparHtml(valorLower)}" ${selecaoAtual.has(valorLower) ? 'checked' : ''} onchange="alternarOpcaoFiltroMultiplo('${id}', this.value, this.checked)"><span>${escaparHtml(formatador(valor))}</span>`;
+                opcoesEl.appendChild(linha);
+            });
+            if (possuiBrancos) {
+                const linha = document.createElement('label');
+                linha.className = 'filtro-multiplo-opcao';
+                linha.dataset.textoBusca = 'em branco';
+                linha.innerHTML = `<input type="checkbox" value="__branco__" ${selecaoAtual.has('__branco__') ? 'checked' : ''} onchange="alternarOpcaoFiltroMultiplo('${id}', this.value, this.checked)"><span>Em branco</span>`;
+                opcoesEl.appendChild(linha);
+            }
+            if (!valoresPreenchidos.length && !possuiBrancos) opcoesEl.innerHTML = '<div class="filtro-multiplo-vazio">Nenhuma opção disponível</div>';
+            atualizarRotuloFiltroMultiplo(id);
+        }
+
+        function alternarOpcaoFiltroMultiplo(id, valor, marcado) {
+            if (!estadoFiltrosMultiplos[id]) estadoFiltrosMultiplos[id] = new Set();
+            if (marcado) estadoFiltrosMultiplos[id].add(valor); else estadoFiltrosMultiplos[id].delete(valor);
+            atualizarRotuloFiltroMultiplo(id);
+            filtrarTabela();
+        }
+
+        function marcarTodosFiltroMultiplo(id) {
+            const opcoesEl = document.getElementById(`${id}-opcoes`);
+            if (!opcoesEl) return;
+            const conjunto = estadoFiltrosMultiplos[id] || (estadoFiltrosMultiplos[id] = new Set());
+            opcoesEl.querySelectorAll('input[type="checkbox"]').forEach(caixa => {
+                const linha = caixa.closest('.filtro-multiplo-opcao');
+                if (linha && linha.style.display === 'none') return;
+                caixa.checked = true;
+                conjunto.add(caixa.value);
+            });
+            atualizarRotuloFiltroMultiplo(id);
+            filtrarTabela();
+        }
+
+        function redefinirFiltroMultiplo(id) {
+            estadoFiltrosMultiplos[id] = new Set();
+            document.getElementById(`${id}-opcoes`)?.querySelectorAll('input[type="checkbox"]').forEach(caixa => { caixa.checked = false; });
+            atualizarRotuloFiltroMultiplo(id);
+        }
+
+        function limparFiltroMultiploUnico(id) {
+            redefinirFiltroMultiplo(id);
+            filtrarTabela();
+        }
+
+        function filtrarOpcoesPainelMultiplo(id, termo) {
+            const opcoesEl = document.getElementById(`${id}-opcoes`);
+            if (!opcoesEl) return;
+            const termoNormalizado = normalizarTexto(String(termo || ''));
+            opcoesEl.querySelectorAll('.filtro-multiplo-opcao').forEach(linha => {
+                const textoBusca = linha.dataset.textoBusca || '';
+                linha.style.display = !termoNormalizado || textoBusca.includes(termoNormalizado) ? '' : 'none';
+            });
+        }
+
+        function atualizarRotuloFiltroMultiplo(id) {
+            const botao = document.querySelector(`.filtro-multiplo[data-filtro="${id}"] .filtro-multiplo-botao`);
+            const container = document.querySelector(`.filtro-multiplo[data-filtro="${id}"]`);
+            if (!botao || !container) return;
+            const conjunto = estadoFiltrosMultiplos[id] || new Set();
+            const padrao = container.dataset.padrao || 'Todos';
+            if (!conjunto.size) {
+                botao.textContent = padrao;
+                container.classList.remove('ativo');
+                return;
+            }
+            container.classList.add('ativo');
+            if (conjunto.size === 1) {
+                const opcoesEl = document.getElementById(`${id}-opcoes`);
+                const unico = [...conjunto][0];
+                const caixaCorrespondente = opcoesEl ? [...opcoesEl.querySelectorAll('input[type="checkbox"]')].find(c => c.value === unico) : null;
+                botao.textContent = caixaCorrespondente ? caixaCorrespondente.parentElement.querySelector('span').textContent : '1 selecionado';
+            } else {
+                botao.textContent = `${conjunto.size} selecionados`;
+            }
+        }
+
+        function valoresFiltroMultiplo(id) {
+            return estadoFiltrosMultiplos[id] || new Set();
+        }
+
+        function atendeFiltroMultiplo(valor, conjunto) {
+            if (!conjunto || !conjunto.size) return true;
+            const valorNormalizado = String(valor ?? '').trim().toLowerCase();
+            if (conjunto.has('__branco__') && !valorNormalizado) return true;
+            return conjunto.has(valorNormalizado);
+        }
+
+        function atendeFiltroMultiploData(valor, conjunto) {
+            if (!conjunto || !conjunto.size) return true;
+            const dataNormalizada = String(obterDataEmFormatoISO(valor) || '').toLowerCase();
+            if (conjunto.has('__branco__') && !dataNormalizada) return true;
+            return conjunto.has(dataNormalizada);
+        }
+
         function preencherSelect(id, valores, textoPadrao, formatador = valor => valor) {
             const select = document.getElementById(id);
             if (!select) return;
@@ -1653,21 +1847,21 @@
             const campoNotas = document.getElementById('filtroCabecalhoNotas');
             if (campoCte && document.activeElement !== campoCte) campoCte.value = campoCte.value || '';
             if (campoNotas && document.activeElement !== campoNotas) campoNotas.value = campoNotas.value || '';
-            preencherSelect('filtroCabecalhoVolumes', dadosLocais.map(registro => registro.volumes), 'Todos');
-            preencherSelect('filtroCabecalhoQtd', dadosLocais.map(registro => registro.qtd), 'Todos');
-            preencherSelect('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
-            preencherSelect('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
-            preencherSelect('filtroCabecalhoQtdSec', dadosLocais.map(registro => registro.qtd2), 'Todos');
-            preencherSelect('filtroCabecalhoRemetente', dadosLocais.map(registro => registro.clienteRemetente), 'Todos');
-            preencherSelect('filtroCabecalhoDestino', dadosLocais.map(registro => registro.destino), 'Todos');
-            preencherSelect('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
-            preencherSelect('filtroCabecalhoDataEmissao', dadosLocais.map(registro => registro.emissao), 'Todos', formatarData);
-            preencherSelect('filtroCabecalhoPrevAgencia', dadosLocais.map(registro => registro.previsaoAgencia), 'Todos', formatarData);
-            preencherSelect('filtroCabecalhoPrevEntrega', dadosLocais.map(registro => registro.previsaoEntrega), 'Todos', formatarData);
-            preencherSelect('filtroCabecalhoDataOcorrencia', dadosLocais.map(registro => registro.dataOcorrencia), 'Todos', formatarData);
-            preencherSelect('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
-            preencherSelect('filtroCabecalhoDiasAtraso', dadosLocais.map(registro => registro.diasAtraso), 'Todos');
-            preencherSelect('filtroCabecalhoUltOcorrencia', dadosLocais.map(registro => registro.dataUltOcorrencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoVolumes', dadosLocais.map(registro => registro.volumes), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoQtd', dadosLocais.map(registro => registro.qtd), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoQtdSec', dadosLocais.map(registro => registro.qtd2), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoRemetente', dadosLocais.map(registro => registro.clienteRemetente), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoDestino', dadosLocais.map(registro => registro.destino), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoDataEmissao', dadosLocais.map(registro => registro.emissao), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevAgencia', dadosLocais.map(registro => registro.previsaoAgencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevEntrega', dadosLocais.map(registro => registro.previsaoEntrega), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoDataOcorrencia', dadosLocais.map(registro => registro.dataOcorrencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', dadosLocais.map(registro => registro.diasAtraso), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', dadosLocais.map(registro => registro.dataUltOcorrencia), 'Todos', formatarData);
             preencherSelect('filtroAvancadoLote', dadosLocais.map(registro => registro.loteId), 'Todos os lotes');
             const diasTrabalho = obterDiasTrabalhoImportados();
             const ultimoDiaImportado = diasTrabalho[0] || '';
@@ -2202,10 +2396,11 @@
         }
 
         function limparFiltrosCabecalho() {
-            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroCabecalhoVolumes', 'filtroCabecalhoQtd', 'filtroCabecalhoRota', 'filtroCabecalhoTipo', 'filtroCabecalhoQtdSec', 'filtroCabecalhoRemetente', 'filtroCabecalhoDestino', 'filtroCabecalhoAgencia', 'filtroCabecalhoDataEmissao', 'filtroCabecalhoPrevAgencia', 'filtroCabecalhoPrevEntrega', 'filtroCabecalhoDataOcorrencia', 'filtroCabecalhoOcorrencia', 'filtroCabecalhoDiasAtraso', 'filtroCabecalhoUltOcorrencia', 'filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
+            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
+            FILTROS_MULTIPLOS_IDS.forEach(redefinirFiltroMultiplo);
             const dia = document.getElementById('filtroCabecalhoDiaTrabalho');
             if (dia) dia.dataset.manual = 'true';
             limparSelecaoRegistros(false);
@@ -3205,21 +3400,21 @@
             const diaTrabalho = obterValorCampo('filtroCabecalhoDiaTrabalho');
             const cteCabecalho = obterValorCampo('filtroCabecalhoCte');
             const notasCabecalho = obterValorCampo('filtroCabecalhoNotas');
-            const volumesCabecalho = obterValorCampo('filtroCabecalhoVolumes');
-            const qtdCabecalho = obterValorCampo('filtroCabecalhoQtd');
-            const rota = obterValorCampo('filtroCabecalhoRota');
-            const tipo = obterValorCampo('filtroCabecalhoTipo');
-            const qtdSecCabecalho = obterValorCampo('filtroCabecalhoQtdSec');
-            const remetente = obterValorCampo('filtroCabecalhoRemetente');
-            const destino = obterValorCampo('filtroCabecalhoDestino');
-            const agencia = obterValorCampo('filtroCabecalhoAgencia');
-            const dataEmissao = document.getElementById('filtroCabecalhoDataEmissao')?.value || '';
-            const dataPrevAgencia = document.getElementById('filtroCabecalhoPrevAgencia')?.value || '';
-            const dataPrevEntrega = document.getElementById('filtroCabecalhoPrevEntrega')?.value || '';
-            const dataOcorrenciaFiltro = document.getElementById('filtroCabecalhoDataOcorrencia')?.value || '';
-            const ocorrenciaFiltro = obterValorCampo('filtroCabecalhoOcorrencia');
-            const diasAtrasoCabecalho = obterValorCampo('filtroCabecalhoDiasAtraso');
-            const ultimaOcorrenciaCabecalho = obterValorCampo('filtroCabecalhoUltOcorrencia');
+            const volumesCabecalho = valoresFiltroMultiplo('filtroCabecalhoVolumes');
+            const qtdCabecalho = valoresFiltroMultiplo('filtroCabecalhoQtd');
+            const rota = valoresFiltroMultiplo('filtroCabecalhoRota');
+            const tipo = valoresFiltroMultiplo('filtroCabecalhoTipo');
+            const qtdSecCabecalho = valoresFiltroMultiplo('filtroCabecalhoQtdSec');
+            const remetente = valoresFiltroMultiplo('filtroCabecalhoRemetente');
+            const destino = valoresFiltroMultiplo('filtroCabecalhoDestino');
+            const agencia = valoresFiltroMultiplo('filtroCabecalhoAgencia');
+            const dataEmissao = valoresFiltroMultiplo('filtroCabecalhoDataEmissao');
+            const dataPrevAgencia = valoresFiltroMultiplo('filtroCabecalhoPrevAgencia');
+            const dataPrevEntrega = valoresFiltroMultiplo('filtroCabecalhoPrevEntrega');
+            const dataOcorrenciaFiltro = valoresFiltroMultiplo('filtroCabecalhoDataOcorrencia');
+            const ocorrenciaFiltro = valoresFiltroMultiplo('filtroCabecalhoOcorrencia');
+            const diasAtrasoCabecalho = valoresFiltroMultiplo('filtroCabecalhoDiasAtraso');
+            const ultimaOcorrenciaCabecalho = valoresFiltroMultiplo('filtroCabecalhoUltOcorrencia');
             const buscaAvancada = obterValorCampo('filtroAvancadoTexto');
             const statusAvancado = obterValorCampo('filtroAvancadoStatus');
             const loteAvancado = obterValorCampo('filtroAvancadoLote');
@@ -3249,11 +3444,11 @@
                 const emissaoRegistro = obterDataEmFormatoISO(registro.emissao);
                 const entregaRegistro = obterDataEmFormatoISO(registro.previsaoEntrega);
                 if (diaTrabalho && !atendeFiltroExato(diaTrabalhoRegistro, diaTrabalho)) return false;
-                if (dataEmissao && !atendeFiltroData(registro.emissao, dataEmissao)) return false;
-                if (dataPrevAgencia && !atendeFiltroData(registro.previsaoAgencia, dataPrevAgencia)) return false;
-                if (dataPrevEntrega && !atendeFiltroData(registro.previsaoEntrega, dataPrevEntrega)) return false;
-                if (dataOcorrenciaFiltro && !atendeFiltroData(registro.dataOcorrencia, dataOcorrenciaFiltro)) return false;
-                if (ultimaOcorrenciaCabecalho && !atendeFiltroData(registro.dataUltOcorrencia, ultimaOcorrenciaCabecalho)) return false;
+                if (!atendeFiltroMultiploData(registro.emissao, dataEmissao)) return false;
+                if (!atendeFiltroMultiploData(registro.previsaoAgencia, dataPrevAgencia)) return false;
+                if (!atendeFiltroMultiploData(registro.previsaoEntrega, dataPrevEntrega)) return false;
+                if (!atendeFiltroMultiploData(registro.dataOcorrencia, dataOcorrenciaFiltro)) return false;
+                if (!atendeFiltroMultiploData(registro.dataUltOcorrencia, ultimaOcorrenciaCabecalho)) return false;
                 if (!statusAvancado && filtroCardAtivo === 'entrega' && !isEntrega) return false;
                 if (!statusAvancado && filtroCardAtivo === 'bo' && !isBo) return false;
                 if (!statusAvancado && filtroCardAtivo === 'pendentes' && (isEntrega || isBo)) return false;
@@ -3272,16 +3467,16 @@
                 if (atrasoMinimoAvancado > 0 && valorNumerico(registro.diasAtraso) < atrasoMinimoAvancado) return false;
                 if (cteCabecalho && !atendeFiltroTexto(valorRegistro(registro, 'cte'), cteCabecalho)) return false;
                 if (notasCabecalho && !atendeFiltroTexto(valorRegistro(registro, 'notas'), notasCabecalho)) return false;
-                if (volumesCabecalho && !atendeFiltroExato(valorRegistro(registro, 'volumes'), volumesCabecalho)) return false;
-                if (qtdCabecalho && !atendeFiltroExato(valorRegistro(registro, 'qtd'), qtdCabecalho)) return false;
-                if (rota && !atendeFiltroExato(valorRegistro(registro, 'rota'), rota)) return false;
-                if (tipo && !atendeFiltroExato(valorRegistro(registro, 'tipo'), tipo)) return false;
-                if (qtdSecCabecalho && !atendeFiltroExato(valorRegistro(registro, 'qtd2'), qtdSecCabecalho)) return false;
-                if (ocorrenciaFiltro && !atendeFiltroExato(valorRegistro(registro, 'ocorrencia'), ocorrenciaFiltro)) return false;
-                if (remetente && !atendeFiltroExato(valorRegistro(registro, 'clienteRemetente'), remetente)) return false;
-                if (destino && !atendeFiltroExato(valorRegistro(registro, 'destino'), destino)) return false;
-                if (agencia && !atendeFiltroExato(valorRegistro(registro, 'agenciaRemetente'), agencia)) return false;
-                if (diasAtrasoCabecalho && !atendeFiltroExato(valorRegistro(registro, 'diasAtraso'), diasAtrasoCabecalho)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'volumes'), volumesCabecalho)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'qtd'), qtdCabecalho)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'rota'), rota)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'tipo'), tipo)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'qtd2'), qtdSecCabecalho)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'ocorrencia'), ocorrenciaFiltro)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'clienteRemetente'), remetente)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'destino'), destino)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'agenciaRemetente'), agencia)) return false;
+                if (!atendeFiltroMultiplo(valorRegistro(registro, 'diasAtraso'), diasAtrasoCabecalho)) return false;
                 return true;
             });
 
@@ -3334,10 +3529,10 @@
             });
 
             const diaTrabalho = document.getElementById('filtroCabecalhoDiaTrabalho')?.value || '';
-            const dataEmissao = document.getElementById('filtroCabecalhoDataEmissao')?.value || '';
+            const dataEmissaoResumo = valoresFiltroMultiplo('filtroCabecalhoDataEmissao');
             const registrosPeriodo = dadosLocais.filter(registro => {
                 if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
-                if (dataEmissao && obterDataEmFormatoISO(registro.emissao) !== dataEmissao) return false;
+                if (!atendeFiltroMultiploData(registro.emissao, dataEmissaoResumo)) return false;
                 return true;
             });
             const total = registrosPeriodo.length;
@@ -3655,6 +3850,7 @@
         }
 
         try {
+            inicializarFiltrosMultiplos();
             inicializarEstadoDashboard();
             mudarFiltroCard('todos');
             definirDataTrabalhoPadrao();
