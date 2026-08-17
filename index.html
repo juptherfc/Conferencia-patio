@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         :root {
@@ -295,6 +296,16 @@
         .busca-deposito input { min-width: 0; width: 100%; height: 30px; border: 0; outline: 0; color: #4b5563; font-size: 12px; }
         .busca-deposito input::placeholder { color: #a0a8b1; }
         .btn-buscar-deposito { flex: 0 0 auto; border: 0; border-radius: 6px; padding: 8px 10px; background: #eef4ff; color: #2563eb; font-size: 11px; font-weight: 750; transition: background .2s ease, transform .2s ease; }
+        .btn-qr-etiqueta { flex: 0 0 auto; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #e0e4e8; border-radius: 6px; background: #fff; color: #66717e; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+        .btn-qr-etiqueta:hover { background: #f7f9fc; border-color: #b9c5d1; color: #172033; }
+        .qr-card { width: min(420px, 100%); }
+        .qr-video-wrap { position: relative; margin: 4px 22px 0; border-radius: 12px; overflow: hidden; background: #0b1220; aspect-ratio: 1 / 1; }
+        .qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .qr-mira { position: absolute; inset: 14%; border: 2px solid rgba(255, 255, 255, .75); border-radius: 14px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .28); pointer-events: none; }
+        .qr-status { margin: 12px 22px 4px; color: #64748b; font-size: 12px; text-align: center; }
+        .forma-conferencia-badge { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
+        .forma-conferencia-badge.qrcode { background: #e6f4ea; color: #1c7a3c; }
+        .forma-conferencia-badge.manual { background: #eef2f7; color: #55627a; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
         .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
         .deposito-resultado.visivel { display: block; animation: abaEntrar .24s ease both; }
@@ -868,6 +879,9 @@
                     <div class="busca-deposito">
                         <span class="busca-deposito-icone" aria-hidden="true">▣</span>
                         <input type="text" id="d-etiqueta" placeholder="Buscar Etiqueta" autocomplete="off" data-caixa-alta onkeydown="acionarBuscaDeposito(event, 'etiqueta')">
+                        <button type="button" class="btn-qr-etiqueta" title="Ler QR Code (bipagem)" aria-label="Ler etiqueta com a câmera" onclick="abrirLeitorQrEtiqueta()">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+                        </button>
                         <button type="button" class="btn-buscar-deposito" onclick="buscarRegistroDeposito('etiqueta')">Buscar</button>
                     </div>
                     <div class="busca-deposito">
@@ -907,7 +921,7 @@
                 <div id="depositoResultado" class="deposito-resultado">
                     <div class="resultado-cabecalho">
                         <div>
-                            <div class="resultado-titulo">Registro localizado</div>
+                            <div class="resultado-titulo">Registro localizado<span id="depositoFormaBadge" class="forma-conferencia-badge" style="display:none;"></span></div>
                             <div class="resultado-detalhes" id="depositoDetalhes"></div>
                         </div>
                                                 <span class="resultado-chave" id="depositoChave"></span>
@@ -1069,6 +1083,30 @@
                 </footer>
             </article>
         </div>
+        <div id="leitorQrModal" class="detalhes-modal qr-modal" hidden role="dialog" aria-modal="true" aria-labelledby="qrModalTitulo" onclick="fecharLeitorQrAoClicarFundo(event)">
+            <article class="detalhes-card qr-card" role="document" onclick="event.stopPropagation()">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker">Conf. Depósito</span>
+                        <h2 id="qrModalTitulo" class="detalhes-titulo">Ler etiqueta (QR Code)</h2>
+                        <p class="detalhes-subtitulo">Aponte a câmera para o QR Code da etiqueta.</p>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar leitor de QR Code" onclick="fecharLeitorQrEtiqueta()">×</button>
+                </header>
+                <div class="qr-video-wrap">
+                    <video id="qrVideo" class="qr-video" playsinline muted autoplay></video>
+                    <div class="qr-mira" aria-hidden="true"></div>
+                </div>
+                <p id="qrStatus" class="qr-status">Iniciando câmera...</p>
+                <canvas id="qrCanvas" hidden></canvas>
+                <footer class="detalhes-acoes">
+                    <span></span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharLeitorQrEtiqueta()">Cancelar</button>
+                    </div>
+                </footer>
+            </article>
+        </div>
     </main>
 
     <script>
@@ -1091,6 +1129,10 @@
         let registroDepositoSelecionado = null;
         let contextoBuscaDeposito = { tipo: '', termo: '' };
         let sugestoesDeposito = [];
+        let formaConferenciaAtual = 'manual';
+        let formaConferenciaRegistroSelecionado = 'manual';
+        let streamQrEtiqueta = null;
+        let frameQrEtiqueta = null;
         let sobrasListaVisivel = false;
         let mensagemAcessoPendente = '';
         let elementoFocoAntesDetalhes = null;
@@ -2424,8 +2466,100 @@
             return '';
         }
 
+        function definirStatusQr(mensagem) {
+            const status = document.getElementById('qrStatus');
+            if (status) status.textContent = mensagem;
+        }
+
+        async function abrirLeitorQrEtiqueta() {
+            if (!exigirAcessoAutorizado() || !exigirPermissao('editarDeposito')) return;
+            if (typeof jsQR !== 'function') {
+                mostrarAlerta('<b>Atenção:</b> a biblioteca de leitura de QR Code não carregou. Verifique sua conexão e recarregue a página.', 'erro');
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                mostrarAlerta('<b>Atenção:</b> este navegador não permite acessar a câmera (é necessário HTTPS).', 'erro');
+                return;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (!modal || !video) return;
+            modal.hidden = false;
+            document.body.classList.add('modal-aberto');
+            definirStatusQr('Iniciando câmera...');
+            try {
+                streamQrEtiqueta = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+                video.srcObject = streamQrEtiqueta;
+                await video.play();
+                definirStatusQr('Aponte a câmera para o QR Code da etiqueta.');
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+            } catch (error) {
+                console.error('Falha ao acessar a câmera:', error);
+                definirStatusQr('Não foi possível acessar a câmera.');
+                mostrarAlerta('<b>Atenção:</b> não foi possível acessar a câmera. Verifique as permissões do navegador.', 'erro');
+            }
+        }
+
+        function lerQuadroQrEtiqueta() {
+            const video = document.getElementById('qrVideo');
+            const canvas = document.getElementById('qrCanvas');
+            if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const contexto = canvas.getContext('2d', { willReadFrequently: true });
+            contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imagem = contexto.getImageData(0, 0, canvas.width, canvas.height);
+            const resultado = jsQR(imagem.data, imagem.width, imagem.height, { inversionAttempts: 'dontInvert' });
+            if (resultado && resultado.data) {
+                processarLeituraQrEtiqueta(resultado.data);
+                return;
+            }
+            frameQrEtiqueta = requestAnimationFrame(lerQuadroQrEtiqueta);
+        }
+
+        function processarLeituraQrEtiqueta(valorLido) {
+            const campo = document.getElementById('d-etiqueta');
+            const valor = String(valorLido || '').trim().toUpperCase();
+            fecharLeitorQrEtiqueta();
+            if (!valor) return;
+            if (campo) campo.value = valor;
+            buscarRegistroDeposito('etiqueta', { formaConferencia: 'qrcode' });
+        }
+
+        function fecharLeitorQrEtiqueta() {
+            if (frameQrEtiqueta) {
+                cancelAnimationFrame(frameQrEtiqueta);
+                frameQrEtiqueta = null;
+            }
+            if (streamQrEtiqueta) {
+                streamQrEtiqueta.getTracks().forEach(faixa => faixa.stop());
+                streamQrEtiqueta = null;
+            }
+            const modal = document.getElementById('leitorQrModal');
+            const video = document.getElementById('qrVideo');
+            if (video) video.srcObject = null;
+            if (modal) modal.hidden = true;
+            document.body.classList.remove('modal-aberto');
+        }
+
+        function fecharLeitorQrAoClicarFundo(evento) {
+            if (evento.target?.id === 'leitorQrModal') fecharLeitorQrEtiqueta();
+        }
+
+        document.addEventListener('keydown', evento => {
+            const modal = document.getElementById('leitorQrModal');
+            if (evento.key === 'Escape' && modal && !modal.hidden) fecharLeitorQrEtiqueta();
+        });
+
         function buscarRegistroDeposito(tipo, opcoes = {}) {
             const silenciosa = opcoes.silenciosa === true;
+            formaConferenciaAtual = opcoes.formaConferencia === 'qrcode' ? 'qrcode' : 'manual';
             clearTimeout(temporizadorBuscaDeposito);
                         const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf', remetente: 'd-remetente', destino: 'd-destino' };
 
@@ -2513,6 +2647,7 @@
         function selecionarSugestaoDeposito(indice) {
             const registro = sugestoesDeposito[indice];
             if (!registro) return;
+            formaConferenciaAtual = 'manual';
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
             preencherRegistroDeposito(registro);
@@ -2753,6 +2888,8 @@
 
         function preencherRegistroDeposito(registro) {
             registroDepositoSelecionado = registro;
+            formaConferenciaRegistroSelecionado = formaConferenciaAtual;
+            atualizarBadgeFormaConferencia(formaConferenciaRegistroSelecionado);
                         document.getElementById('d-qtd').value = valorRegistro(registro, 'qtd');
             document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
             document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
@@ -2771,6 +2908,8 @@
 
         function limparRegistroDeposito(mostrarMensagem = true, limparBusca = true) {
             registroDepositoSelecionado = null;
+            formaConferenciaRegistroSelecionado = 'manual';
+            atualizarBadgeFormaConferencia(null);
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
             if (limparBusca) limparCamposBuscaDeposito();
@@ -2786,15 +2925,37 @@
             if (mostrarMensagem) mostrarAlerta('<b>Status:</b> seleção limpa.', 'info');
         }
 
+        function atualizarBadgeFormaConferencia(forma) {
+            const badge = document.getElementById('depositoFormaBadge');
+            if (!badge) return;
+            if (!forma) {
+                badge.style.display = 'none';
+                badge.textContent = '';
+                badge.className = 'forma-conferencia-badge';
+                return;
+            }
+            const ehQr = forma === 'qrcode';
+            badge.className = `forma-conferencia-badge ${ehQr ? 'qrcode' : 'manual'}`;
+            badge.textContent = ehQr ? '📷 Bipado (QR Code)' : '✍ Consulta manual';
+            badge.style.display = 'inline-flex';
+        }
+
+        function rotuloFormaConferencia(forma) {
+            return forma === 'qrcode' ? 'QR Code (bipagem)' : 'Consulta manual';
+        }
+
         function salvarAtualizacaoDeposito() {
             if (!db || !exigirAcessoAutorizado() || !exigirPermissao('editarDeposito')) return;
             if (!registroDepositoSelecionado) { alert('Busque um registro antes de atualizar.'); return; }
 
+            const formaConferencia = formaConferenciaRegistroSelecionado === 'qrcode' ? 'qrcode' : 'manual';
             const valores = {
                 qtd: String(document.getElementById('d-qtd').value || '').trim().toUpperCase(),
                 rota: String(document.getElementById('d-rota').value || '').trim().toUpperCase(),
                 tipo: String(document.getElementById('d-tipo').value || '').trim().toUpperCase(),
-                qtd2: String(document.getElementById('d-qtd-sec').value || '').trim().toUpperCase()
+                qtd2: String(document.getElementById('d-qtd-sec').value || '').trim().toUpperCase(),
+                formaConferencia,
+                formaConferenciaEm: new Date().toISOString()
             };
             const identificador = valorRegistro(registroDepositoSelecionado, 'cte') || valorRegistro(registroDepositoSelecionado, 'notas');
             const diaTrabalho = obterDataTrabalhoRegistro(registroDepositoSelecionado);
@@ -2805,11 +2966,11 @@
             db.child(chaveRegistro).update(valores).then(() => {
                 Object.assign(registroDepositoSelecionado, valores);
                 const registroDepois = JSON.parse(JSON.stringify(registroDepositoSelecionado));
-                registrarAuditoria('editar_deposito', chaveRegistro, registroAntes, registroDepois, { dataTrabalho: diaTrabalho, detalhes: 'Atualização dos campos de conferência' });
+                registrarAuditoria('editar_deposito', chaveRegistro, registroAntes, registroDepois, { dataTrabalho: diaTrabalho, detalhes: `Atualização dos campos de conferência · Forma: ${rotuloFormaConferencia(formaConferencia)}` });
                 atualizarOpcoesFiltros();
                 filtrarTabela();
                 limparRegistroDeposito(false);
-                                mostrarAlerta(`<b>Status:</b> registro do dia de trabalho ${formatarDataImportacao(diaTrabalho)} atualizado. Qtd, ROTA, Tipo e Qtd Sec foram salvos. Os campos foram limpos.`, 'sucesso');
+                                mostrarAlerta(`<b>Status:</b> registro do dia de trabalho ${formatarDataImportacao(diaTrabalho)} atualizado via ${rotuloFormaConferencia(formaConferencia)}. Qtd, ROTA, Tipo e Qtd Sec foram salvos. Os campos foram limpos.`, 'sucesso');
                 focarBuscaNfDeposito();
 
             }).catch(error => {
@@ -3200,6 +3361,7 @@
             ['ROTA', 'rota'],
             ['Tipo', 'tipo'],
             ['Qtd Sec.', 'qtd2'],
+            ['Forma Conf.', 'formaConferencia'],
             ['Remetente', 'clienteRemetente'],
             ['Destino', 'destino'],
             ['Agência', 'agenciaRemetente'],
@@ -3218,6 +3380,10 @@
             if (campo === 'diaTrabalho') return escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(registro)) || '-');
             if (['emissao', 'previsaoAgencia', 'previsaoEntrega', 'dataOcorrencia', 'dataUltOcorrencia'].includes(campo)) return escaparHtml(formatarData(registro?.[campo]));
             if (campo === 'ocorrencia') return renderizarOcorrencia(registro?.ocorrencia);
+            if (campo === 'formaConferencia') {
+                const valor = valorRegistro(registro, 'formaConferencia');
+                return valor ? escaparHtml(rotuloFormaConferencia(valor)) : '-';
+            }
             return escaparHtml(valorRegistro(registro, campo) || '-');
         }
 
