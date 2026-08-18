@@ -217,6 +217,16 @@
         .filtros-avancados-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 9px; }
         .selecao-cte { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
         .selecao-cte .cte-detalhe-link { min-width: 0; }
+        .mapeamento-painel { margin-top: 14px; padding: 14px; border: 1px solid #dbe6f3; border-radius: 10px; background: #f8fbff; }
+        .mapeamento-titulo { margin: 4px 0 8px; color: #354a66; font-size: 13px; font-weight: 750; }
+        .mapeamento-aviso { margin-bottom: 10px; padding: 9px 11px; border-radius: 8px; background: #fff4e5; color: #92620c; font-size: 12px; border: 1px solid #f4d9a8; }
+        .mapeamento-legenda { margin: 0 0 10px; color: #8a949e; font-size: 11px; }
+        .mapeamento-corpo { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px 12px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+        .mapeamento-linha { display: flex; flex-direction: column; gap: 3px; }
+        .mapeamento-linha label { font-size: 10px; font-weight: 700; color: #55627a; text-transform: uppercase; letter-spacing: .02em; }
+        .mapeamento-linha select { height: 30px; border: 1px solid #d7e1ec; border-radius: 6px; padding: 0 7px; font-size: 11px; background: #fff; color: #384759; }
+        .mapeamento-linha.alerta label { color: #b3540c; }
+        .mapeamento-linha.alerta select { border-color: #f0ac54; background: #fff8ef; }
         .selecao-cte .cte-detalhe-link b { overflow: hidden; text-overflow: ellipsis; }
         .controle-largura-colunas { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 9px; border: 1px solid #d9e0e7; border-radius: 7px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
         .controle-largura-colunas input[type="range"] { width: 118px; accent-color: #2f73c9; }
@@ -874,6 +884,16 @@
                     <div id="arquivoPlanilhaStatus" class="arquivo-planilha-status" role="status" aria-live="polite">Nenhum arquivo carregado.</div>
                     <textarea id="caixaTextoColagem" hidden aria-hidden="true"></textarea>
                     <div class="botoes-acao"><button type="button" class="btn-principal" data-permissao="importar" onclick="processarTextoColado()">Processar arquivo</button></div>
+                    <div id="mapeamentoColunasPainel" class="mapeamento-painel" hidden>
+                        <h4 class="mapeamento-titulo">Confirme as colunas identificadas</h4>
+                        <div id="mapeamentoColunasAviso" class="mapeamento-aviso" style="display:none;"><b>Atenção:</b> o sistema não conseguiu reconhecer o cabeçalho desta planilha (colunas de CTe/NF). A ordem padrão está sendo sugerida abaixo — confira e ajuste cada campo com atenção antes de importar.</div>
+                        <p class="mapeamento-legenda">Campos com <b>*</b> são obrigatórios. Ajuste qualquer campo que o sistema não tenha identificado corretamente.</p>
+                        <div id="mapeamentoColunasCorpo" class="mapeamento-corpo"></div>
+                        <div class="botoes-acao" style="margin-top:12px;">
+                            <button type="button" class="btn-ferramenta-tabela" onclick="cancelarConfirmacaoMapeamento()">Cancelar</button>
+                            <button type="button" class="btn-principal" onclick="confirmarImportacaoComMapeamento()">Confirmar e importar</button>
+                        </div>
+                    </div>
                     <details class="importacao-colagem-alternativa">
                         <summary>Alternativa: colar texto tabulado</summary>
                         <textarea id="caixaTextoColagemAlternativa" style="width:100%; min-height:100px; padding:11px; border:1px solid #e0e4e8; border-radius:7px; resize:vertical; outline:none;" placeholder="Cole aqui as linhas da planilha e depois clique em Processar arquivo..."></textarea>
@@ -3211,6 +3231,88 @@
             if (nome) nome.textContent = 'XLS, XLSX, XLSM, CSV ou TXT';
             if (status) { status.className = 'arquivo-planilha-status'; status.textContent = 'Nenhum arquivo carregado.'; }
             if (alternativa) alternativa.value = '';
+            const painelMapeamento = document.getElementById('mapeamentoColunasPainel');
+            if (painelMapeamento) painelMapeamento.hidden = true;
+            mapeamentoImportacaoAtual = null;
+        }
+
+        const CAMPOS_MAPEAMENTO_IMPORTACAO = [
+            { chave: 'cte', rotulo: 'CTe', obrigatorio: true },
+            { chave: 'nf', rotulo: 'NF / Notas' },
+            { chave: 'etiqueta', rotulo: 'Etiqueta' },
+            { chave: 'vol', rotulo: 'Volumes' },
+            { chave: 'qtd', rotulo: 'Qtd' },
+            { chave: 'rota', rotulo: 'ROTA' },
+            { chave: 'tipo', rotulo: 'Tipo' },
+            { chave: 'qtd2', rotulo: 'Qtd Sec' },
+            { chave: 'remetente', rotulo: 'Remetente' },
+            { chave: 'dst', rotulo: 'Destino' },
+            { chave: 'agencia', rotulo: 'Agência' },
+            { chave: 'emissao', rotulo: 'Emissão' },
+            { chave: 'prevAgencia', rotulo: 'Prev. Agência' },
+            { chave: 'prevEntrega', rotulo: 'Prev. Entrega' },
+            { chave: 'dataOcorrencia', rotulo: 'Data Ocorrência' },
+            { chave: 'oco', rotulo: 'Ocorrência' },
+            { chave: 'diasAtraso', rotulo: 'Dias Atraso' },
+            { chave: 'dataUltOcorrencia', rotulo: 'Últ. Ocorrência' }
+        ];
+        let mapeamentoImportacaoAtual = null;
+
+        // Analisa apenas o cabeçalho da planilha e tenta identificar cada coluna do
+        // sistema pelo NOME (e variações conhecidas dela), em vez de assumir uma ordem
+        // fixa. Só recorre a uma posição padrão quando o cabeçalho não for reconhecível
+        // de jeito nenhum — e sinaliza isso via "usouPosicaoPadrao" para a tela de
+        // confirmação avisar o usuário e pedir revisão manual.
+        function detectarMapeamentoColunas(primeiraLinhaNormalizada) {
+            const encontrarIndice = (predicado, ocorrencia = 0) => {
+                const encontrados = primeiraLinhaNormalizada.map((valor, indice) => predicado(valor) ? indice : -1).filter(indice => indice !== -1);
+                return encontrados[ocorrencia] ?? -1;
+            };
+            const indicePorAliases = aliases => encontrarIndice(valor => aliases.some(alias => valor === alias || valor.includes(alias)));
+
+            let idx = {
+                cte: indicePorAliases(['cte']),
+                nf: indicePorAliases(['nota', 'nf']),
+                vol: indicePorAliases(['volume', 'vol']),
+                qtd: encontrarIndice(valor => valor === 'qtd' || valor === 'quantidade' || valor === 'qtdtotal'),
+                qtd2: indicePorAliases(['qtdsec', 'quantidadesecundaria', 'qtd2']),
+                rota: indicePorAliases(['rota']),
+                tipo: indicePorAliases(['tipo']),
+                remetente: indicePorAliases(['remetente']),
+                dst: indicePorAliases(['destino']),
+                agencia: indicePorAliases(['agencia']),
+                emissao: indicePorAliases(['emissao']),
+                prevAgencia: indicePorAliases(['previsaoagencia', 'prevagencia', 'prevag']),
+                prevEntrega: indicePorAliases(['previsaoentrega', 'preventrega', 'pentrega', 'pentreg']),
+                dataOcorrencia: indicePorAliases(['dataocorrencia', 'dtaocorrencia', 'dtocorr', 'docorr']),
+                // "Data Ocorrência" e "Ocorrência" possuem texto semelhante.
+                // Aqui usamos correspondência exata para não gravar a data na ocorrência.
+                oco: encontrarIndice(valor => valor === 'ocorrencia' || valor === 'ocorr'),
+                diasAtraso: indicePorAliases(['diasatraso', 'dias']),
+                dataUltOcorrencia: indicePorAliases(['dataultocorrencia', 'ultocorrencia', 'ultocorr', 'ultimaocorrencia', 'uocorr']),
+                etiqueta: indicePorAliases(['etiqueta', 'label'])
+            };
+
+            const possuiEstruturaCrua = primeiraLinhaNormalizada.includes('cnpjremetente') && primeiraLinhaNormalizada.includes('trecho') && primeiraLinhaNormalizada.includes('agenciadestino') && primeiraLinhaNormalizada.includes('cidadedestino');
+            if (possuiEstruturaCrua) {
+                idx.qtd = -1; idx.rota = -1; idx.tipo = -1; idx.qtd2 = -1;
+                idx.remetente = indicePorAliases(['clienteremetente']);
+                idx.dst = indicePorAliases(['clientedestino']);
+                idx.agencia = indicePorAliases(['agenciaremetente']);
+            }
+
+            let inicioDados = 1;
+            let usouPosicaoPadrao = false;
+            if (idx.cte === -1 && idx.nf === -1) {
+                usouPosicaoPadrao = true;
+                idx = { ...idx, cte: 0, nf: 1, vol: 2, qtd: 3, rota: 4, tipo: 5, qtd2: 6, remetente: 7, dst: 8, agencia: 9, emissao: 10, prevAgencia: 11, prevEntrega: 12, dataOcorrencia: 13, oco: 14, diasAtraso: 15, dataUltOcorrencia: 16 };
+                inicioDados = 0;
+            } else {
+                const indicesPadrao = { prevAgencia: 11, prevEntrega: 12, dataOcorrencia: 13, oco: 14, diasAtraso: 15, dataUltOcorrencia: 16 };
+                Object.keys(indicesPadrao).forEach(campo => { if (idx[campo] === -1) idx[campo] = indicesPadrao[campo]; });
+            }
+
+            return { idx, inicioDados, usouPosicaoPadrao };
         }
 
         function processarTextoColado() {
@@ -3223,69 +3325,99 @@
                 if (!data || !texto) { alert('Escolha a data e cole os dados.'); return; }
 
                 const linhas = texto.split(/\r?\n/);
-                const primeiraLinha = linhas[0].split('\t').map(normalizarTexto);
-                const encontrarIndice = (predicado, ocorrencia = 0) => {
-                    const encontrados = primeiraLinha.map((valor, indice) => predicado(valor) ? indice : -1).filter(indice => indice !== -1);
-                    return encontrados[ocorrencia] ?? -1;
-                };
-                const indicePorNome = nome => encontrarIndice(valor => valor === nome || valor.includes(nome));
-                const indicePorAliases = aliases => encontrarIndice(valor => aliases.some(alias => valor === alias || valor.includes(alias)));
+                const primeiraLinhaOriginal = linhas[0].split('\t').map(valor => valor.trim());
+                const primeiraLinhaNormalizada = primeiraLinhaOriginal.map(normalizarTexto);
+                const { idx, inicioDados, usouPosicaoPadrao } = detectarMapeamentoColunas(primeiraLinhaNormalizada);
+                mapeamentoImportacaoAtual = { linhas, data, inicioDados };
+                exibirConfirmacaoMapeamento(idx, primeiraLinhaOriginal, usouPosicaoPadrao);
+            } catch (error) {
+                console.error('Erro ao processar planilha:', error);
+                alert('Erro ao processar planilha.');
+            }
+        }
 
-                let idxCte = indicePorAliases(['cte']);
-                let idxNf = indicePorAliases(['nota', 'nf']);
-                let idxVol = indicePorAliases(['volume', 'vol']);
-                let idxQtd = encontrarIndice(valor => valor === 'qtd' || valor === 'quantidade' || valor === 'qtdtotal');
-                let idxQtd2 = indicePorAliases(['qtdsec', 'quantidadesecundaria', 'qtd2']);
-                let idxRota = indicePorAliases(['rota']);
-                let idxTipo = indicePorAliases(['tipo']);
-                let idxRemetente = indicePorAliases(['remetente']);
-                let idxDst = indicePorAliases(['destino']);
-                let idxAgencia = indicePorAliases(['agencia']);
-                let idxEmissao = indicePorAliases(['emissao']);
-                let idxPrevAgencia = indicePorAliases(['previsaoagencia', 'prevagencia', 'prevag']);
-                let idxPrevEntrega = indicePorAliases(['previsaoentrega', 'preventrega', 'pentrega', 'pentreg']);
-                let idxDataOcorrencia = indicePorAliases(['dataocorrencia', 'dtaocorrencia', 'dtocorr', 'docorr']);
-                // "Data Ocorrência" e "Ocorrência" possuem texto semelhante.
-                // Aqui usamos correspondência exata e aliases da coluna para não gravar a data na ocorrência.
-                let idxOco = encontrarIndice(valor => valor === 'ocorrencia' || valor === 'ocorr');
-                let idxDiasAtraso = indicePorAliases(['diasatraso', 'diasatraso', 'dias']);
-                let idxDataUltOcorrencia = indicePorAliases(['dataultocorrencia', 'ultocorrencia', 'ultocorr', 'ultimaocorrencia', 'uocorr']);
-                const possuiEstruturaCrua = primeiraLinha.includes('cnpjremetente') && primeiraLinha.includes('trecho') && primeiraLinha.includes('agenciadestino') && primeiraLinha.includes('cidadedestino');
-                if (possuiEstruturaCrua) {
-                    idxQtd = -1;
-                    idxRota = -1;
-                    idxTipo = -1;
-                    idxQtd2 = -1;
-                    idxRemetente = indicePorAliases(['clienteremetente']);
-                    idxDst = indicePorAliases(['clientedestino']);
-                    idxAgencia = indicePorAliases(['agenciaremetente']);
-                }
-                let inicioDados = 1;
+        // Mostra, campo a campo, qual coluna da planilha foi associada a cada campo do
+        // sistema — com um seletor editável para o usuário corrigir manualmente antes de
+        // qualquer gravação. Essa confirmação é a "blindagem": mesmo que a detecção
+        // automática erre (planilha fora do padrão), nada é salvo sem revisão humana.
+        function exibirConfirmacaoMapeamento(idx, cabecalhosOriginais, usouPosicaoPadrao) {
+            const painel = document.getElementById('mapeamentoColunasPainel');
+            const aviso = document.getElementById('mapeamentoColunasAviso');
+            const corpo = document.getElementById('mapeamentoColunasCorpo');
+            if (!painel || !corpo) return;
 
-                if (idxCte === -1 && idxNf === -1) {
-                    [idxCte, idxNf, idxVol, idxQtd, idxRota, idxTipo, idxQtd2, idxRemetente, idxDst, idxAgencia, idxEmissao, idxPrevAgencia, idxPrevEntrega, idxDataOcorrencia, idxOco, idxDiasAtraso, idxDataUltOcorrencia] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-                    inicioDados = 0;
-                } else {
-                    const indicesPadrao = { idxCte: 0, idxNf: 1, idxVol: 2, idxQtd: 3, idxRota: 4, idxTipo: 5, idxQtd2: 6, idxRemetente: 7, idxDst: 8, idxAgencia: 9, idxEmissao: 10, idxPrevAgencia: 11, idxPrevEntrega: 12, idxDataOcorrencia: 13, idxOco: 14, idxDiasAtraso: 15, idxDataUltOcorrencia: 16 };
-                    if (idxPrevAgencia === -1) idxPrevAgencia = indicesPadrao.idxPrevAgencia;
-                    if (idxPrevEntrega === -1) idxPrevEntrega = indicesPadrao.idxPrevEntrega;
-                    if (idxDataOcorrencia === -1) idxDataOcorrencia = indicesPadrao.idxDataOcorrencia;
-                    if (idxOco === -1) idxOco = indicesPadrao.idxOco;
-                    if (idxDiasAtraso === -1) idxDiasAtraso = indicesPadrao.idxDiasAtraso;
-                    if (idxDataUltOcorrencia === -1) idxDataUltOcorrencia = indicesPadrao.idxDataUltOcorrencia;
-                }
+            aviso.style.display = usouPosicaoPadrao ? 'block' : 'none';
 
+            const opcoesColunas = cabecalhosOriginais.map((titulo, indice) => {
+                const rotulo = usouPosicaoPadrao
+                    ? `Coluna ${indice + 1}${titulo ? ` (ex.: "${titulo}")` : ''}`
+                    : `${titulo || `Coluna ${indice + 1}`} (col. ${indice + 1})`;
+                return `<option value="${indice}">${escaparHtml(rotulo)}</option>`;
+            }).join('');
+
+            corpo.innerHTML = CAMPOS_MAPEAMENTO_IMPORTACAO.map(campo => {
+                const indiceAtual = idx[campo.chave];
+                const semCorrespondencia = indiceAtual === -1 || indiceAtual === undefined;
+                return `
+                    <div class="mapeamento-linha ${campo.obrigatorio && semCorrespondencia ? 'alerta' : ''}">
+                        <label for="mapa-${campo.chave}">${escaparHtml(campo.rotulo)}${campo.obrigatorio ? ' *' : ''}</label>
+                        <select id="mapa-${campo.chave}" data-campo="${campo.chave}">
+                            <option value="-1">Nenhuma coluna</option>
+                            ${opcoesColunas}
+                        </select>
+                    </div>
+                `;
+            }).join('');
+
+            CAMPOS_MAPEAMENTO_IMPORTACAO.forEach(campo => {
+                const select = document.getElementById(`mapa-${campo.chave}`);
+                if (select) select.value = String(idx[campo.chave] ?? -1);
+            });
+
+            painel.hidden = false;
+            painel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function cancelarConfirmacaoMapeamento() {
+            const painel = document.getElementById('mapeamentoColunasPainel');
+            if (painel) painel.hidden = true;
+            mapeamentoImportacaoAtual = null;
+        }
+
+        function confirmarImportacaoComMapeamento() {
+            if (!mapeamentoImportacaoAtual) return;
+            const idx = {};
+            let cteFaltando = false;
+            CAMPOS_MAPEAMENTO_IMPORTACAO.forEach(campo => {
+                const select = document.getElementById(`mapa-${campo.chave}`);
+                const valor = Number(select?.value ?? -1);
+                idx[campo.chave] = valor;
+                if (campo.chave === 'cte' && valor === -1) cteFaltando = true;
+            });
+            if (cteFaltando) {
+                alert('É obrigatório indicar qual coluna corresponde ao CTe antes de importar.');
+                return;
+            }
+            executarImportacaoPlanilha(idx, mapeamentoImportacaoAtual);
+        }
+
+        // Só grava no Firebase depois que o mapeamento foi conferido (automaticamente,
+        // quando o cabeçalho foi bem reconhecido, ou manualmente pelo usuário na tela
+        // de confirmação).
+        function executarImportacaoPlanilha(idx, contexto) {
+            const { linhas, data, inicioDados } = contexto;
+            const caixaTexto = document.getElementById('caixaTextoColagem');
+            try {
                 const valorCelula = (celulas, indice, padrao = '') => indice >= 0 && celulas[indice] !== undefined ? celulas[indice].trim() : padrao;
                 const pareceData = valor => /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/.test(String(valor || '').trim());
                 const loteId = criarIdentificadorLote(data);
                 const dataImportacao = new Date().toISOString();
-                const idxEtiqueta = indicePorAliases(['etiqueta', 'label']);
                 const atualizacoes = {};
                 const registrosImportados = [];
                 for (let i = inicioDados; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
                     const celulas = linhas[i].split('\t');
-                    const cte = valorCelula(celulas, idxCte);
+                    const cte = valorCelula(celulas, idx.cte);
                     if (!cte || cte === '-') continue;
                     const registro = {
                         conferido: false,
@@ -3293,24 +3425,24 @@
                         dataTrabalho: data,
                         dataImportacao,
                         cte,
-                        etiqueta: valorCelula(celulas, idxEtiqueta),
-                        notas: valorCelula(celulas, idxNf, '-'),
-                        volumes: valorCelula(celulas, idxVol, '1'),
-                        qtd: valorCelula(celulas, idxQtd),
-                        rota: valorCelula(celulas, idxRota),
-                        tipo: valorCelula(celulas, idxTipo),
-                        qtd2: valorCelula(celulas, idxQtd2),
-                        clienteRemetente: valorCelula(celulas, idxRemetente, '-'),
-                        destino: valorCelula(celulas, idxDst, '-'),
-                        agenciaRemetente: valorCelula(celulas, idxAgencia),
-                        emissao: valorCelula(celulas, idxEmissao, data) || data,
-                        previsaoAgencia: valorCelula(celulas, idxPrevAgencia),
-                        previsaoEntrega: valorCelula(celulas, idxPrevEntrega),
-                        dataOcorrencia: valorCelula(celulas, idxDataOcorrencia),
+                        etiqueta: valorCelula(celulas, idx.etiqueta),
+                        notas: valorCelula(celulas, idx.nf, '-'),
+                        volumes: valorCelula(celulas, idx.vol, '1'),
+                        qtd: valorCelula(celulas, idx.qtd),
+                        rota: valorCelula(celulas, idx.rota),
+                        tipo: valorCelula(celulas, idx.tipo),
+                        qtd2: valorCelula(celulas, idx.qtd2),
+                        clienteRemetente: valorCelula(celulas, idx.remetente, '-'),
+                        destino: valorCelula(celulas, idx.dst, '-'),
+                        agenciaRemetente: valorCelula(celulas, idx.agencia),
+                        emissao: valorCelula(celulas, idx.emissao, data) || data,
+                        previsaoAgencia: valorCelula(celulas, idx.prevAgencia),
+                        previsaoEntrega: valorCelula(celulas, idx.prevEntrega),
+                        dataOcorrencia: valorCelula(celulas, idx.dataOcorrencia),
                         // Proteção adicional: ocorrência deve ser texto, nunca uma data.
-                        ocorrencia: pareceData(valorCelula(celulas, idxOco)) ? '' : valorCelula(celulas, idxOco),
-                        diasAtraso: valorCelula(celulas, idxDiasAtraso),
-                        dataUltOcorrencia: valorCelula(celulas, idxDataUltOcorrencia)
+                        ocorrencia: pareceData(valorCelula(celulas, idx.oco)) ? '' : valorCelula(celulas, idx.oco),
+                        diasAtraso: valorCelula(celulas, idx.diasAtraso),
+                        dataUltOcorrencia: valorCelula(celulas, idx.dataUltOcorrencia)
                     };
                     const chave = obterChaveRegistro(cte, data);
                     atualizacoes[chave] = registro;
@@ -3318,14 +3450,15 @@
                 }
 
                 if (!registrosImportados.length) {
-                    mostrarAlerta('<b>Atenção:</b> nenhuma linha válida foi encontrada. Verifique o cabeçalho CTe/NF e o separador por tabulação.', 'erro');
+                    mostrarAlerta('<b>Atenção:</b> nenhuma linha válida foi encontrada. Verifique a coluna de CTe indicada e o separador por tabulação.', 'erro');
                     return;
                 }
                 const salvarLote = typeof db.update === 'function' ? db.update(atualizacoes) : Promise.all(Object.entries(atualizacoes).map(([chave, registro]) => db.child(chave).set(registro)));
                 salvarLote.then(() => {
                     registrarAuditoria('importar_lote', loteId, null, { quantidade: registrosImportados.length, dataTrabalho: data, loteId }, { dataTrabalho: data, loteId, detalhes: `Importação de ${registrosImportados.length} registro(s)` });
-                    caixaTexto.value = '';
+                    if (caixaTexto) caixaTexto.value = '';
                     limparSeletorArquivoPlanilha();
+                    cancelarConfirmacaoMapeamento();
                     atualizarOpcoesFiltros();
                     filtrarTabela();
                     atualizarFiltrosHistorico();
