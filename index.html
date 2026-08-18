@@ -216,7 +216,6 @@
         .filtro-avancado input:focus, .filtro-avancado select:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
         .filtros-avancados-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 9px; }
         .selecao-cte { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-        .selecao-cte input[type="checkbox"] { flex: 0 0 auto; width: 14px; height: 14px; accent-color: #2563eb; cursor: pointer; }
         .selecao-cte .cte-detalhe-link { min-width: 0; }
         .selecao-cte .cte-detalhe-link b { overflow: hidden; text-overflow: ellipsis; }
         .controle-largura-colunas { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 9px; border: 1px solid #d9e0e7; border-radius: 7px; background: #fff; color: #64748b; font-size: 10px; font-weight: 700; }
@@ -793,13 +792,10 @@
         <div id="tela-conf" class="aba-conteudo active">
             <div class="exportacao-painel" aria-label="Filtros avançados e exportação">
                 <div class="exportacao-toolbar">
-                    <span class="exportacao-toolbar-titulo">Seleção e exportação<small id="contadorSelecaoRegistros">0 selecionados</small></span>
+                    <span class="exportacao-toolbar-titulo">Exportação</span>
                     <button type="button" class="btn-ferramenta-tabela" onclick="alternarFiltrosAvancados()">Filtros avançados</button>
-                    <button type="button" class="btn-ferramenta-tabela" onclick="selecionarRegistrosVisiveis()">Selecionar visíveis</button>
-                    <button type="button" class="btn-ferramenta-tabela" onclick="limparSelecaoRegistros()">Limpar seleção</button>
                     <select id="escopoExportacao" class="select-escopo-exportacao" aria-label="Escopo da exportação">
                         <option value="filtrados">Visão filtrada</option>
-                        <option value="selecionados">Somente selecionados</option>
                         <option value="todos">Toda a planilha</option>
                     </select>
                     <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="imprimirEscopoSelecionado()">Imprimir / PDF</button>
@@ -1139,7 +1135,6 @@
         let perfilAutorizado = null;
         let auditoriaLocais = [];
         let registrosFiltradosAtuais = [];
-        let registrosSelecionados = new Set();
         let filtroCardAtivo = 'todos';
         let primeiroCarregamentoDadosConcluido = false;
         let larguraColunasAjustadaManualmente = false;
@@ -1215,7 +1210,6 @@
             perfilAutorizado = null;
             dadosLocais = [];
             registrosFiltradosAtuais = [];
-            registrosSelecionados.clear();
             const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
             if (selectDiaCabecalho) selectDiaCabecalho.dataset.manual = 'false';
             document.getElementById('usuarioSessao').textContent = '';
@@ -1841,33 +1835,40 @@
         }
 
         function atualizarOpcoesFiltros() {
-            const chavesAtuais = new Set(dadosLocais.map(obterChaveRegistroAtual));
-            registrosSelecionados = new Set([...registrosSelecionados].filter(chave => chavesAtuais.has(chave)));
             const campoCte = document.getElementById('filtroCabecalhoCte');
             const campoNotas = document.getElementById('filtroCabecalhoNotas');
             if (campoCte && document.activeElement !== campoCte) campoCte.value = campoCte.value || '';
             if (campoNotas && document.activeElement !== campoNotas) campoNotas.value = campoNotas.value || '';
-            preencherFiltroMultiplo('filtroCabecalhoVolumes', dadosLocais.map(registro => registro.volumes), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoQtd', dadosLocais.map(registro => registro.qtd), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoRota', dadosLocais.map(registro => registro.rota), 'Todas');
-            preencherFiltroMultiplo('filtroCabecalhoTipo', dadosLocais.map(registro => registro.tipo), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoQtdSec', dadosLocais.map(registro => registro.qtd2), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoRemetente', dadosLocais.map(registro => registro.clienteRemetente), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoDestino', dadosLocais.map(registro => registro.destino), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoAgencia', dadosLocais.map(registro => registro.agenciaRemetente), 'Todas');
-            preencherFiltroMultiplo('filtroCabecalhoDataEmissao', dadosLocais.map(registro => registro.emissao), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoPrevAgencia', dadosLocais.map(registro => registro.previsaoAgencia), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoPrevEntrega', dadosLocais.map(registro => registro.previsaoEntrega), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoDataOcorrencia', dadosLocais.map(registro => registro.dataOcorrencia), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoOcorrencia', dadosLocais.map(registro => registro.ocorrencia), 'Todas');
-            preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', dadosLocais.map(registro => registro.diasAtraso), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', dadosLocais.map(registro => registro.dataUltOcorrencia), 'Todos', formatarData);
-            preencherSelect('filtroAvancadoLote', dadosLocais.map(registro => registro.loteId), 'Todos os lotes');
+
+            // Resolve primeiro qual será o dia de trabalho selecionado (manual, se o
+            // usuário já escolheu um; senão o último dia importado) para então montar as
+            // opções dos filtros de coluna já restritas a esse dia, evitando misturar
+            // valores de outros dias e deixar o resultado escapar do dia escolhido.
             const diasTrabalho = obterDiasTrabalhoImportados();
             const ultimoDiaImportado = diasTrabalho[0] || '';
             const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
             const selecaoManual = selectDiaCabecalho?.dataset.manual === 'true';
             const diaDesejado = selecaoManual ? (selectDiaCabecalho.value || '') : ultimoDiaImportado;
+            const registrosParaOpcoes = diaDesejado
+                ? dadosLocais.filter(registro => obterDataTrabalhoRegistro(registro) === diaDesejado)
+                : dadosLocais;
+
+            preencherFiltroMultiplo('filtroCabecalhoVolumes', registrosParaOpcoes.map(registro => registro.volumes), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoQtd', registrosParaOpcoes.map(registro => registro.qtd), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoRota', registrosParaOpcoes.map(registro => registro.rota), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoTipo', registrosParaOpcoes.map(registro => registro.tipo), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoQtdSec', registrosParaOpcoes.map(registro => registro.qtd2), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoRemetente', registrosParaOpcoes.map(registro => registro.clienteRemetente), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoDestino', registrosParaOpcoes.map(registro => registro.destino), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoAgencia', registrosParaOpcoes.map(registro => registro.agenciaRemetente), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoDataEmissao', registrosParaOpcoes.map(registro => registro.emissao), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevAgencia', registrosParaOpcoes.map(registro => registro.previsaoAgencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevEntrega', registrosParaOpcoes.map(registro => registro.previsaoEntrega), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoDataOcorrencia', registrosParaOpcoes.map(registro => registro.dataOcorrencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoOcorrencia', registrosParaOpcoes.map(registro => registro.ocorrencia), 'Todas');
+            preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', registrosParaOpcoes.map(registro => registro.diasAtraso), 'Todos');
+            preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', registrosParaOpcoes.map(registro => registro.dataUltOcorrencia), 'Todos', formatarData);
+            preencherSelect('filtroAvancadoLote', registrosParaOpcoes.map(registro => registro.loteId), 'Todos os lotes');
             preencherSelect('filtroCabecalhoDiaTrabalho', dadosLocais.map(obterDataTrabalhoRegistro), 'Todos');
             if (selectDiaCabecalho && [...selectDiaCabecalho.options].some(option => option.value === diaDesejado)) selectDiaCabecalho.value = diaDesejado;
             [...(selectDiaCabecalho?.options || [])].forEach(option => {
@@ -1879,6 +1880,7 @@
 
         function registrarSelecaoDiaTrabalho(select) {
             if (select) select.dataset.manual = 'true';
+            atualizarOpcoesFiltros();
             filtrarTabela();
         }
 
@@ -2403,7 +2405,6 @@
             FILTROS_MULTIPLOS_IDS.forEach(redefinirFiltroMultiplo);
             const dia = document.getElementById('filtroCabecalhoDiaTrabalho');
             if (dia) dia.dataset.manual = 'true';
-            limparSelecaoRegistros(false);
             filtrarTabela();
         }
 
@@ -2411,31 +2412,6 @@
             const painel = document.getElementById('filtrosAvancados');
             if (!painel) return;
             painel.hidden = !painel.hidden;
-        }
-
-        function atualizarContadorSelecao() {
-            const contador = document.getElementById('contadorSelecaoRegistros');
-            if (contador) contador.textContent = `${registrosSelecionados.size} selecionado${registrosSelecionados.size === 1 ? '' : 's'}`;
-            document.querySelectorAll('.seletor-registro').forEach(caixa => {
-                caixa.checked = registrosSelecionados.has(caixa.dataset.chave);
-            });
-        }
-
-        function alternarSelecaoRegistro(caixa) {
-            if (!caixa?.dataset.chave) return;
-            if (caixa.checked) registrosSelecionados.add(caixa.dataset.chave);
-            else registrosSelecionados.delete(caixa.dataset.chave);
-            atualizarContadorSelecao();
-        }
-
-        function selecionarRegistrosVisiveis() {
-            registrosFiltradosAtuais.forEach(registro => registrosSelecionados.add(obterChaveRegistroAtual(registro)));
-            atualizarContadorSelecao();
-        }
-
-        function limparSelecaoRegistros(atualizar = true) {
-            registrosSelecionados.clear();
-            if (atualizar) atualizarContadorSelecao();
         }
 
         function limparFiltrosAvancados() {
@@ -2449,7 +2425,6 @@
         function obterRegistrosPorEscopo() {
             const escopo = document.getElementById('escopoExportacao')?.value || 'filtrados';
             if (escopo === 'todos') return [...dadosLocais];
-            if (escopo === 'selecionados') return dadosLocais.filter(registro => registrosSelecionados.has(obterChaveRegistroAtual(registro)));
             return [...registrosFiltradosAtuais];
         }
 
@@ -3495,13 +3470,10 @@
                 const linha = document.createElement('tr');
                 const indiceRegistro = dadosLocais.indexOf(registro);
                 const cteTexto = registro.cte || '-';
-                const chaveRegistroTabela = obterChaveRegistroAtual(registro);
-                const selecionado = registrosSelecionados.has(chaveRegistroTabela);
-                const checkboxCelula = `<input type="checkbox" class="seletor-registro" data-chave="${escaparHtml(chaveRegistroTabela)}" aria-label="Selecionar CTe ${escaparHtml(cteTexto)}" ${selecionado ? 'checked' : ''} onchange="alternarSelecaoRegistro(this)">`;
                 const cteBotao = indiceRegistro >= 0
                     ? `<button type="button" class="cte-detalhe-link" aria-label="Abrir detalhes do CTe ${escaparHtml(cteTexto)}" onclick="abrirDetalhesRegistro(${indiceRegistro})"><b>${escaparHtml(cteTexto)}</b></button>`
                     : `<b>${escaparHtml(cteTexto)}</b>`;
-                const cteCelula = `<span class="selecao-cte">${checkboxCelula}${cteBotao}</span>`;
+                const cteCelula = `<span class="selecao-cte">${cteBotao}</span>`;
                 const classeLinha = classeCorLinha(registro);
                 linha.className = classeLinha || 'linha-normal';
                 linha.dataset.regraCor = classeLinha || 'normal';
@@ -3544,7 +3516,6 @@
             document.getElementById('c-bo').innerText = boletins;
             document.getElementById('c-total').innerText = total;
             document.getElementById('contadorTabela').innerText = `${registros.length} de ${total} registro${total === 1 ? '' : 's'}`;
-            atualizarContadorSelecao();
         }
 
         const camposDetalhesRegistro = [
