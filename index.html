@@ -220,6 +220,8 @@
         .mapeamento-painel { margin-top: 14px; padding: 14px; border: 1px solid #dbe6f3; border-radius: 10px; background: #f8fbff; }
         .mapeamento-titulo { margin: 4px 0 8px; color: #354a66; font-size: 13px; font-weight: 750; }
         .mapeamento-aviso { margin-bottom: 10px; padding: 9px 11px; border-radius: 8px; background: #fff4e5; color: #92620c; font-size: 12px; border: 1px solid #f4d9a8; }
+        .mapeamento-aviso.sucesso { background: #e8f6ec; color: #1c7a3c; border-color: #b9e4c4; }
+        .link-esquecer-mapeamento { background: none; border: none; padding: 0; margin: 0; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
         .mapeamento-legenda { margin: 0 0 10px; color: #8a949e; font-size: 11px; }
         .mapeamento-corpo { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px 12px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
         .mapeamento-linha { display: flex; flex-direction: column; gap: 3px; }
@@ -3258,6 +3260,57 @@
         ];
         let mapeamentoImportacaoAtual = null;
 
+        // A "assinatura" identifica o layout exato de uma planilha (a sequência de
+        // nomes de coluna do cabeçalho, normalizada). Usamos um hash dela como chave
+        // no Firebase (nó "mapeamentosPlanilha") para lembrar o mapeamento que o
+        // usuário confirmou, e reconhecer automaticamente da próxima vez que uma
+        // planilha com esse mesmo layout for importada — em qualquer computador.
+        function obterAssinaturaCabecalho(primeiraLinhaNormalizada) {
+            return primeiraLinhaNormalizada.map(valor => valor || '_').join('|');
+        }
+
+        function calcularHashAssinatura(texto) {
+            let hash = 0;
+            for (let i = 0; i < texto.length; i++) hash = (hash * 31 + texto.charCodeAt(i)) >>> 0;
+            return hash.toString(36);
+        }
+
+        function salvarMapeamentoPlanilha(assinatura, idx) {
+            if (!assinatura || !db) return;
+            const chave = calcularHashAssinatura(assinatura);
+            db.root.child('mapeamentosPlanilha').child(chave).set({
+                assinatura,
+                idx,
+                atualizadoEm: new Date().toISOString(),
+                atualizadoPor: usuarioAutenticado?.email || ''
+            }).catch(erro => console.warn('Não foi possível salvar o mapeamento da planilha no Firebase.', erro));
+        }
+
+        async function obterMapeamentoSalvoParaAssinatura(assinatura) {
+            if (!assinatura || !db) return null;
+            try {
+                const chave = calcularHashAssinatura(assinatura);
+                const snapshot = await db.root.child('mapeamentosPlanilha').child(chave).once('value');
+                const dado = snapshot.val();
+                return dado && dado.assinatura === assinatura ? (dado.idx || null) : null;
+            } catch (erro) {
+                console.warn('Não foi possível consultar mapeamentos salvos no Firebase.', erro);
+                return null;
+            }
+        }
+
+        async function esquecerMapeamentoSalvoAtual() {
+            if (!mapeamentoImportacaoAtual?.assinatura || !db) return;
+            try {
+                const chave = calcularHashAssinatura(mapeamentoImportacaoAtual.assinatura);
+                await db.root.child('mapeamentosPlanilha').child(chave).remove();
+            } catch (erro) {
+                console.warn('Não foi possível remover o mapeamento salvo.', erro);
+            }
+            const { idx, usouPosicaoPadrao } = detectarMapeamentoColunas(mapeamentoImportacaoAtual.primeiraLinhaNormalizada);
+            exibirConfirmacaoMapeamento(idx, mapeamentoImportacaoAtual.primeiraLinhaOriginal, usouPosicaoPadrao, false);
+        }
+
         // Analisa apenas o cabeçalho da planilha e tenta identificar cada coluna do
         // sistema pelo NOME (e variações conhecidas dela), em vez de assumir uma ordem
         // fixa. Só recorre a uma posição padrão quando o cabeçalho não for reconhecível
@@ -3315,7 +3368,8 @@
             return { idx, inicioDados, usouPosicaoPadrao };
         }
 
-        function processarTextoColado() {
+        async function processarTextoColado() {
+            const status = document.getElementById('arquivoPlanilhaStatus');
             try {
                 const caixaTexto = document.getElementById('caixaTextoColagem');
                 const campoData = document.getElementById('dataTrabalhoImportacao');
@@ -3327,9 +3381,14 @@
                 const linhas = texto.split(/\r?\n/);
                 const primeiraLinhaOriginal = linhas[0].split('\t').map(valor => valor.trim());
                 const primeiraLinhaNormalizada = primeiraLinhaOriginal.map(normalizarTexto);
-                const { idx, inicioDados, usouPosicaoPadrao } = detectarMapeamentoColunas(primeiraLinhaNormalizada);
-                mapeamentoImportacaoAtual = { linhas, data, inicioDados };
-                exibirConfirmacaoMapeamento(idx, primeiraLinhaOriginal, usouPosicaoPadrao);
+                const assinatura = obterAssinaturaCabecalho(primeiraLinhaNormalizada);
+                const { idx: idxDetectado, inicioDados, usouPosicaoPadrao } = detectarMapeamentoColunas(primeiraLinhaNormalizada);
+                if (status) { status.className = 'arquivo-planilha-status'; status.textContent = 'Verificando se esse layout de planilha já foi confirmado antes...'; }
+                const mapeamentoSalvo = await obterMapeamentoSalvoParaAssinatura(assinatura);
+                if (status) { status.className = 'arquivo-planilha-status sucesso'; status.textContent = 'Arquivo carregado. Confira a data de trabalho e clique em Processar arquivo.'; }
+                const idxFinal = mapeamentoSalvo || idxDetectado;
+                mapeamentoImportacaoAtual = { linhas, data, inicioDados, assinatura, primeiraLinhaOriginal, primeiraLinhaNormalizada };
+                exibirConfirmacaoMapeamento(idxFinal, primeiraLinhaOriginal, usouPosicaoPadrao, Boolean(mapeamentoSalvo));
             } catch (error) {
                 console.error('Erro ao processar planilha:', error);
                 alert('Erro ao processar planilha.');
@@ -3340,13 +3399,23 @@
         // sistema — com um seletor editável para o usuário corrigir manualmente antes de
         // qualquer gravação. Essa confirmação é a "blindagem": mesmo que a detecção
         // automática erre (planilha fora do padrão), nada é salvo sem revisão humana.
-        function exibirConfirmacaoMapeamento(idx, cabecalhosOriginais, usouPosicaoPadrao) {
+        function exibirConfirmacaoMapeamento(idx, cabecalhosOriginais, usouPosicaoPadrao, reconhecidoSalvo = false) {
             const painel = document.getElementById('mapeamentoColunasPainel');
             const aviso = document.getElementById('mapeamentoColunasAviso');
             const corpo = document.getElementById('mapeamentoColunasCorpo');
             if (!painel || !corpo) return;
 
-            aviso.style.display = usouPosicaoPadrao ? 'block' : 'none';
+            if (reconhecidoSalvo) {
+                aviso.className = 'mapeamento-aviso sucesso';
+                aviso.style.display = 'block';
+                aviso.innerHTML = '<b>Layout reconhecido:</b> esse mesmo formato de planilha já foi confirmado antes, e o mapeamento foi preenchido automaticamente. Confira e clique em "Confirmar e importar" — ou <button type="button" class="link-esquecer-mapeamento" onclick="esquecerMapeamentoSalvoAtual()">esquecer este layout salvo</button>.';
+            } else if (usouPosicaoPadrao) {
+                aviso.className = 'mapeamento-aviso';
+                aviso.style.display = 'block';
+                aviso.innerHTML = '<b>Atenção:</b> não foi possível identificar o cabeçalho da planilha (colunas CTe/NF). A ordem padrão está sendo sugerida abaixo — confira e ajuste cada campo com atenção antes de importar.';
+            } else {
+                aviso.style.display = 'none';
+            }
 
             const opcoesColunas = cabecalhosOriginais.map((titulo, indice) => {
                 const rotulo = usouPosicaoPadrao
@@ -3398,6 +3467,7 @@
                 alert('É obrigatório indicar qual coluna corresponde ao CTe antes de importar.');
                 return;
             }
+            salvarMapeamentoPlanilha(mapeamentoImportacaoAtual.assinatura, idx);
             executarImportacaoPlanilha(idx, mapeamentoImportacaoAtual);
         }
 
