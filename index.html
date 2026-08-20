@@ -1887,13 +1887,13 @@
             preencherFiltroMultiplo('filtroCabecalhoRemetente', registrosParaOpcoes.map(registro => registro.clienteRemetente), 'Todos');
             preencherFiltroMultiplo('filtroCabecalhoDestino', registrosParaOpcoes.map(registro => registro.destino), 'Todos');
             preencherFiltroMultiplo('filtroCabecalhoAgencia', registrosParaOpcoes.map(registro => registro.agenciaRemetente), 'Todas');
-            preencherFiltroMultiplo('filtroCabecalhoDataEmissao', registrosParaOpcoes.map(registro => registro.emissao), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoPrevAgencia', registrosParaOpcoes.map(registro => registro.previsaoAgencia), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoPrevEntrega', registrosParaOpcoes.map(registro => registro.previsaoEntrega), 'Todos', formatarData);
-            preencherFiltroMultiplo('filtroCabecalhoDataOcorrencia', registrosParaOpcoes.map(registro => registro.dataOcorrencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoDataEmissao', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.emissao)), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevAgencia', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.previsaoAgencia)), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoPrevEntrega', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.previsaoEntrega)), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoDataOcorrencia', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.dataOcorrencia)), 'Todos', formatarData);
             preencherFiltroMultiplo('filtroCabecalhoOcorrencia', registrosParaOpcoes.map(registro => registro.ocorrencia), 'Todas');
             preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', registrosParaOpcoes.map(registro => registro.diasAtraso), 'Todos');
-            preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', registrosParaOpcoes.map(registro => registro.dataUltOcorrencia), 'Todos', formatarData);
+            preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.dataUltOcorrencia)), 'Todos', formatarData);
             preencherSelect('filtroAvancadoLote', registrosParaOpcoes.map(registro => registro.loteId), 'Todos os lotes');
             preencherSelect('filtroCabecalhoDiaTrabalho', dadosLocais.map(obterDataTrabalhoRegistro), 'Todos');
             if (selectDiaCabecalho && [...selectDiaCabecalho.options].some(option => option.value === diaDesejado)) selectDiaCabecalho.value = diaDesejado;
