@@ -334,6 +334,8 @@
         .forma-conferencia-badge { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
         .forma-conferencia-badge.qrcode { background: #e6f4ea; color: #1c7a3c; }
         .forma-conferencia-badge.manual { background: #eef2f7; color: #55627a; }
+        .deposito-sugestao-historico { margin: -4px 0 10px; padding: 8px 11px; border-radius: 8px; background: #eef6ff; color: #1d5aa8; font-size: 11.5px; border: 1px solid #cfe3fb; }
+        .deposito-sugestao-historico b { font-weight: 750; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
         .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
         .deposito-resultado.visivel { display: block; animation: abaEntrar .24s ease both; }
@@ -970,6 +972,7 @@
                         <div class="campo-edicao"><label for="d-qtd-sec">Qtd Sec</label><input type="text" id="d-qtd-sec" placeholder="Qtd Sec" data-caixa-alta onkeydown="avancarCampoAtualizacao(event, 'btnAtualizarDeposito')"></div>
 
                     </div>
+                    <div id="depositoSugestaoHistorico" class="deposito-sugestao-historico" style="display:none;"></div>
                     <div class="deposito-acoes">
                         <button type="button" class="btn-secundario" onclick="limparRegistroDeposito()">Limpar</button>
                                                 <button type="button" id="btnAtualizarDeposito" class="btn-principal" data-permissao="editarDeposito" onclick="salvarAtualizacaoDeposito()" onkeydown="finalizarAtualizacaoPorEnter(event)">Atualizar registro</button>
@@ -3095,14 +3098,53 @@
             });
         }
 
+        // Quando o registro de hoje ainda não foi conferido (Qtd/ROTA/Tipo/Qtd Sec vazios),
+        // procura o lançamento mais recente do mesmo CTe ou NF em outro dia que já tenha
+        // sido conferido manualmente, para sugerir os mesmos valores hoje. É só uma
+        // SUGESTÃO pré-preenchida nos campos — nada é salvo até o usuário confirmar.
+        function buscarSugestaoHistoricoConferencia(registroAtual) {
+            const camposConferencia = ['qtd', 'rota', 'tipo', 'qtd2'];
+            const jaConferido = camposConferencia.some(campo => valorRegistro(registroAtual, campo));
+            if (jaConferido) return null;
+            const cte = valorRegistro(registroAtual, 'cte');
+            const nf = valorRegistro(registroAtual, 'notas');
+            if (!cte && !nf) return null;
+            const diaAtual = obterDataTrabalhoRegistro(registroAtual);
+            const candidatos = dadosLocais.filter(registro => {
+                if (registro === registroAtual) return false;
+                if (obterDataTrabalhoRegistro(registro) === diaAtual) return false;
+                const mesmoCte = cte && valorRegistro(registro, 'cte') === cte;
+                const mesmoNf = nf && valorRegistro(registro, 'notas') === nf;
+                if (!mesmoCte && !mesmoNf) return false;
+                return camposConferencia.some(campo => valorRegistro(registro, campo));
+            });
+            if (!candidatos.length) return null;
+            candidatos.sort((a, b) => obterDataTrabalhoRegistro(b).localeCompare(obterDataTrabalhoRegistro(a)));
+            return candidatos[0];
+        }
+
         function preencherRegistroDeposito(registro) {
             registroDepositoSelecionado = registro;
             formaConferenciaRegistroSelecionado = formaConferenciaAtual;
             atualizarBadgeFormaConferencia(formaConferenciaRegistroSelecionado);
-                        document.getElementById('d-qtd').value = valorRegistro(registro, 'qtd');
-            document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
-            document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
-            document.getElementById('d-qtd-sec').value = valorRegistro(registro, 'qtd2');
+                        const sugestaoHistorico = buscarSugestaoHistoricoConferencia(registro);
+            const avisoSugestao = document.getElementById('depositoSugestaoHistorico');
+            if (sugestaoHistorico) {
+                document.getElementById('d-qtd').value = valorRegistro(sugestaoHistorico, 'qtd');
+                document.getElementById('d-rota').value = valorRegistro(sugestaoHistorico, 'rota');
+                document.getElementById('d-tipo').value = valorRegistro(sugestaoHistorico, 'tipo');
+                document.getElementById('d-qtd-sec').value = valorRegistro(sugestaoHistorico, 'qtd2');
+                if (avisoSugestao) {
+                    avisoSugestao.style.display = 'block';
+                    avisoSugestao.innerHTML = `<b>Sugestão:</b> este CTe/NF também apareceu no dia ${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(sugestaoHistorico)))}, e os campos abaixo foram preenchidos com os valores usados naquele dia. Confira e ajuste antes de atualizar.`;
+                }
+            } else {
+                document.getElementById('d-qtd').value = valorRegistro(registro, 'qtd');
+                document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
+                document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
+                document.getElementById('d-qtd-sec').value = valorRegistro(registro, 'qtd2');
+                if (avisoSugestao) { avisoSugestao.style.display = 'none'; avisoSugestao.innerHTML = ''; }
+            }
             const campoVolumes = document.getElementById('depositoVolumes');
             if (campoVolumes) campoVolumes.innerHTML = `VOL <strong>${escaparHtml(valorRegistro(registro, 'volumes') || '-')}</strong>`;
             const diaTrabalho = obterDataTrabalhoRegistro(registro);
@@ -3119,6 +3161,8 @@
             registroDepositoSelecionado = null;
             formaConferenciaRegistroSelecionado = 'manual';
             atualizarBadgeFormaConferencia(null);
+            const avisoSugestao = document.getElementById('depositoSugestaoHistorico');
+            if (avisoSugestao) { avisoSugestao.style.display = 'none'; avisoSugestao.innerHTML = ''; }
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
             if (limparBusca) limparCamposBuscaDeposito();
