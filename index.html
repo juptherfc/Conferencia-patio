@@ -1593,8 +1593,22 @@
             return normalizarTextoOcorrencia(valor).includes('EM ENTREGA');
         }
 
+        const OCORRENCIAS_BO_EXPLICITAS = [
+            'B.O ANDAMENTO',
+            'BOLETIM OCORRENCIA - AVARIA',
+            'BOLETIM OCORRENCIA - EXTRAVIO',
+            'BO BAIXADO PELA AGENCIA DESTINO',
+            'BO FINALIZADO',
+            'BOLETIM DE OCORRENCIA - TROCA DE MERCADORIA',
+            'OCORRENCIA FINALIZADA - AGUARDANDO COBR. INDENIZ',
+            'BO LOCALIZADO',
+            'BO INDENIZADO'
+        ].map(normalizarTextoOcorrencia);
+
         function ocorrenciaIndicaBo(valor) {
             const texto = normalizarTextoOcorrencia(valor);
+            if (!texto) return false;
+            if (OCORRENCIAS_BO_EXPLICITAS.includes(texto)) return true;
             return texto.includes('BOLETIM') || /B\s*\.?\s*O\b/.test(texto);
         }
 
@@ -1609,7 +1623,7 @@
         function classeOcorrencia(texto) {
             const ocorrencia = String(texto || '').toUpperCase();
             if (ocorrencia.includes('CLIENTE RETIRA')) return 'badge-roxo';
-            if (ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM') || ocorrencia.includes('ERRO') || ocorrencia.includes('ENDEREÇO') || ocorrencia.includes('ENDERECO')) return 'badge-vermelho';
+            if (ocorrenciaIndicaBo(texto) || ocorrencia.includes('ERRO') || ocorrencia.includes('ENDEREÇO') || ocorrencia.includes('ENDERECO')) return 'badge-vermelho';
             if (ocorrencia === 'EM ENTREGA') return 'badge-verde';
             if (ocorrencia.includes('AGUARDANDO')) return 'badge-azul';
             return 'badge-amarelo';
@@ -3674,7 +3688,7 @@
 
             const filtrados = dadosLocais.filter(registro => {
                 const ocorrencia = valorRegistro(registro, 'ocorrencia').toUpperCase();
-                const isBo = ocorrencia.includes('B.O') || ocorrencia.includes('BOLETIM');
+                const isBo = ocorrenciaIndicaBo(ocorrencia);
                 const isEntrega = ocorrencia === 'EM ENTREGA';
                 const isAtrasado = estaAtrasado(registro);
                 const isAguardando = estaAguardando(registro);
@@ -3773,9 +3787,9 @@
                 return true;
             });
             const total = registrosPeriodo.length;
-            const pendentes = registrosPeriodo.filter(registro => !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('EM ENTREGA') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('B.O') && !valorRegistro(registro, 'ocorrencia').toUpperCase().includes('BOLETIM')).length;
+            const pendentes = registrosPeriodo.filter(registro => !ocorrenciaIndicaEntrega(registro.ocorrencia) && !ocorrenciaIndicaBo(registro.ocorrencia)).length;
             const entregas = registrosPeriodo.filter(registro => valorRegistro(registro, 'ocorrencia').toUpperCase() === 'EM ENTREGA').length;
-            const boletins = registrosPeriodo.filter(registro => { const valor = valorRegistro(registro, 'ocorrencia').toUpperCase(); return valor.includes('B.O') || valor.includes('BOLETIM'); }).length;
+            const boletins = registrosPeriodo.filter(registro => ocorrenciaIndicaBo(registro.ocorrencia)).length;
             document.getElementById('c-pnd').innerText = pendentes;
             document.getElementById('c-ent').innerText = entregas;
             document.getElementById('c-bo').innerText = boletins;
