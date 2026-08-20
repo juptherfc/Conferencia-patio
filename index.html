@@ -1807,12 +1807,13 @@
             return conjunto.has(dataNormalizada);
         }
 
-        function preencherSelect(id, valores, textoPadrao, formatador = valor => valor) {
+        function preencherSelect(id, valores, textoPadrao, formatador = valor => valor, ordem = 'asc') {
             const select = document.getElementById(id);
             if (!select) return;
             const valorAtual = select.value;
             const valoresNormalizados = valores.map(valor => String(valor ?? '').trim());
             const valoresPreenchidos = [...new Set(valoresNormalizados.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+            if (ordem === 'desc') valoresPreenchidos.reverse();
             const possuiBrancos = valoresNormalizados.some(valor => !valor);
             select.innerHTML = `<option value="">${textoPadrao}</option>`;
             valoresPreenchidos.forEach(valor => {
@@ -1895,7 +1896,7 @@
             preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', registrosParaOpcoes.map(registro => registro.diasAtraso), 'Todos');
             preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.dataUltOcorrencia)), 'Todos', formatarData);
             preencherSelect('filtroAvancadoLote', registrosParaOpcoes.map(registro => registro.loteId), 'Todos os lotes');
-            preencherSelect('filtroCabecalhoDiaTrabalho', dadosLocais.map(obterDataTrabalhoRegistro), 'Todos');
+            preencherSelect('filtroCabecalhoDiaTrabalho', dadosLocais.map(obterDataTrabalhoRegistro), 'Todos', valor => valor, 'desc');
             if (selectDiaCabecalho && [...selectDiaCabecalho.options].some(option => option.value === diaDesejado)) selectDiaCabecalho.value = diaDesejado;
             [...(selectDiaCabecalho?.options || [])].forEach(option => {
                 if (filtroEhBranco(option.value)) option.textContent = 'Em branco';
