@@ -814,6 +814,31 @@
                     </select>
                     <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="imprimirEscopoSelecionado()">Imprimir / PDF</button>
                     <button type="button" class="btn-ferramenta-tabela btn-primario" onclick="exportarExcelEscopoSelecionado()">Excel</button>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="abrirModalBackupMensal()">Backup mensal</button>
+                </div>
+                <div id="backupMensalModal" class="detalhes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="backupMensalTitulo" onclick="fecharModalBackupMensalAoClicarFundo(event)">
+                    <article class="detalhes-card" style="width:min(420px, 100%);" role="document" onclick="event.stopPropagation()">
+                        <header class="detalhes-cabecalho">
+                            <div>
+                                <span class="detalhes-kicker">Exportação</span>
+                                <h2 id="backupMensalTitulo" class="detalhes-titulo">Backup mensal</h2>
+                                <p class="detalhes-subtitulo">Gera um único arquivo Excel com uma aba para cada dia de trabalho do mês escolhido.</p>
+                            </div>
+                            <button type="button" class="btn-fechar-detalhes" aria-label="Fechar backup mensal" onclick="fecharModalBackupMensal()">×</button>
+                        </header>
+                        <div style="padding: 4px 22px 0;">
+                            <label for="backupMensalCampo" style="display:block; font-size:11px; font-weight:700; color:#55627a; text-transform:uppercase; letter-spacing:.02em; margin-bottom:6px;">Mês</label>
+                            <input type="month" id="backupMensalCampo" class="input-filtro" style="width:100%; height:36px;">
+                            <p id="backupMensalStatus" style="margin-top:10px; color:#8a949e; font-size:11.5px;"></p>
+                        </div>
+                        <footer class="detalhes-acoes">
+                            <span></span>
+                            <div class="detalhes-acoes-botoes">
+                                <button type="button" class="btn-secundario" onclick="fecharModalBackupMensal()">Cancelar</button>
+                                <button type="button" class="btn-principal" onclick="gerarBackupMensal()">Gerar backup</button>
+                            </div>
+                        </footer>
+                    </article>
                 </div>
                 <div id="filtrosAvancados" class="filtros-avancados" hidden>
                     <div class="filtros-avancados-grid">
@@ -2496,10 +2521,80 @@
             ];
         }
 
+        function abrirModalBackupMensal() {
+            if (!exigirAcessoAutorizado()) return;
+            const modal = document.getElementById('backupMensalModal');
+            const campo = document.getElementById('backupMensalCampo');
+            const status = document.getElementById('backupMensalStatus');
+            if (!modal || !campo) return;
+            if (!campo.value) {
+                const agora = new Date();
+                campo.value = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
+            }
+            if (status) status.textContent = '';
+            modal.hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function fecharModalBackupMensal() {
+            const modal = document.getElementById('backupMensalModal');
+            if (modal) modal.hidden = true;
+            document.body.classList.remove('modal-aberto');
+        }
+
+        function fecharModalBackupMensalAoClicarFundo(evento) {
+            if (evento.target?.id === 'backupMensalModal') fecharModalBackupMensal();
+        }
+
+        document.addEventListener('keydown', evento => {
+            const modal = document.getElementById('backupMensalModal');
+            if (evento.key === 'Escape' && modal && !modal.hidden) fecharModalBackupMensal();
+        });
+
+        // Gera UM único arquivo .xlsx para o mês escolhido, com uma aba separada para
+        // cada dia de trabalho que tiver registros naquele mês (nome da aba = dia, ex: "01", "13").
+        function gerarBackupMensal() {
+            const campo = document.getElementById('backupMensalCampo');
+            const status = document.getElementById('backupMensalStatus');
+            const mesSelecionado = campo?.value || '';
+            if (!mesSelecionado) { if (status) status.textContent = 'Escolha um mês antes de gerar o backup.'; return; }
+            if (!window.XLSX) { if (status) status.textContent = 'A biblioteca de planilhas não carregou. Recarregue a página e tente novamente.'; return; }
+
+            const registrosDoMes = dadosLocais.filter(registro => obterDataTrabalhoRegistro(registro).startsWith(mesSelecionado));
+            if (!registrosDoMes.length) {
+                if (status) status.textContent = 'Não há nenhum registro nesse mês para gerar o backup.';
+                return;
+            }
+
+            const registrosPorDia = {};
+            registrosDoMes.forEach(registro => {
+                const dia = obterDataTrabalhoRegistro(registro);
+                if (!registrosPorDia[dia]) registrosPorDia[dia] = [];
+                registrosPorDia[dia].push(registro);
+            });
+
+            const diasOrdenados = Object.keys(registrosPorDia).sort();
+            const cabecalhos = obterCabecalhosExportacao();
+            const livro = XLSX.utils.book_new();
+            diasOrdenados.forEach(dia => {
+                const registrosDia = [...registrosPorDia[dia]].sort((a, b) => valorRegistro(a, 'cte').localeCompare(valorRegistro(b, 'cte'), 'pt-BR', { numeric: true }));
+                const dados = [cabecalhos, ...registrosDia.map(obterLinhaExportacao)];
+                const planilha = XLSX.utils.aoa_to_sheet(dados);
+                planilha['!cols'] = cabecalhos.map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                const numeroDia = dia.slice(8, 10) || dia;
+                XLSX.utils.book_append_sheet(livro, planilha, numeroDia);
+            });
+
+            const nomeArquivo = `conferencia-deposito-backup-${mesSelecionado}.xlsx`;
+            XLSX.writeFile(livro, nomeArquivo);
+            if (status) status.textContent = `Backup gerado: ${diasOrdenados.length} dia(s), ${registrosDoMes.length} registro(s).`;
+            mostrarAlerta(`<b>Status:</b> backup de ${mesSelecionado} gerado com ${diasOrdenados.length} aba(s) e ${registrosDoMes.length} registro(s).`, 'sucesso');
+        }
+
         function nomeArquivoExportacao(extensao) {
             const data = obterDataAtualLocalISO().replace(/-/g, '');
             const escopo = document.getElementById('escopoExportacao')?.value || 'filtrados';
-            return `expresso-sm-${escopo}-${data}.${extensao}`;
+            return `conferencia-deposito-${escopo}-${data}.${extensao}`;
         }
 
         function baixarArquivo(conteudo, nome, tipo) {
