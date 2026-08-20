@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
@@ -2324,6 +2324,7 @@
                 mostrarAlerta('<b>Atenção:</b> não há sobras para exportar com o filtro selecionado.', 'info');
                 return;
             }
+            const cabecalhosSobras = ['Dia Trabalho', 'CTe', 'NF', 'Volumes', 'Qtd', 'ROTA', 'Tipo', 'Qtd Sec', 'Agência', 'Data de emissão', 'Status'];
             const linhas = sobras.map(registro => ({
                 'Dia Trabalho': obterDataTrabalhoRegistro(registro),
                 CTe: valorRegistro(registro, 'cte'),
@@ -2338,6 +2339,23 @@
                 Status: sobraTemPendencias(registro) ? 'Pendente' : 'Completa'
             }));
             const planilha = XLSX.utils.json_to_sheet(linhas);
+            planilha['!cols'] = cabecalhosSobras.map(() => ({ wch: 16 }));
+            const bordaFina = { style: 'thin', color: { rgb: 'FFD7E1EC' } };
+            const bordaPadrao = { top: bordaFina, bottom: bordaFina, left: bordaFina, right: bordaFina };
+            cabecalhosSobras.forEach((_, coluna) => {
+                const endereco = XLSX.utils.encode_cell({ r: 0, c: coluna });
+                if (planilha[endereco]) planilha[endereco].s = { font: { bold: true, color: { rgb: 'FF27598C' }, sz: 11 }, fill: { fgColor: { rgb: 'FFDCECFF' } }, border: bordaPadrao, alignment: { vertical: 'center' } };
+            });
+            sobras.forEach((registro, indice) => {
+                const corFundo = sobraTemPendencias(registro) ? 'FFFFF1D6' : 'FFE3F7EF';
+                cabecalhosSobras.forEach((_, coluna) => {
+                    const endereco = XLSX.utils.encode_cell({ r: indice + 1, c: coluna });
+                    if (planilha[endereco]) planilha[endereco].s = { border: bordaPadrao, fill: { fgColor: { rgb: corFundo } } };
+                });
+            });
+            planilha['!freeze'] = { xSplit: 0, ySplit: 1 };
+            planilha['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+            planilha['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: sobras.length, c: cabecalhosSobras.length - 1 } }) };
             const livro = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(livro, planilha, 'Sobras');
             const sufixo = diaSelecionado && diaSelecionado !== '__BRANCO__' ? diaSelecionado : 'todos-os-dias';
@@ -2494,6 +2512,45 @@
             return [...registrosFiltradosAtuais];
         }
 
+        // Aplica ao objeto de planilha (SheetJS) a mesma linguagem visual do sistema:
+        // cabeçalho azul em negrito, linhas coloridas conforme o status (verde =
+        // entrega, laranja = B.O, azul claro = previsão futura), bordas finas,
+        // cabeçalho congelado e autofiltro. "registros" deve estar na MESMA ordem das
+        // linhas de dados da planilha (uma posição por linha, sem contar o cabeçalho).
+        function estilizarPlanilhaExportacao(planilha, cabecalhos, registros) {
+            const bordaFina = { style: 'thin', color: { rgb: 'FFD7E1EC' } };
+            const bordaPadrao = { top: bordaFina, bottom: bordaFina, left: bordaFina, right: bordaFina };
+            const estiloCabecalho = {
+                font: { bold: true, color: { rgb: 'FF27598C' }, sz: 11 },
+                fill: { fgColor: { rgb: 'FFDCECFF' } },
+                border: bordaPadrao,
+                alignment: { vertical: 'center' }
+            };
+            const coresPorStatus = { 'linha-entrega': 'FFE6EFC9', 'linha-bo': 'FFF9DFD1', 'linha-previsao-futura': 'FFE7EFFF' };
+
+            cabecalhos.forEach((_, coluna) => {
+                const endereco = XLSX.utils.encode_cell({ r: 0, c: coluna });
+                if (planilha[endereco]) planilha[endereco].s = estiloCabecalho;
+            });
+
+            registros.forEach((registro, indice) => {
+                const classe = classeCorLinha(registro);
+                const corFundo = coresPorStatus[classe];
+                const estiloLinha = { border: bordaPadrao, ...(corFundo ? { fill: { fgColor: { rgb: corFundo } } } : {}) };
+                cabecalhos.forEach((_, coluna) => {
+                    const endereco = XLSX.utils.encode_cell({ r: indice + 1, c: coluna });
+                    if (planilha[endereco]) planilha[endereco].s = estiloLinha;
+                });
+            });
+
+            const ultimaLinha = registros.length;
+            const ultimaColuna = cabecalhos.length - 1;
+            planilha['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: ultimaLinha, c: ultimaColuna } });
+            planilha['!freeze'] = { xSplit: 0, ySplit: 1 };
+            planilha['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+            planilha['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: ultimaLinha, c: ultimaColuna } }) };
+        }
+
         function obterCabecalhosExportacao() {
             return ['Dia Trabalho', 'CTe', 'Notas', 'Vol.', 'Qtd', 'ROTA', 'Tipo', 'Qtd Sec.', 'Remetente', 'Destino', 'Agência', 'Emissão', 'Prev. Agência', 'Prev. Entrega', 'Data Ocorr.', 'Ocorrência', 'Dias Atraso', 'Últ. Ocorrência'];
         }
@@ -2581,6 +2638,7 @@
                 const dados = [cabecalhos, ...registrosDia.map(obterLinhaExportacao)];
                 const planilha = XLSX.utils.aoa_to_sheet(dados);
                 planilha['!cols'] = cabecalhos.map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                estilizarPlanilhaExportacao(planilha, cabecalhos, registrosDia);
                 const numeroDia = dia.slice(8, 10) || dia;
                 XLSX.utils.book_append_sheet(livro, planilha, numeroDia);
             });
@@ -2612,10 +2670,12 @@
         function exportarExcelEscopoSelecionado() {
             const registros = obterRegistrosPorEscopo();
             if (!registros.length) { mostrarAlerta('<b>Atenção:</b> não há registros no escopo escolhido para exportar.', 'info'); return; }
-            const dados = [obterCabecalhosExportacao(), ...registros.map(obterLinhaExportacao)];
+            const cabecalhos = obterCabecalhosExportacao();
+            const dados = [cabecalhos, ...registros.map(obterLinhaExportacao)];
             if (window.XLSX) {
                 const planilha = XLSX.utils.aoa_to_sheet(dados);
-                planilha['!cols'] = obterCabecalhosExportacao().map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                planilha['!cols'] = cabecalhos.map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                estilizarPlanilhaExportacao(planilha, cabecalhos, registros);
                 const livro = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(livro, planilha, 'Conferência');
                 XLSX.writeFile(livro, nomeArquivoExportacao('xlsx'));
