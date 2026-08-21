@@ -81,6 +81,8 @@
         .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e6edf9; color: #3563b6; font-size: 12px; font-weight: 750; }
         .topbar-usuario { color: #64748b; font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .btn-sair { border: 1px solid #d9e0e7; border-radius: 7px; padding: 7px 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
+        .btn-tema { border: 1px solid #d9e0e7; border-radius: 7px; width: 30px; height: 30px; background: #fff; color: #64748b; font-size: 14px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-tema:hover { background: #f2f5f9; }
         .btn-sair:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
         .tela-acesso.inicializando .acesso-card { visibility: hidden; opacity: 0; }
@@ -696,6 +698,8 @@
         .sidebar-login .topbar-usuario { max-width: 130px; color: rgba(231,241,255,.82); font-size: 9px; }
         .sidebar-login .avatar { width: 27px; height: 27px; background: rgba(225,240,255,.18); color: #fff; border-color: rgba(255,255,255,.68); box-shadow: none; font-size: 10px; }
         .sidebar-login .btn-sair { min-height: 28px; padding: 5px 8px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; font-size: 10px; }
+        .sidebar-login .btn-tema { min-height: 28px; width: 28px; height: 28px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; }
+        .sidebar-login .btn-tema:hover { background: rgba(255,255,255,.22); }
         .sidebar-login .btn-sair:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
         main { padding-top: 14px; }
         @media (max-width: 760px) {
@@ -707,7 +711,61 @@
             body.mobile-topo-recolhido .sidebar-login { display: none; }
             main { padding-top: 10px; }
         }
+        /* ===== Tema escuro ===== */
+        html.tema-escuro { color-scheme: dark; }
+        html.tema-escuro body { background: #0f1622; color: #d7dee8; }
+        html.tema-escuro main { background: transparent; }
+        html.tema-escuro .bloco,
+        html.tema-escuro .tabela-container,
+        html.tema-escuro .deposito-card,
+        html.tema-escuro .sobra-cadastro,
+        html.tema-escuro .exportacao-painel,
+        html.tema-escuro .detalhes-card,
+        html.tema-escuro .mapeamento-painel,
+        html.tema-escuro .sobra-resumo-card,
+        html.tema-escuro .acesso-card { background: #161f2e; border-color: #263349; color: #d7dee8; box-shadow: none; }
+        html.tema-escuro .tela-acesso { background: #0f1622; }
+        html.tema-escuro h1, html.tema-escuro h2, html.tema-escuro h3, html.tema-escuro h4,
+        html.tema-escuro .tabela-titulo, html.tema-escuro .resultado-titulo, html.tema-escuro .sobra-titulo,
+        html.tema-escuro .detalhes-titulo, html.tema-escuro .mapeamento-titulo { color: #eef3fa; }
+        html.tema-escuro p, html.tema-escuro span, html.tema-escuro label,
+        html.tema-escuro .tabela-contador, html.tema-escuro .sobra-subtitulo,
+        html.tema-escuro .detalhes-subtitulo, html.tema-escuro .mapeamento-legenda,
+        html.tema-escuro .sobras-subtitulo, html.tema-escuro .arquivo-planilha-status { color: #9aa8bc; }
+        html.tema-escuro table { background: #161f2e; }
+        html.tema-escuro th { background: #1c2a40 !important; color: #bcd6f7 !important; }
+        html.tema-escuro td { color: #ccd5e2; border-color: #253147; }
+        html.tema-escuro tbody tr:hover td { background: #1c2738 !important; }
+        html.tema-escuro tbody tr.linha-entrega td { background: #223321 !important; }
+        html.tema-escuro tbody tr.linha-bo td { background: #3a2620 !important; }
+        html.tema-escuro tbody tr.linha-previsao-futura td { background: #1c2947 !important; }
+        html.tema-escuro .input-filtro, html.tema-escuro .select-filtro,
+        html.tema-escuro .filtro-coluna-input, html.tema-escuro .filtro-coluna-select,
+        html.tema-escuro input[type="text"], html.tema-escuro input[type="date"],
+        html.tema-escuro input[type="month"], html.tema-escuro input[type="number"],
+        html.tema-escuro select, html.tema-escuro textarea,
+        html.tema-escuro .filtro-multiplo-botao, html.tema-escuro .filtro-multiplo-painel,
+        html.tema-escuro .filtro-multiplo-busca { background: #1b2537; border-color: #2b3a54; color: #dbe4f0; }
+        html.tema-escuro .filtro-multiplo-opcao:hover { background: #26334a; }
+        html.tema-escuro .btn-ferramenta-tabela, html.tema-escuro .btn-secundario,
+        html.tema-escuro .btn-buscar-deposito, html.tema-escuro .btn-fechar-detalhes,
+        html.tema-escuro .btn-qr-etiqueta { background: #1b2537; border-color: #2b3a54; color: #d7dee8; }
+        html.tema-escuro .btn-ferramenta-tabela:hover { background: #26334a; }
+        html.tema-escuro .detalhes-modal { background: rgba(4, 9, 18, .68); }
+        html.tema-escuro .sobra-campo input, html.tema-escuro .deposito-sugestao-historico { background: #1b2537; border-color: #2b3a54; color: #d7dee8; }
+        html.tema-escuro .mapeamento-corpo select { background: #1b2537; border-color: #2b3a54; color: #d7dee8; }
+        html.tema-escuro .card, html.tema-escuro .sugestao-linha { background: #1b2537; border-color: #2b3a54; }
+        html.tema-escuro .btn-tema { background: #1b2537; border-color: #2b3a54; color: #dbe4f0; }
+        html.tema-escuro .btn-tema:hover { background: #26334a; }
+        html.tema-escuro .forma-conferencia-badge.manual { background: #26334a; color: #b7c3d6; }
     </style>
+
+    <script>
+        (function() {
+            try { if (localStorage.getItem('conferencia-deposito-tema') === 'escuro') document.documentElement.classList.add('tema-escuro'); }
+            catch (erro) { /* localStorage indisponível; segue no tema padrão */ }
+        })();
+    </script>
 </head>
 
 <body>
@@ -743,6 +801,7 @@
             <div class="topbar-direita">
                 <span class="topbar-usuario" id="usuarioSessao"></span>
                 <span class="avatar" id="avatarSessao">SM</span>
+                <button type="button" id="btnAlternarTema" class="btn-tema" onclick="alternarTema()" title="Alternar modo claro/escuro" aria-label="Alternar modo claro/escuro">☾</button>
                 <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
             </div>
         </section>
@@ -1362,6 +1421,21 @@
                 if (botao) { botao.disabled = false; botao.textContent = 'Entrar'; }
                 definirMensagemAcesso(traduzirErroLogin(error));
             });
+        }
+
+        function atualizarIconeBotaoTema() {
+            const botao = document.getElementById('btnAlternarTema');
+            if (!botao) return;
+            const escuro = document.documentElement.classList.contains('tema-escuro');
+            botao.textContent = escuro ? '☀' : '☾';
+            botao.title = escuro ? 'Mudar para modo claro' : 'Mudar para modo escuro';
+        }
+
+        function alternarTema() {
+            const escuro = document.documentElement.classList.toggle('tema-escuro');
+            try { localStorage.setItem('conferencia-deposito-tema', escuro ? 'escuro' : 'claro'); }
+            catch (erro) { console.warn('Não foi possível salvar a preferência de tema.', erro); }
+            atualizarIconeBotaoTema();
         }
 
         function sairDoPainel() {
@@ -3002,7 +3076,7 @@
         }
 
         function mostrarSugestoesDeposito(registros, tipo, termo, exato = false, foraDoDia = false, diaTrabalhoAtual = '') {
-            sugestoesDeposito = registros;
+            sugestoesDeposito = [...registros].sort((a, b) => obterDataTrabalhoRegistro(b).localeCompare(obterDataTrabalhoRegistro(a)));
             sugestoesForaDoDiaAtual = foraDoDia;
             document.getElementById('sugestoesTitulo').textContent = foraDoDia ? 'Registro localizado em outro dia' : (exato ? 'Existem múltiplos registros para esta busca' : 'Encontramos registros semelhantes');
             document.getElementById('sugestoesSubtitulo').textContent = foraDoDia
@@ -3010,7 +3084,7 @@
                 : (exato ? 'Selecione o registro correto ou cadastre uma sobra.' : `A busca por ${tipo.toUpperCase()} "${termo}" não foi exata. Confira antes de continuar.`);
             const lista = document.getElementById('sugestoesLista');
             lista.innerHTML = '';
-            registros.forEach((registro, indice) => {
+            sugestoesDeposito.forEach((registro, indice) => {
                 const linha = document.createElement('div');
                 linha.className = 'sugestao-linha';
                 linha.innerHTML = `
@@ -4279,6 +4353,7 @@
 
         try {
             inicializarFiltrosMultiplos();
+            atualizarIconeBotaoTema();
             inicializarEstadoDashboard();
             mudarFiltroCard('todos');
             definirDataTrabalhoPadrao();
