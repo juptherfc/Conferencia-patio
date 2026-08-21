@@ -775,6 +775,21 @@
         html.tema-escuro .badge-roxo { background: #2b2140; border-color: #443263; color: #c9a9ef; }
         html.tema-escuro .badge-amarelo { background: #372c14; border-color: #59461f; color: #ecc165; }
 
+        /* Zebra/listras e bordas das tabelas (Conferência, Sobras, Auditoria) tinham
+           regras próprias com maior especificidade/!important que venciam o tema
+           escuro geral, deixando linhas "pares" e bordas claras mesmo no escuro. */
+        html.tema-escuro .tabela-painel tbody td { border-bottom: 1px solid #29374e !important; }
+        html.tema-escuro .tabela-painel tbody td + td { border-left-color: #253147; }
+        html.tema-escuro .tabela-painel tbody tr:last-child td { border-bottom: 1px solid #29374e !important; }
+        html.tema-escuro .tabela-painel tbody tr:nth-child(even):not(.linha-entrega):not(.linha-bo):not(.linha-previsao-futura) td { background: #182234 !important; }
+        html.tema-escuro .tabela-painel tbody tr:hover:not(.linha-entrega):not(.linha-bo):not(.linha-previsao-futura) td { background: #202d43 !important; box-shadow: none; }
+        html.tema-escuro .tabela-painel thead th { border-bottom-color: #2b4a6b; box-shadow: none; }
+        html.tema-escuro .sobras-tabela tr:nth-child(even), html.tema-escuro .auditoria-tabela tr:nth-child(even) { background: #182234; }
+        html.tema-escuro .auditoria-acao { background: #262a4a; color: #b6bbf0; }
+        html.tema-escuro .auditoria-subtexto { color: #8a97ac; }
+        html.tema-escuro aside { background: linear-gradient(180deg, #0c1526 0%, #101d33 58%, #0c1526 100%) !important; border-right-color: #1c2a40 !important; box-shadow: 10px 0 28px rgba(0, 0, 0, .35) !important; }
+        html.tema-escuro .btn-menu.active, html.tema-escuro .btn-menu:hover { background: rgba(255, 255, 255, .08) !important; }
+
         /* Selos de status de sobra (Pendente/Completa) */
         html.tema-escuro .sobra-status-pendente { background: #372c14; color: #ecc165; }
         html.tema-escuro .sobra-status-completa { background: #16302a; color: #6fd6ab; }
