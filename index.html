@@ -736,9 +736,6 @@
         html.tema-escuro th { background: #1c2a40 !important; color: #bcd6f7 !important; }
         html.tema-escuro td { color: #ccd5e2; border-color: #253147; }
         html.tema-escuro tbody tr:hover td { background: #1c2738 !important; }
-        html.tema-escuro tbody tr.linha-entrega td { background: #223321 !important; }
-        html.tema-escuro tbody tr.linha-bo td { background: #3a2620 !important; }
-        html.tema-escuro tbody tr.linha-previsao-futura td { background: #1c2947 !important; }
         html.tema-escuro .input-filtro, html.tema-escuro .select-filtro,
         html.tema-escuro .filtro-coluna-input, html.tema-escuro .filtro-coluna-select,
         html.tema-escuro input[type="text"], html.tema-escuro input[type="date"],
@@ -759,36 +756,29 @@
         html.tema-escuro .btn-tema:hover { background: #26334a; }
         html.tema-escuro .forma-conferencia-badge.manual { background: #26334a; color: #b7c3d6; }
 
-        /* A área de dados das tabelas (Conferência, Histórico, Auditoria, Sobras)
-           permanece sempre no padrão claro, mesmo com o tema escuro ativo — as cores
-           de status (verde/laranja/azul) das linhas foram desenhadas para fundo claro
-           e ficam ilegíveis no escuro. */
-        html.tema-escuro .tabela-container,
-        html.tema-escuro .sobras-tabela-container { background: #fff; border-color: #dfe7f1; }
-        html.tema-escuro .tabela-container table,
-        html.tema-escuro .sobras-tabela-container table { background: #fff; }
-        html.tema-escuro .tabela-container th,
-        html.tema-escuro .sobras-tabela-container th { background: linear-gradient(180deg, #eaf3ff, #dcecff) !important; color: #27598c !important; }
-        html.tema-escuro .tabela-container td,
-        html.tema-escuro .sobras-tabela-container td { color: #3d4b5c; border-color: #e5e9ef; }
-        html.tema-escuro .tabela-container tbody tr:hover td,
-        html.tema-escuro .sobras-tabela-container tbody tr:hover td { background: #f6faff !important; }
-        html.tema-escuro .tabela-container tbody tr.linha-entrega td { background: #e6efc9 !important; }
-        html.tema-escuro .tabela-container tbody tr.linha-bo td { background: #f9dfd1 !important; }
-        html.tema-escuro .tabela-container tbody tr.linha-previsao-futura td { background: #e7efff !important; }
-        html.tema-escuro .tabela-container .filtro-coluna-input,
-        html.tema-escuro .tabela-container .filtro-coluna-select,
-        html.tema-escuro .tabela-container .filtro-multiplo-botao,
-        html.tema-escuro .tabela-container .filtro-multiplo-painel,
-        html.tema-escuro .tabela-container .filtro-multiplo-busca,
-        html.tema-escuro .sobras-tabela-container .filtro-coluna-input,
-        html.tema-escuro .sobras-tabela-container .filtro-coluna-select { background: #eef5ff; border-color: #bcd3ef; color: #2c476b; }
-        html.tema-escuro .tabela-container .filtro-multiplo-opcao,
-        html.tema-escuro .tabela-container .filtro-multiplo-opcao span { color: #384759; }
-        html.tema-escuro .tabela-container .sobra-status-pendente,
-        html.tema-escuro .sobras-tabela-container .sobra-status-pendente { background: #fff1d6; color: #b16b16; }
-        html.tema-escuro .tabela-container .sobra-status-completa,
-        html.tema-escuro .sobras-tabela-container .sobra-status-completa { background: #e3f7ef; color: #16825e; }
+        /* Linhas de status da tabela (verde=entrega, laranja=B.O, azul=previsão futura),
+           redesenhadas para fundo escuro: tons escuros e dessaturados, com texto claro
+           o suficiente para manter contraste e leitura confortável. */
+        html.tema-escuro tbody tr.linha-entrega td { background: #1f3323 !important; color: #cfe7cf; }
+        html.tema-escuro tbody tr.linha-bo td { background: #3a2620 !important; color: #f0d2c4; }
+        html.tema-escuro tbody tr.linha-previsao-futura td { background: #1c2947 !important; color: #cbd7f2; }
+        html.tema-escuro tbody tr.linha-entrega:hover td { background: #253d29 !important; }
+        html.tema-escuro tbody tr.linha-bo:hover td { background: #452e27 !important; }
+        html.tema-escuro tbody tr.linha-previsao-futura:hover td { background: #223257 !important; }
+        html.tema-escuro tbody tr.linha-entrega td a, html.tema-escuro tbody tr.linha-bo td a, html.tema-escuro tbody tr.linha-previsao-futura td a,
+        html.tema-escuro tbody tr.linha-entrega td strong, html.tema-escuro tbody tr.linha-bo td strong, html.tema-escuro tbody tr.linha-previsao-futura td strong { color: inherit; }
+
+        /* Badges de ocorrência (etiquetas coloridas na coluna Ocorrência) */
+        html.tema-escuro .badge-azul { background: #17293f; border-color: #2b4a6b; color: #7fc3ea; }
+        html.tema-escuro .badge-verde { background: #16302a; border-color: #1f4d3f; color: #6fd6ab; }
+        html.tema-escuro .badge-vermelho { background: #3a2220; border-color: #5c332f; color: #f0a49e; }
+        html.tema-escuro .badge-roxo { background: #2b2140; border-color: #443263; color: #c9a9ef; }
+        html.tema-escuro .badge-amarelo { background: #372c14; border-color: #59461f; color: #ecc165; }
+
+        /* Selos de status de sobra (Pendente/Completa) */
+        html.tema-escuro .sobra-status-pendente { background: #372c14; color: #ecc165; }
+        html.tema-escuro .sobra-status-completa { background: #16302a; color: #6fd6ab; }
+        html.tema-escuro .forma-conferencia-badge.qrcode { background: #16302a; color: #6fd6ab; }
     </style>
 
     <script>
