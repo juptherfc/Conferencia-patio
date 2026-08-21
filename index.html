@@ -758,11 +758,42 @@
         html.tema-escuro .btn-tema { background: #1b2537; border-color: #2b3a54; color: #dbe4f0; }
         html.tema-escuro .btn-tema:hover { background: #26334a; }
         html.tema-escuro .forma-conferencia-badge.manual { background: #26334a; color: #b7c3d6; }
+
+        /* A área de dados das tabelas (Conferência, Histórico, Auditoria, Sobras)
+           permanece sempre no padrão claro, mesmo com o tema escuro ativo — as cores
+           de status (verde/laranja/azul) das linhas foram desenhadas para fundo claro
+           e ficam ilegíveis no escuro. */
+        html.tema-escuro .tabela-container,
+        html.tema-escuro .sobras-tabela-container { background: #fff; border-color: #dfe7f1; }
+        html.tema-escuro .tabela-container table,
+        html.tema-escuro .sobras-tabela-container table { background: #fff; }
+        html.tema-escuro .tabela-container th,
+        html.tema-escuro .sobras-tabela-container th { background: linear-gradient(180deg, #eaf3ff, #dcecff) !important; color: #27598c !important; }
+        html.tema-escuro .tabela-container td,
+        html.tema-escuro .sobras-tabela-container td { color: #3d4b5c; border-color: #e5e9ef; }
+        html.tema-escuro .tabela-container tbody tr:hover td,
+        html.tema-escuro .sobras-tabela-container tbody tr:hover td { background: #f6faff !important; }
+        html.tema-escuro .tabela-container tbody tr.linha-entrega td { background: #e6efc9 !important; }
+        html.tema-escuro .tabela-container tbody tr.linha-bo td { background: #f9dfd1 !important; }
+        html.tema-escuro .tabela-container tbody tr.linha-previsao-futura td { background: #e7efff !important; }
+        html.tema-escuro .tabela-container .filtro-coluna-input,
+        html.tema-escuro .tabela-container .filtro-coluna-select,
+        html.tema-escuro .tabela-container .filtro-multiplo-botao,
+        html.tema-escuro .tabela-container .filtro-multiplo-painel,
+        html.tema-escuro .tabela-container .filtro-multiplo-busca,
+        html.tema-escuro .sobras-tabela-container .filtro-coluna-input,
+        html.tema-escuro .sobras-tabela-container .filtro-coluna-select { background: #eef5ff; border-color: #bcd3ef; color: #2c476b; }
+        html.tema-escuro .tabela-container .filtro-multiplo-opcao,
+        html.tema-escuro .tabela-container .filtro-multiplo-opcao span { color: #384759; }
+        html.tema-escuro .tabela-container .sobra-status-pendente,
+        html.tema-escuro .sobras-tabela-container .sobra-status-pendente { background: #fff1d6; color: #b16b16; }
+        html.tema-escuro .tabela-container .sobra-status-completa,
+        html.tema-escuro .sobras-tabela-container .sobra-status-completa { background: #e3f7ef; color: #16825e; }
     </style>
 
     <script>
         (function() {
-            try { if (localStorage.getItem('conferencia-deposito-tema') === 'escuro') document.documentElement.classList.add('tema-escuro'); }
+            try { if (localStorage.getItem('conferencia-deposito-tema') !== 'claro') document.documentElement.classList.add('tema-escuro'); }
             catch (erro) { /* localStorage indisponível; segue no tema padrão */ }
         })();
     </script>
