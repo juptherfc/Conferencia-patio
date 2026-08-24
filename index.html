@@ -797,6 +797,32 @@
         html.tema-escuro .sobra-status-pendente { background: #3b2900; color: #e3b341; }
         html.tema-escuro .sobra-status-completa { background: #10261a; color: #7ee2a8; }
         html.tema-escuro .forma-conferencia-badge.qrcode { background: #10261a; color: #7ee2a8; }
+
+        /* Demais caixas/controles que ainda usavam fundo claro fixo */
+        html.tema-escuro .deposito-vazio { background: #0d1117; color: #8b949e; border: 1px solid #21262d; }
+        html.tema-escuro .seletor-arquivo-planilha { background: #0d1117; border-color: #30363d; color: #58a6ff; }
+        html.tema-escuro .seletor-arquivo-planilha:hover { background: #161b22; }
+        html.tema-escuro .controle-largura-colunas { background: #21262d; border-color: #30363d; color: #8b949e; }
+        html.tema-escuro input[type="range"] { accent-color: #58a6ff; }
+        html.tema-escuro ::-webkit-scrollbar { width: 12px; height: 12px; }
+        html.tema-escuro ::-webkit-scrollbar-track { background: #0d1117; }
+        html.tema-escuro ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 8px; border: 3px solid #0d1117; }
+        html.tema-escuro ::-webkit-scrollbar-thumb:hover { background: #3d444d; }
+
+        /* Varredura ampla: demais botões pequenos, campos e painéis que ainda
+           usavam fundo branco fixo (não cobertos pelas regras gerais acima). */
+        html.tema-escuro .btn-sair, html.tema-escuro .btn-alternar-dashboard,
+        html.tema-escuro .btn-limpar-cabecalho, html.tema-escuro .btn-alternar-filtros,
+        html.tema-escuro .btn-limpar-filtros, html.tema-escuro .btn-reset-largura,
+        html.tema-escuro .btn-ver-sobras { background: #21262d; border-color: #30363d; color: #c9d1d9; }
+        html.tema-escuro .busca-deposito, html.tema-escuro .select-escopo-exportacao,
+        html.tema-escuro .filtro-avancado input, html.tema-escuro .filtro-avancado select,
+        html.tema-escuro .mapeamento-linha select, html.tema-escuro .detalhes-campo-editavel,
+        html.tema-escuro .campo-edicao input, html.tema-escuro .campo-edicao select { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
+        html.tema-escuro .documento-historico-grupo { background: #161b22; border-color: #30363d; }
+        html.tema-escuro .filtro-coluna-input:focus, html.tema-escuro .filtro-coluna-select:focus,
+        html.tema-escuro .filtro-multiplo-botao:hover, html.tema-escuro .filtro-multiplo-botao:focus-visible { background: #161b22; border-color: #58a6ff; }
+        html.tema-escuro .sidebar-login .btn-sair { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); }
     </style>
 
     <script>
