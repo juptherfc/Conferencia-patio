@@ -81,8 +81,6 @@
         .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e6edf9; color: #3563b6; font-size: 12px; font-weight: 750; }
         .topbar-usuario { color: #64748b; font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .btn-sair { border: 1px solid #d9e0e7; border-radius: 7px; padding: 7px 10px; background: #fff; color: #64748b; font-size: 11px; font-weight: 700; }
-        .btn-tema { border: 1px solid #d9e0e7; border-radius: 7px; width: 30px; height: 30px; background: #fff; color: #64748b; font-size: 14px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-        .btn-tema:hover { background: #f2f5f9; }
         .btn-sair:hover { background: #f8fafc; border-color: #b9c5d1; color: #334155; }
         .tela-acesso { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(247, 248, 250, .97); }
         .tela-acesso.inicializando .acesso-card { visibility: hidden; opacity: 0; }
@@ -698,8 +696,6 @@
         .sidebar-login .topbar-usuario { max-width: 130px; color: rgba(231,241,255,.82); font-size: 9px; }
         .sidebar-login .avatar { width: 27px; height: 27px; background: rgba(225,240,255,.18); color: #fff; border-color: rgba(255,255,255,.68); box-shadow: none; font-size: 10px; }
         .sidebar-login .btn-sair { min-height: 28px; padding: 5px 8px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; font-size: 10px; }
-        .sidebar-login .btn-tema { min-height: 28px; width: 28px; height: 28px; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.12); color: #fff; }
-        .sidebar-login .btn-tema:hover { background: rgba(255,255,255,.22); }
         .sidebar-login .btn-sair:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
         main { padding-top: 14px; }
         @media (max-width: 760px) {
@@ -711,127 +707,9 @@
             body.mobile-topo-recolhido .sidebar-login { display: none; }
             main { padding-top: 10px; }
         }
-        /* ===== Tema escuro (paleta GitHub Dark) =====
-           Fundo: #0d1117 (canvas) / #161b22 (painéis) / #010409 (campos/inset)
-           Bordas: #30363d · Texto: #c9d1d9 (padrão) / #8b949e (fraco)
-           Destaque: #58a6ff (azul) · Semânticas: verde #3fb950, vermelho #f85149,
-           amarelo #d29922, roxo #a371f7 — mesmas cores usadas pelo GitHub. */
-        html.tema-escuro { color-scheme: dark; }
-        html.tema-escuro body { background: #0d1117; color: #c9d1d9; }
-        html.tema-escuro main { background: transparent; }
-        html.tema-escuro .bloco,
-        html.tema-escuro .tabela-container,
-        html.tema-escuro .deposito-card,
-        html.tema-escuro .sobra-cadastro,
-        html.tema-escuro .exportacao-painel,
-        html.tema-escuro .detalhes-card,
-        html.tema-escuro .mapeamento-painel,
-        html.tema-escuro .sobra-resumo-card,
-        html.tema-escuro .acesso-card { background: #161b22; border-color: #30363d; color: #c9d1d9; box-shadow: none; }
-        html.tema-escuro .tela-acesso { background: #0d1117; }
-        html.tema-escuro h1, html.tema-escuro h2, html.tema-escuro h3, html.tema-escuro h4,
-        html.tema-escuro .tabela-titulo, html.tema-escuro .resultado-titulo, html.tema-escuro .sobra-titulo,
-        html.tema-escuro .detalhes-titulo, html.tema-escuro .mapeamento-titulo { color: #e6edf3; }
-        html.tema-escuro p, html.tema-escuro span, html.tema-escuro label,
-        html.tema-escuro .tabela-contador, html.tema-escuro .sobra-subtitulo,
-        html.tema-escuro .detalhes-subtitulo, html.tema-escuro .mapeamento-legenda,
-        html.tema-escuro .sobras-subtitulo, html.tema-escuro .arquivo-planilha-status { color: #8b949e; }
-        html.tema-escuro table { background: #161b22; }
-        html.tema-escuro th { background: #010409 !important; color: #58a6ff !important; }
-        html.tema-escuro td { color: #c9d1d9; border-color: #21262d; }
-        html.tema-escuro tbody tr:hover td { background: #1c2128 !important; }
-        html.tema-escuro .input-filtro, html.tema-escuro .select-filtro,
-        html.tema-escuro .filtro-coluna-input, html.tema-escuro .filtro-coluna-select,
-        html.tema-escuro input[type="text"], html.tema-escuro input[type="date"],
-        html.tema-escuro input[type="month"], html.tema-escuro input[type="number"],
-        html.tema-escuro select, html.tema-escuro textarea,
-        html.tema-escuro .filtro-multiplo-botao, html.tema-escuro .filtro-multiplo-painel,
-        html.tema-escuro .filtro-multiplo-busca { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .filtro-multiplo-opcao:hover { background: #1c2128; }
-        html.tema-escuro .btn-ferramenta-tabela, html.tema-escuro .btn-secundario,
-        html.tema-escuro .btn-buscar-deposito, html.tema-escuro .btn-fechar-detalhes,
-        html.tema-escuro .btn-qr-etiqueta { background: #21262d; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .btn-ferramenta-tabela:hover { background: #30363d; }
-        html.tema-escuro .detalhes-modal { background: rgba(1, 4, 9, .75); }
-        html.tema-escuro .sobra-campo input, html.tema-escuro .deposito-sugestao-historico { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .mapeamento-corpo select { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .card, html.tema-escuro .sugestao-linha { background: #161b22; border-color: #30363d; }
-        html.tema-escuro .btn-tema { background: #21262d; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .btn-tema:hover { background: #30363d; }
-        html.tema-escuro .forma-conferencia-badge.manual { background: #21262d; color: #8b949e; }
 
-        /* Linhas de status da tabela (verde=entrega, vermelho=B.O, azul=previsão futura) */
-        html.tema-escuro tbody tr.linha-entrega td { background: #10261a !important; color: #7ee2a8; }
-        html.tema-escuro tbody tr.linha-bo td { background: #2d1216 !important; color: #ffa198; }
-        html.tema-escuro tbody tr.linha-previsao-futura td { background: #0d2440 !important; color: #79c0ff; }
-        html.tema-escuro tbody tr.linha-entrega:hover td { background: #163821 !important; }
-        html.tema-escuro tbody tr.linha-bo:hover td { background: #3d191d !important; }
-        html.tema-escuro tbody tr.linha-previsao-futura:hover td { background: #123256 !important; }
-        html.tema-escuro tbody tr.linha-entrega td a, html.tema-escuro tbody tr.linha-bo td a, html.tema-escuro tbody tr.linha-previsao-futura td a,
-        html.tema-escuro tbody tr.linha-entrega td strong, html.tema-escuro tbody tr.linha-bo td strong, html.tema-escuro tbody tr.linha-previsao-futura td strong { color: inherit; }
 
-        /* Badges de ocorrência (etiquetas coloridas na coluna Ocorrência) */
-        html.tema-escuro .badge-azul { background: #0d2440; border-color: #1f6feb55; color: #79c0ff; }
-        html.tema-escuro .badge-verde { background: #10261a; border-color: #2ea04355; color: #7ee2a8; }
-        html.tema-escuro .badge-vermelho { background: #2d1216; border-color: #f8514955; color: #ffa198; }
-        html.tema-escuro .badge-roxo { background: #271a45; border-color: #a371f755; color: #d2a8ff; }
-        html.tema-escuro .badge-amarelo { background: #3b2900; border-color: #d2992255; color: #e3b341; }
-
-        /* Zebra/listras e bordas das tabelas (Conferência, Sobras, Auditoria) tinham
-           regras próprias com maior especificidade/!important que venciam o tema
-           escuro geral, deixando linhas "pares" e bordas claras mesmo no escuro. */
-        html.tema-escuro .tabela-painel tbody td { border-bottom: 1px solid #21262d !important; }
-        html.tema-escuro .tabela-painel tbody td + td { border-left-color: #21262d; }
-        html.tema-escuro .tabela-painel tbody tr:last-child td { border-bottom: 1px solid #21262d !important; }
-        html.tema-escuro .tabela-painel tbody tr:nth-child(even):not(.linha-entrega):not(.linha-bo):not(.linha-previsao-futura) td { background: #1c2128 !important; }
-        html.tema-escuro .tabela-painel tbody tr:hover:not(.linha-entrega):not(.linha-bo):not(.linha-previsao-futura) td { background: #21262d !important; box-shadow: none; }
-        html.tema-escuro .tabela-painel thead th { border-bottom-color: #30363d; box-shadow: none; }
-        html.tema-escuro .sobras-tabela tr:nth-child(even), html.tema-escuro .auditoria-tabela tr:nth-child(even) { background: #1c2128; }
-        html.tema-escuro .auditoria-acao { background: #0d2440; color: #79c0ff; }
-        html.tema-escuro .auditoria-subtexto { color: #8b949e; }
-        html.tema-escuro aside { background: #010409 !important; border-right-color: #21262d !important; box-shadow: none !important; }
-        html.tema-escuro .btn-menu.active { background: rgba(177, 186, 196, .12) !important; box-shadow: inset 3px 0 0 #58a6ff; }
-        html.tema-escuro .btn-menu:hover { background: rgba(177, 186, 196, .06) !important; }
-
-        /* Selos de status de sobra (Pendente/Completa) */
-        html.tema-escuro .sobra-status-pendente { background: #3b2900; color: #e3b341; }
-        html.tema-escuro .sobra-status-completa { background: #10261a; color: #7ee2a8; }
-        html.tema-escuro .forma-conferencia-badge.qrcode { background: #10261a; color: #7ee2a8; }
-
-        /* Demais caixas/controles que ainda usavam fundo claro fixo */
-        html.tema-escuro .deposito-vazio { background: #0d1117; color: #8b949e; border: 1px solid #21262d; }
-        html.tema-escuro .seletor-arquivo-planilha { background: #0d1117; border-color: #30363d; color: #58a6ff; }
-        html.tema-escuro .seletor-arquivo-planilha:hover { background: #161b22; }
-        html.tema-escuro .controle-largura-colunas { background: #21262d; border-color: #30363d; color: #8b949e; }
-        html.tema-escuro input[type="range"] { accent-color: #58a6ff; }
-        html.tema-escuro ::-webkit-scrollbar { width: 12px; height: 12px; }
-        html.tema-escuro ::-webkit-scrollbar-track { background: #0d1117; }
-        html.tema-escuro ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 8px; border: 3px solid #0d1117; }
-        html.tema-escuro ::-webkit-scrollbar-thumb:hover { background: #3d444d; }
-
-        /* Varredura ampla: demais botões pequenos, campos e painéis que ainda
-           usavam fundo branco fixo (não cobertos pelas regras gerais acima). */
-        html.tema-escuro .btn-sair, html.tema-escuro .btn-alternar-dashboard,
-        html.tema-escuro .btn-limpar-cabecalho, html.tema-escuro .btn-alternar-filtros,
-        html.tema-escuro .btn-limpar-filtros, html.tema-escuro .btn-reset-largura,
-        html.tema-escuro .btn-ver-sobras { background: #21262d; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .busca-deposito, html.tema-escuro .select-escopo-exportacao,
-        html.tema-escuro .filtro-avancado input, html.tema-escuro .filtro-avancado select,
-        html.tema-escuro .mapeamento-linha select, html.tema-escuro .detalhes-campo-editavel,
-        html.tema-escuro .campo-edicao input, html.tema-escuro .campo-edicao select { background: #0d1117; border-color: #30363d; color: #c9d1d9; }
-        html.tema-escuro .documento-historico-grupo { background: #161b22; border-color: #30363d; }
-        html.tema-escuro .filtro-coluna-input:focus, html.tema-escuro .filtro-coluna-select:focus,
-        html.tema-escuro .filtro-multiplo-botao:hover, html.tema-escuro .filtro-multiplo-botao:focus-visible { background: #161b22; border-color: #58a6ff; }
-        html.tema-escuro .sidebar-login .btn-sair { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); }
-    </style>
-
-    <script>
-        (function() {
-            try { if (localStorage.getItem('conferencia-deposito-tema') !== 'claro') document.documentElement.classList.add('tema-escuro'); }
-            catch (erro) { /* localStorage indisponível; segue no tema padrão */ }
-        })();
-    </script>
-</head>
+    </head>
 
 <body>
     <div id="telaAcesso" class="tela-acesso inicializando" role="dialog" aria-modal="true" aria-labelledby="acessoTitulo">
@@ -866,7 +744,6 @@
             <div class="topbar-direita">
                 <span class="topbar-usuario" id="usuarioSessao"></span>
                 <span class="avatar" id="avatarSessao">SM</span>
-                <button type="button" id="btnAlternarTema" class="btn-tema" onclick="alternarTema()" title="Alternar modo claro/escuro" aria-label="Alternar modo claro/escuro">☾</button>
                 <button type="button" id="btnSair" class="btn-sair" onclick="sairDoPainel()" hidden>Sair</button>
             </div>
         </section>
@@ -1486,21 +1363,6 @@
                 if (botao) { botao.disabled = false; botao.textContent = 'Entrar'; }
                 definirMensagemAcesso(traduzirErroLogin(error));
             });
-        }
-
-        function atualizarIconeBotaoTema() {
-            const botao = document.getElementById('btnAlternarTema');
-            if (!botao) return;
-            const escuro = document.documentElement.classList.contains('tema-escuro');
-            botao.textContent = escuro ? '☀' : '☾';
-            botao.title = escuro ? 'Mudar para modo claro' : 'Mudar para modo escuro';
-        }
-
-        function alternarTema() {
-            const escuro = document.documentElement.classList.toggle('tema-escuro');
-            try { localStorage.setItem('conferencia-deposito-tema', escuro ? 'escuro' : 'claro'); }
-            catch (erro) { console.warn('Não foi possível salvar a preferência de tema.', erro); }
-            atualizarIconeBotaoTema();
         }
 
         function sairDoPainel() {
@@ -4418,7 +4280,6 @@
 
         try {
             inicializarFiltrosMultiplos();
-            atualizarIconeBotaoTema();
             inicializarEstadoDashboard();
             mudarFiltroCard('todos');
             definirDataTrabalhoPadrao();
