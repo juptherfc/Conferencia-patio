@@ -630,9 +630,9 @@
         }
         /* Camada visual operacional: mais contraste, cor e hierarquia sem perder a leveza. */
         body { background: linear-gradient(135deg, #eef4fb 0%, #f7f9fc 52%, #edf5ff 100%); }
-        aside { background: linear-gradient(180deg, #173d70 0%, #215b99 58%, #1a477d 100%); border-right-color: #2f6da9; box-shadow: 10px 0 28px rgba(25, 69, 117, .16); }
+        aside { background: linear-gradient(180deg, #1e1a5e 0%, #2b2380 55%, #191552 100%); border-right-color: #35288f; box-shadow: 10px 0 28px rgba(20, 15, 60, .22); }
         .marca { border-bottom-color: rgba(255,255,255,.16); }
-        .marca-icone, .acesso-marca-icone { background: linear-gradient(145deg, #f7c948, #e89f2d); color: #173d70; box-shadow: 0 6px 14px rgba(0,0,0,.14); }
+        .marca-icone, .acesso-marca-icone { background: linear-gradient(145deg, #f7c948, #e89f2d); color: #1e1a5e; box-shadow: 0 6px 14px rgba(0,0,0,.14); }
         .marca-texto, .marca-subtexto, .sidebar-rodape { color: rgba(255,255,255,.94); }
         .marca-subtexto, .sidebar-rodape { color: rgba(231,241,255,.7); }
         .btn-menu { color: rgba(238,246,255,.76); }
@@ -640,6 +640,19 @@
         .btn-menu:hover { background: rgba(255,255,255,.10); color: #fff; }
         .btn-menu.active { background: rgba(255,255,255,.16); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
         .menu-icone, .btn-menu.active .menu-icone { color: #f7c948; }
+        .btn-recolher-sidebar-desktop { flex: 0 0 auto; width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.24); border-radius: 6px; background: rgba(255,255,255,.08); color: #fff; font-size: 12px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: transform .2s ease, background .2s ease; }
+        .btn-recolher-sidebar-desktop:hover { background: rgba(255,255,255,.18); }
+        aside.recolhida-desktop { width: 64px; flex-basis: 64px; padding: 16px 8px; }
+        aside.recolhida-desktop .marca { padding: 2px 0 18px; justify-content: center; }
+        aside.recolhida-desktop .marca-textos,
+        aside.recolhida-desktop .menu-texto,
+        aside.recolhida-desktop .sidebar-rodape,
+        aside.recolhida-desktop .sidebar-login .topbar-usuario,
+        aside.recolhida-desktop .sidebar-login #btnSair { display: none; }
+        aside.recolhida-desktop .btn-menu { justify-content: center; padding: 10px 0; }
+        aside.recolhida-desktop .btn-menu::before { display: none; }
+        aside.recolhida-desktop .sidebar-login .topbar-direita { justify-content: center; }
+        aside.recolhida-desktop #btnAlternarSidebarDesktop span { display: inline-block; transform: rotate(180deg); }
                 .topbar { padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.62); border: 1px solid rgba(148,180,218,.28); box-shadow: 0 8px 26px rgba(35,79,128,.07); }
         .topbar > div:first-child { min-width: 0; flex: 1 1 auto; }
         .topbar-titulo { color: #173d70; }
@@ -706,6 +719,7 @@
             .sidebar-login .btn-sair { min-height: 28px; }
             body.mobile-topo-recolhido .sidebar-login { display: none; }
             main { padding-top: 10px; }
+            .btn-recolher-sidebar-desktop { display: none; }
         }
     </style>
 
@@ -735,6 +749,9 @@
                     <span class="marca-texto">Conferência</span>
                     <span class="marca-subtexto">Entregas</span>
                 </div>
+                <button type="button" id="btnAlternarSidebarDesktop" class="btn-recolher-sidebar-desktop" onclick="alternarSidebarDesktop()" title="Recolher barra lateral" aria-label="Recolher barra lateral" aria-expanded="true" aria-controls="menuLateral">
+                    <span aria-hidden="true">«</span>
+                </button>
                 <button type="button" id="btnAlternarTopoMobile" class="btn-recolher-topo-mobile" aria-expanded="true" aria-controls="menuLateral dashboardArea" onclick="alternarTopoMobile()" title="Recolher área superior no celular">
                     <span aria-hidden="true">⌃</span><span class="btn-recolher-topo-texto">Recolher</span>
                 </button>
@@ -4213,6 +4230,29 @@
             }
         }
 
+        function alternarSidebarDesktop() {
+            const aside = document.getElementById('menuLateral');
+            const botao = document.getElementById('btnAlternarSidebarDesktop');
+            if (!aside) return;
+            const recolhida = aside.classList.toggle('recolhida-desktop');
+            botao?.setAttribute('aria-expanded', String(!recolhida));
+            if (botao) botao.title = recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral';
+            try { localStorage.setItem('conferencia-deposito-sidebar-recolhida', recolhida ? '1' : '0'); }
+            catch (erro) { console.warn('Não foi possível salvar a preferência da barra lateral.', erro); }
+        }
+
+        function restaurarSidebarDesktop() {
+            let recolhida = false;
+            try { recolhida = localStorage.getItem('conferencia-deposito-sidebar-recolhida') === '1'; }
+            catch (erro) { recolhida = false; }
+            if (!recolhida) return;
+            const aside = document.getElementById('menuLateral');
+            const botao = document.getElementById('btnAlternarSidebarDesktop');
+            aside?.classList.add('recolhida-desktop');
+            botao?.setAttribute('aria-expanded', 'false');
+            if (botao) botao.title = 'Expandir barra lateral';
+        }
+
         function alternarTopoMobile() {
             if (!ehTelaMobile()) return;
             bloqueioExpansaoAutomaticaMobile = true;
@@ -4280,6 +4320,7 @@
 
         try {
             inicializarFiltrosMultiplos();
+            restaurarSidebarDesktop();
             inicializarEstadoDashboard();
             mudarFiltroCard('todos');
             definirDataTrabalhoPadrao();
