@@ -61,6 +61,45 @@
         .btn-menu.active { background: #eef2f7; color: #172033; font-weight: 650; }
         .btn-menu.active::before { transform: scaleY(1); }
         .menu-icone { display: inline-grid; place-items: center; flex: 0 0 19px; width: 19px; color: #768395; font-size: 15px; line-height: 1; }
+        .menu-separador { height: 1px; background: rgba(255,255,255,.12); margin: 8px 6px; }
+        .menu-contador { flex: 0 0 auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #f7c948; color: #1e1a5e; font-size: 10px; font-weight: 800; display: inline-grid; place-items: center; }
+        .doc-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+        .doc-busca-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+        .doc-busca-linha input[type="text"] { min-width: 240px; }
+        .doc-grid-clientes { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+        .doc-card-cliente { text-align: left; padding: 12px 14px; border: 1px solid #d7e1ec; border-radius: 10px; background: #fff; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+        .doc-card-cliente:hover { border-color: #7fa8dd; transform: translateY(-1px); }
+        .doc-card-cliente .doc-card-nome { font-weight: 700; color: #172033; font-size: 13px; }
+        .doc-card-cliente .doc-card-doc { font-size: 11px; color: #64748b; margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+        .doc-card-cliente .doc-card-endereco { font-size: 11px; color: #64748b; margin-top: 6px; }
+        .badge-status-doc { display: inline-flex; align-items: center; border: 2px solid; border-radius: 5px; padding: 1px 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; transform: rotate(-2deg); background: none; cursor: pointer; }
+        .badge-status-doc.pendente { border-color: #b16b16; color: #b16b16; background: #fff8ec; }
+        .badge-status-doc.entregue { border-color: #16825e; color: #16825e; background: #e9f9f2; }
+        .badge-pagamento { text-transform: uppercase; font-size: 10px; font-weight: 800; }
+        .badge-pagamento.pix { color: #16825e; }
+        .badge-pagamento.dinheiro { color: #b16b16; }
+        .doc-form-campo { display: flex; flex-direction: column; gap: 4px; }
+        .doc-form-campo label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .02em; }
+        .doc-form-linha { display: grid; gap: 10px; margin-bottom: 12px; }
+        .doc-form-linha.cols-2 { grid-template-columns: 1fr 1fr; }
+        .doc-form-linha.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .doc-cliente-autocomplete { position: relative; }
+        .doc-cliente-sugestoes { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #d7e1ec; border-radius: 8px; box-shadow: 0 12px 28px rgba(20,49,88,.16); }
+        .doc-cliente-sugestao { display: block; width: 100%; text-align: left; padding: 8px 11px; border: 0; border-bottom: 1px solid #eef1f5; background: none; cursor: pointer; }
+        .doc-cliente-sugestao:last-child { border-bottom: 0; }
+        .doc-cliente-sugestao:hover { background: #f5f8fc; }
+        .doc-cliente-sugestao .nome { font-size: 12px; font-weight: 600; color: #172033; }
+        .doc-cliente-sugestao .doc { font-size: 10px; color: #8a949e; font-family: 'IBM Plex Mono', monospace; }
+        .doc-aviso-cliente-novo { margin-top: 8px; padding: 9px 11px; border-radius: 8px; background: #fff4e5; border: 1px solid #f4d9a8; color: #92620c; font-size: 11.5px; }
+        .doc-aviso-cliente-novo input { margin-top: 6px; }
+        .doc-enderecos-opcoes { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+        .doc-endereco-opcao { text-align: left; font-size: 11px; padding: 7px 10px; border-radius: 7px; border: 1px solid #d7e1ec; background: #fff; cursor: pointer; color: #55627a; }
+        .doc-endereco-opcao.selecionado { border-color: #172033; background: #f2f5fa; font-weight: 700; color: #172033; }
+        .doc-pagamento-opcoes { display: flex; gap: 8px; }
+        .doc-pagamento-opcoes button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid #d7e1ec; background: #fff; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; }
+        .doc-pagamento-opcoes button.selecionado.pix { border-color: #16825e; background: #e9f9f2; color: #0f5c40; }
+        .doc-pagamento-opcoes button.selecionado.dinheiro { border-color: #b16b16; background: #fff4e5; color: #7a4710; }
+        .doc-extenso { font-size: 11px; color: #8a949e; font-style: italic; margin-top: 6px; }
         .btn-menu.active .menu-icone { color: var(--azul); }
         .menu-texto { opacity: 1; max-width: 170px; overflow: hidden; white-space: nowrap; transition: max-width .28s ease, opacity .2s ease; }
         .btn-menu:focus-visible, .btn-toggle-menu:focus-visible, .input-filtro:focus-visible, .select-filtro:focus-visible { outline: 3px solid rgba(37, 99, 235, .18); outline-offset: 2px; }
@@ -785,6 +824,16 @@
             <button type="button" id="menu-auditoria" class="btn-menu" data-permissao="verAuditoria" onclick="mudarAba('auditoria')" title="Auditoria">
                 <span class="menu-icone" aria-hidden="true">◉</span><span class="menu-texto">Auditoria</span>
             </button>
+            <div class="menu-separador" aria-hidden="true"></div>
+            <button type="button" id="menu-declaracoes" class="btn-menu" data-permissao="documentos" onclick="mudarAba('declaracoes')" title="Declarações">
+                <span class="menu-icone" aria-hidden="true">▦</span><span class="menu-texto">Declarações</span><span class="menu-contador" id="contadorDeclaracoesPendentes" hidden>0</span>
+            </button>
+            <button type="button" id="menu-recibos" class="btn-menu" data-permissao="documentos" onclick="mudarAba('recibos')" title="Recibos">
+                <span class="menu-icone" aria-hidden="true">$</span><span class="menu-texto">Recibos</span>
+            </button>
+            <button type="button" id="menu-clientesdoc" class="btn-menu" data-permissao="documentos" onclick="mudarAba('clientesdoc')" title="Clientes">
+                <span class="menu-icone" aria-hidden="true">☺</span><span class="menu-texto">Clientes</span>
+            </button>
         </nav>
 
         <div class="sidebar-rodape">Conferência de Depósito<br>Controle logístico em tempo real</div>
@@ -1123,7 +1172,109 @@
             </div>
         </div>
 
-        <div id="tela-hist" class="aba-conteudo">
+        <div id="tela-declaracoes" class="aba-conteudo" data-permissao="documentos">
+            <div class="bloco">
+                <div class="doc-topo">
+                    <div>
+                        <h3 style="color:#374151;">Declarações de recebimento</h3>
+                        <p style="margin-top:5px; color:#8a949e; font-size:12px;" id="declaracoesContadorTexto">0 registros no total</p>
+                    </div>
+                    <button type="button" class="btn-principal" onclick="abrirFormularioDeclaracao()">+ Nova declaração</button>
+                </div>
+                <div class="doc-busca-linha">
+                    <input type="text" id="declaracoesBusca" class="input-filtro" placeholder="Buscar por número, cliente, CNPJ, CT-e, NF..." oninput="renderizarDeclaracoes()">
+                    <select id="declaracoesStatusFiltro" class="select-filtro" onchange="renderizarDeclaracoes()">
+                        <option value="todas">Todas as situações</option>
+                        <option value="pendentes">Pendentes</option>
+                        <option value="entregues">Entregues</option>
+                    </select>
+                </div>
+            </div>
+            <div class="tabela-container historico-tabela-container">
+                <table class="historico-tabela">
+                    <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>CT-e / NF</th><th>Ocorrência</th><th>Situação</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaDeclaracoes"><tr><td colspan="7" class="historico-vazio">Nenhuma declaração cadastrada.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tela-recibos" class="aba-conteudo" data-permissao="documentos">
+            <div class="bloco">
+                <div class="doc-topo">
+                    <div>
+                        <h3 style="color:#374151;">Recibos de indenização</h3>
+                        <p style="margin-top:5px; color:#8a949e; font-size:12px;" id="recibosContadorTexto">0 recibos emitidos</p>
+                    </div>
+                    <button type="button" class="btn-principal" onclick="abrirFormularioRecibo()">+ Novo recibo</button>
+                </div>
+                <div class="doc-busca-linha">
+                    <input type="text" id="recibosBusca" class="input-filtro" placeholder="Buscar por número, cliente, CNPJ..." oninput="renderizarRecibos()">
+                </div>
+            </div>
+            <div class="tabela-container historico-tabela-container">
+                <table class="historico-tabela">
+                    <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Motivo</th><th>Valor</th><th>Pagamento</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaRecibos"><tr><td colspan="7" class="historico-vazio">Nenhum recibo cadastrado.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tela-clientesdoc" class="aba-conteudo" data-permissao="documentos">
+            <div class="bloco">
+                <div class="doc-topo">
+                    <div>
+                        <h3 style="color:#374151;">Clientes</h3>
+                        <p style="margin-top:5px; color:#8a949e; font-size:12px;" id="clientesDocContadorTexto">0 cadastrados</p>
+                    </div>
+                    <button type="button" class="btn-principal" onclick="abrirFormularioCliente()">+ Novo cliente</button>
+                </div>
+                <div class="doc-busca-linha">
+                    <input type="text" id="clientesDocBusca" class="input-filtro" placeholder="Buscar por nome ou CNPJ..." oninput="renderizarClientesDoc()">
+                </div>
+                <div class="doc-grid-clientes" id="listaClientesDoc"></div>
+            </div>
+        </div>
+
+        <div id="modalFormularioDoc" class="detalhes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalFormularioDocTitulo" onclick="fecharModalFormularioDocAoClicarFundo(event)">
+            <article class="detalhes-card" style="width:min(620px, 100%);" role="document" onclick="event.stopPropagation()">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker" id="modalFormularioDocKicker">Documentos</span>
+                        <h2 id="modalFormularioDocTitulo" class="detalhes-titulo">Novo registro</h2>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar formulário" onclick="fecharModalFormularioDoc()">×</button>
+                </header>
+                <div id="modalFormularioDocCorpo" style="padding: 4px 22px 4px;"></div>
+                <footer class="detalhes-acoes">
+                    <span></span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharModalFormularioDoc()">Cancelar</button>
+                        <button type="button" class="btn-principal" id="btnSalvarFormularioDoc">Salvar</button>
+                    </div>
+                </footer>
+            </article>
+        </div>
+
+        <div id="modalVisualizarDoc" class="detalhes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalVisualizarDocTitulo" onclick="fecharModalVisualizarDocAoClicarFundo(event)">
+            <article class="detalhes-card" style="width:min(680px, 100%);" role="document" onclick="event.stopPropagation()">
+                <header class="detalhes-cabecalho">
+                    <div>
+                        <span class="detalhes-kicker">Pré-visualização</span>
+                        <h2 id="modalVisualizarDocTitulo" class="detalhes-titulo">Documento</h2>
+                    </div>
+                    <button type="button" class="btn-fechar-detalhes" aria-label="Fechar" onclick="fecharModalVisualizarDoc()">×</button>
+                </header>
+                <div id="modalVisualizarDocEnderecos" style="padding: 0 22px;"></div>
+                <div id="modalVisualizarDocCorpo" style="padding: 12px 22px 4px;"></div>
+                <footer class="detalhes-acoes">
+                    <span></span>
+                    <div class="detalhes-acoes-botoes">
+                        <button type="button" class="btn-secundario" onclick="fecharModalVisualizarDoc()">Fechar</button>
+                        <button type="button" class="btn-principal" onclick="imprimirDocumentoAtual()">Imprimir / PDF</button>
+                    </div>
+                </footer>
+            </article>
+        </div>
             <div class="bloco">
                 <h3 style="color:#374151;">Histórico de importações</h3>
                 <p style="margin-top:5px; color:#8a949e; font-size:12px;">Acompanhe os lotes importados por dia, mês e ano. Se uma planilha estiver errada, exclua o lote inteiro.</p>
@@ -1460,10 +1611,12 @@
         function inicializarBancoAutorizado() {
             if (db) {
                 inicializarListenerAuditoria();
+                inicializarListenersDocumentos();
                 return;
             }
             db = firebase.database().ref('patio_sao_miguel');
             inicializarListenerAuditoria();
+            inicializarListenersDocumentos();
 
             db.on('value', snap => {
                 const val = snap.val();
@@ -1562,6 +1715,9 @@
                 renderizarAuditoria();
             }
             if (id === 'dep') focarBuscaNfDeposito();
+            if (id === 'declaracoes') { inicializarListenersDocumentos(); renderizarDeclaracoes(); }
+            if (id === 'recibos') { inicializarListenersDocumentos(); renderizarRecibos(); }
+            if (id === 'clientesdoc') { inicializarListenersDocumentos(); renderizarClientesDoc(); }
 
         }
 
@@ -4316,6 +4472,677 @@
         function atualizarDataAtual() {
             const campo = document.getElementById('dataAtual');
             if (campo) campo.textContent = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date());
+        }
+
+        /* ===================== Declarações / Recibos / Clientes ===================== */
+        let declaracoes = [];
+        let recibos = [];
+        let clientesDoc = [];
+        let visualizandoDoc = null;
+        let enderecoEscolhidoDoc = '';
+        let estadoClienteFormDoc = {};
+        let formaPagamentoReciboAtual = 'pix';
+        let listenersDocumentosAtivos = false;
+
+        function apenasDigitosDoc(s) { return String(s || '').replace(/\D/g, ''); }
+
+        function formatarDocumentoCnpjCpf(digits) {
+            const d = apenasDigitosDoc(digits);
+            if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            return d;
+        }
+
+        function enderecosDoClienteDoc(cnpj) {
+            const cli = clientesDoc.find(c => c.cnpj === cnpj);
+            if (!cli) return [];
+            return [{ slot: 1, texto: cli.endereco }, { slot: 2, texto: cli.endereco2 }, { slot: 3, texto: cli.endereco3 }].filter(e => e.texto);
+        }
+
+        function formatarDataDoc(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function formatarDataHoraDoc(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatarMoedaDoc(v) {
+            return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        const MESES_EXTENSO_DOC = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        function dataPorExtensoDoc(d = new Date()) {
+            return `${d.getDate()} de ${MESES_EXTENSO_DOC[d.getMonth()]} de ${d.getFullYear()}`;
+        }
+
+        // Converte um valor em reais para texto por extenso (ex: 1.250,50 -> "mil,
+        // duzentos e cinquenta reais e cinquenta centavos"), usado no recibo impresso.
+        function numeroPorExtensoDoc(valor) {
+            const UNI = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+            const DEZ10_19 = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+            const DEZENAS = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+            const CENTENAS = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+            function grupo(n) {
+                if (n === 0) return '';
+                if (n === 100) return 'cem';
+                const c = Math.floor(n / 100);
+                const r = n % 100;
+                const partes = [];
+                if (c > 0) partes.push(CENTENAS[c]);
+                if (r > 0) {
+                    if (r < 10) partes.push(UNI[r]);
+                    else if (r < 20) partes.push(DEZ10_19[r - 10]);
+                    else {
+                        const dz = Math.floor(r / 10), un = r % 10;
+                        partes.push(un > 0 ? `${DEZENAS[dz]} e ${UNI[un]}` : DEZENAS[dz]);
+                    }
+                }
+                return partes.join(' e ');
+            }
+            function inteiro(n) {
+                if (n === 0) return 'zero';
+                const milhoes = Math.floor(n / 1000000);
+                const milhares = Math.floor((n % 1000000) / 1000);
+                const resto = n % 1000;
+                const partes = [];
+                if (milhoes > 0) partes.push(milhoes === 1 ? 'um milhão' : `${grupo(milhoes)} milhões`);
+                if (milhares > 0) partes.push(milhares === 1 ? 'mil' : `${grupo(milhares)} mil`);
+                if (resto > 0) partes.push(grupo(resto));
+                if (partes.length === 0) return 'zero';
+                if (partes.length === 1) return partes[0];
+                const ultimo = partes[partes.length - 1];
+                const anteriores = partes.slice(0, -1);
+                const usaE = resto > 0 && (resto < 100 || resto % 100 === 0);
+                return anteriores.join(', ') + (usaE ? ' e ' : ', ') + ultimo;
+            }
+            const centavosTotal = Math.round((Number(valor) || 0) * 100);
+            const reais = Math.floor(centavosTotal / 100);
+            const centavos = centavosTotal % 100;
+            const precisaDe = reais >= 1000000 && reais % 1000000 === 0;
+            let texto = reais === 0 ? 'zero reais' : `${inteiro(reais)}${precisaDe ? ' de' : ''} ${reais === 1 ? 'real' : 'reais'}`;
+            if (centavos > 0) texto += ` e ${inteiro(centavos)} ${centavos === 1 ? 'centavo' : 'centavos'}`;
+            return texto;
+        }
+
+        function proximoNumeroDoc(lista) {
+            if (!lista.length) return 1;
+            return Math.max(...lista.map(item => Number(item.registro) || 0)) + 1;
+        }
+
+        function inicializarListenersDocumentos() {
+            if (listenersDocumentosAtivos || !db) return;
+            listenersDocumentosAtivos = true;
+            db.root.child('declaracoes').on('value', snap => {
+                const val = snap.val();
+                declaracoes = val ? Object.values(val) : [];
+                renderizarDeclaracoes();
+            }, erro => console.error('Falha ao carregar declarações:', erro));
+            db.root.child('recibos').on('value', snap => {
+                const val = snap.val();
+                recibos = val ? Object.values(val) : [];
+                renderizarRecibos();
+            }, erro => console.error('Falha ao carregar recibos:', erro));
+            db.root.child('clientesDocumentos').on('value', snap => {
+                const val = snap.val();
+                clientesDoc = val ? Object.values(val) : [];
+                atualizarDatalistClientesDoc();
+                renderizarClientesDoc();
+                renderizarDeclaracoes();
+                renderizarRecibos();
+            }, erro => console.error('Falha ao carregar clientes:', erro));
+        }
+
+        function atualizarDatalistClientesDoc() {
+            let lista = document.getElementById('clientesDocDatalist');
+            if (!lista) {
+                lista = document.createElement('datalist');
+                lista.id = 'clientesDocDatalist';
+                document.body.appendChild(lista);
+            }
+            lista.innerHTML = clientesDoc.map(c => `<option value="${escaparHtml(c.razaoSocial)}">${escaparHtml(formatarDocumentoCnpjCpf(c.cnpj))}</option>`).join('');
+        }
+
+        /* ---- Declarações ---- */
+        function renderizarDeclaracoes() {
+            const corpo = document.getElementById('tabelaDeclaracoes');
+            const contadorTexto = document.getElementById('declaracoesContadorTexto');
+            const badge = document.getElementById('contadorDeclaracoesPendentes');
+            if (!corpo) return;
+            const busca = normalizarTexto(document.getElementById('declaracoesBusca')?.value || '');
+            const statusFiltro = document.getElementById('declaracoesStatusFiltro')?.value || 'todas';
+            let lista = [...declaracoes];
+            if (statusFiltro === 'pendentes') lista = lista.filter(d => !d.entregue);
+            if (statusFiltro === 'entregues') lista = lista.filter(d => d.entregue);
+            if (busca) lista = lista.filter(d => normalizarTexto(`${d.registro} ${d.cliente} ${d.cnpj} ${d.cte} ${d.nf} ${d.obs}`).includes(busca));
+            lista.sort((a, b) => new Date(b.data) - new Date(a.data));
+            if (contadorTexto) contadorTexto.textContent = `${declaracoes.length} registro${declaracoes.length === 1 ? '' : 's'} no total`;
+            const pendentes = declaracoes.filter(d => !d.entregue).length;
+            if (badge) { badge.hidden = pendentes === 0; badge.textContent = pendentes; }
+            if (!lista.length) { corpo.innerHTML = '<tr><td colspan="7" class="historico-vazio">Nenhuma declaração encontrada.</td></tr>'; return; }
+            corpo.innerHTML = lista.map(d => `
+                <tr>
+                    <td>#${escaparHtml(d.registro)}</td>
+                    <td>${escaparHtml(formatarDataDoc(d.data))}</td>
+                    <td>${escaparHtml(d.cliente)}</td>
+                    <td>${escaparHtml(d.cte || '-')}/${escaparHtml(d.nf || '-')}</td>
+                    <td>${escaparHtml(d.obs || '-')}</td>
+                    <td><button type="button" class="badge-status-doc ${d.entregue ? 'entregue' : 'pendente'}" onclick="alternarEntregueDeclaracao(${Number(d.registro)})">${d.entregue ? 'Entregue' : 'Pendente'}</button></td>
+                    <td><button type="button" class="btn-ferramenta-tabela" onclick="visualizarDeclaracao(${Number(d.registro)})">Ver / imprimir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function alternarEntregueDeclaracao(registro) {
+            if (!exigirAcessoAutorizado() || !exigirPermissao('documentos')) return;
+            const d = declaracoes.find(x => Number(x.registro) === Number(registro));
+            if (!d) return;
+            const entregue = !d.entregue;
+            const dataEntrega = entregue ? new Date().toISOString() : '';
+            db.root.child('declaracoes').child(String(registro)).update({ entregue, dataEntrega }).catch(erro => {
+                console.error('Erro ao atualizar declaração:', erro);
+                mostrarAlerta('<b>Erro:</b> não foi possível atualizar a situação da declaração.', 'erro');
+            });
+        }
+
+        function abrirFormularioDeclaracao() {
+            if (!exigirAcessoAutorizado() || !exigirPermissao('documentos')) return;
+            estadoClienteFormDoc.formDecl = {};
+            const proximo = proximoNumeroDoc(declaracoes);
+            document.getElementById('modalFormularioDocKicker').textContent = 'Declarações';
+            document.getElementById('modalFormularioDocTitulo').textContent = `Nova declaração — nº ${proximo}`;
+            document.getElementById('modalFormularioDocCorpo').innerHTML = `
+                ${templateCampoClienteDoc('formDecl')}
+                <div class="doc-form-linha cols-3">
+                    <div class="doc-form-campo"><label>CT-e</label><input type="text" id="formDeclCte" class="input-filtro"></div>
+                    <div class="doc-form-campo"><label>NF</label><input type="text" id="formDeclNf" class="input-filtro"></div>
+                    <div class="doc-form-campo"><label>Origem</label><input type="text" id="formDeclOrigem" class="input-filtro" placeholder="Ex: FC, DX..."></div>
+                </div>
+                <div class="doc-form-linha cols-3">
+                    <div class="doc-form-campo"><label>Volume</label><input type="text" id="formDeclVolume" class="input-filtro" placeholder="Ex: 1/3"></div>
+                    <div class="doc-form-campo"><label>CI</label><input type="text" id="formDeclCi" class="input-filtro"></div>
+                    <div class="doc-form-campo"><label>Chave NF-e</label><input type="text" id="formDeclChaveNfe" class="input-filtro"></div>
+                </div>
+                <div class="doc-form-campo"><label>Ocorrência / observação</label><textarea id="formDeclObs" class="input-filtro" rows="2" placeholder="Ex: ENTREGAR VOLUME FALTANTE"></textarea></div>
+            `;
+            const botao = document.getElementById('btnSalvarFormularioDoc');
+            botao.textContent = 'Salvar declaração';
+            botao.onclick = () => salvarFormularioDeclaracao(proximo);
+            document.getElementById('modalFormularioDoc').hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function salvarFormularioDeclaracao(numero) {
+            const dadosCliente = obterDadosClienteFormDoc('formDecl');
+            const obs = document.getElementById('formDeclObs').value.trim();
+            if (!dadosCliente.cliente || !obs) { alert('Informe ao menos o cliente e a ocorrência/observação.'); return; }
+            const registro = {
+                registro: numero,
+                data: new Date().toISOString(),
+                cnpj: dadosCliente.cnpjPadded || dadosCliente.cnpj,
+                cliente: dadosCliente.cliente,
+                endereco: dadosCliente.endereco,
+                cte: document.getElementById('formDeclCte').value.trim(),
+                nf: document.getElementById('formDeclNf').value.trim(),
+                origem: document.getElementById('formDeclOrigem').value.trim(),
+                chaveNfe: document.getElementById('formDeclChaveNfe').value.trim(),
+                volume: document.getElementById('formDeclVolume').value.trim(),
+                ci: document.getElementById('formDeclCi').value.trim(),
+                obs,
+                entregue: false,
+                dataEntrega: '',
+                impressao: ''
+            };
+            salvarClienteNovoSeNecessario(dadosCliente)
+                .then(() => db.root.child('declaracoes').child(String(numero)).set(registro))
+                .then(() => { fecharModalFormularioDoc(); mostrarAlerta('<b>Status:</b> declaração cadastrada.', 'sucesso'); })
+                .catch(erro => { console.error('Erro ao salvar declaração:', erro); mostrarAlerta('<b>Erro:</b> não foi possível salvar a declaração.', 'erro'); });
+        }
+
+        /* ---- Recibos ---- */
+        function renderizarRecibos() {
+            const corpo = document.getElementById('tabelaRecibos');
+            const contadorTexto = document.getElementById('recibosContadorTexto');
+            if (!corpo) return;
+            const busca = normalizarTexto(document.getElementById('recibosBusca')?.value || '');
+            let lista = [...recibos];
+            if (busca) lista = lista.filter(r => normalizarTexto(`${r.registro} ${r.cliente} ${r.cnpj} ${r.cte} ${r.obs}`).includes(busca));
+            lista.sort((a, b) => new Date(b.data) - new Date(a.data));
+            if (contadorTexto) contadorTexto.textContent = `${recibos.length} recibo${recibos.length === 1 ? '' : 's'} emitido${recibos.length === 1 ? '' : 's'}`;
+            if (!lista.length) { corpo.innerHTML = '<tr><td colspan="7" class="historico-vazio">Nenhum recibo encontrado.</td></tr>'; return; }
+            corpo.innerHTML = lista.map(r => `
+                <tr>
+                    <td>#${escaparHtml(r.registro)}</td>
+                    <td>${escaparHtml(formatarDataDoc(r.data))}</td>
+                    <td>${escaparHtml(r.cliente)}</td>
+                    <td>${escaparHtml(r.obs || '-')}</td>
+                    <td>${escaparHtml(formatarMoedaDoc(r.valor))}</td>
+                    <td><span class="badge-pagamento ${escaparHtml(r.formaPagamento)}">${escaparHtml(r.formaPagamento)}</span></td>
+                    <td><button type="button" class="btn-ferramenta-tabela" onclick="visualizarRecibo(${Number(r.registro)})">Ver / imprimir</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirFormularioRecibo() {
+            if (!exigirAcessoAutorizado() || !exigirPermissao('documentos')) return;
+            estadoClienteFormDoc.formRec = {};
+            formaPagamentoReciboAtual = 'pix';
+            const proximo = proximoNumeroDoc(recibos);
+            document.getElementById('modalFormularioDocKicker').textContent = 'Recibos';
+            document.getElementById('modalFormularioDocTitulo').textContent = `Novo recibo — nº ${proximo}`;
+            document.getElementById('modalFormularioDocCorpo').innerHTML = `
+                ${templateCampoClienteDoc('formRec')}
+                <div class="doc-form-linha cols-2">
+                    <div class="doc-form-campo"><label>CT-e / referência</label><input type="text" id="formRecCte" class="input-filtro"></div>
+                    <div class="doc-form-campo"><label>Origem</label><input type="text" id="formRecOrigem" class="input-filtro"></div>
+                </div>
+                <div class="doc-form-campo"><label>Motivo da indenização</label><textarea id="formRecObs" class="input-filtro" rows="2" placeholder="Ex: PAGAR AVARIA DE UMA GARRAFA"></textarea></div>
+                <div class="doc-form-linha cols-2">
+                    <div class="doc-form-campo"><label>Valor (R$)</label><input type="text" id="formRecValor" class="input-filtro" placeholder="0,00" oninput="atualizarExtensoRecibo()"></div>
+                    <div class="doc-form-campo">
+                        <label>Forma de pagamento</label>
+                        <div class="doc-pagamento-opcoes">
+                            <button type="button" id="formRecPagPix" class="selecionado pix" onclick="selecionarPagamentoRecibo('pix')">PIX</button>
+                            <button type="button" id="formRecPagDinheiro" onclick="selecionarPagamentoRecibo('dinheiro')">Dinheiro</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="doc-form-campo" id="formRecChavePixCampo"><label>Chave PIX</label><input type="text" id="formRecChavePix" class="input-filtro"></div>
+                <p class="doc-extenso" id="formRecExtenso"></p>
+            `;
+            const botao = document.getElementById('btnSalvarFormularioDoc');
+            botao.textContent = 'Salvar recibo';
+            botao.onclick = () => salvarFormularioRecibo(proximo);
+            document.getElementById('modalFormularioDoc').hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function selecionarPagamentoRecibo(forma) {
+            formaPagamentoReciboAtual = forma;
+            const btPix = document.getElementById('formRecPagPix');
+            const btDin = document.getElementById('formRecPagDinheiro');
+            if (btPix) btPix.className = forma === 'pix' ? 'selecionado pix' : '';
+            if (btDin) btDin.className = forma === 'dinheiro' ? 'selecionado dinheiro' : '';
+            const campoPix = document.getElementById('formRecChavePixCampo');
+            if (campoPix) campoPix.style.display = forma === 'pix' ? '' : 'none';
+        }
+
+        function atualizarExtensoRecibo() {
+            const campo = document.getElementById('formRecValor');
+            const saida = document.getElementById('formRecExtenso');
+            if (!campo || !saida) return;
+            const valor = parseFloat((campo.value || '0').replace(/\./g, '').replace(',', '.')) || 0;
+            saida.textContent = valor > 0 ? numeroPorExtensoDoc(valor) : '';
+        }
+
+        function salvarFormularioRecibo(numero) {
+            const dadosCliente = obterDadosClienteFormDoc('formRec');
+            const obs = document.getElementById('formRecObs').value.trim();
+            const valor = parseFloat((document.getElementById('formRecValor').value || '0').replace(/\./g, '').replace(',', '.')) || 0;
+            if (!dadosCliente.cliente || !obs || valor <= 0) { alert('Informe o cliente, o motivo e um valor maior que zero.'); return; }
+            const registro = {
+                registro: numero,
+                data: new Date().toISOString(),
+                cnpj: dadosCliente.cnpjPadded || dadosCliente.cnpj,
+                cliente: dadosCliente.cliente,
+                endereco: dadosCliente.endereco,
+                cte: document.getElementById('formRecCte').value.trim(),
+                origem: document.getElementById('formRecOrigem').value.trim(),
+                valor,
+                formaPagamento: formaPagamentoReciboAtual,
+                chavePix: formaPagamentoReciboAtual === 'pix' ? document.getElementById('formRecChavePix').value.trim() : '',
+                obs,
+                impressao: ''
+            };
+            salvarClienteNovoSeNecessario(dadosCliente)
+                .then(() => db.root.child('recibos').child(String(numero)).set(registro))
+                .then(() => { fecharModalFormularioDoc(); mostrarAlerta('<b>Status:</b> recibo cadastrado.', 'sucesso'); })
+                .catch(erro => { console.error('Erro ao salvar recibo:', erro); mostrarAlerta('<b>Erro:</b> não foi possível salvar o recibo.', 'erro'); });
+        }
+
+        /* ---- Clientes ---- */
+        function renderizarClientesDoc() {
+            const container = document.getElementById('listaClientesDoc');
+            const contadorTexto = document.getElementById('clientesDocContadorTexto');
+            if (!container) return;
+            const busca = normalizarTexto(document.getElementById('clientesDocBusca')?.value || '');
+            let lista = [...clientesDoc];
+            if (busca) lista = lista.filter(c => normalizarTexto(`${c.razaoSocial} ${c.cnpj}`).includes(busca));
+            lista.sort((a, b) => a.razaoSocial.localeCompare(b.razaoSocial, 'pt-BR'));
+            if (contadorTexto) contadorTexto.textContent = `${clientesDoc.length} cadastrado${clientesDoc.length === 1 ? '' : 's'}`;
+            if (!lista.length) { container.innerHTML = '<div class="historico-vazio" style="grid-column:1/-1;">Nenhum cliente encontrado.</div>'; return; }
+            container.innerHTML = lista.map(c => `
+                <button type="button" class="doc-card-cliente" onclick="abrirFormularioCliente('${escaparHtml(c.cnpj)}')">
+                    <div class="doc-card-nome">${escaparHtml(c.razaoSocial)}</div>
+                    <div class="doc-card-doc">${escaparHtml(formatarDocumentoCnpjCpf(c.cnpj))}</div>
+                    ${c.endereco ? `<div class="doc-card-endereco">${escaparHtml(c.endereco)}</div>` : ''}
+                </button>
+            `).join('');
+        }
+
+        function abrirFormularioCliente(cnpjExistente) {
+            if (!exigirAcessoAutorizado() || !exigirPermissao('documentos')) return;
+            const existente = cnpjExistente ? clientesDoc.find(c => c.cnpj === cnpjExistente) : null;
+            document.getElementById('modalFormularioDocKicker').textContent = 'Clientes';
+            document.getElementById('modalFormularioDocTitulo').textContent = existente ? 'Editar cliente' : 'Novo cliente';
+            document.getElementById('modalFormularioDocCorpo').innerHTML = `
+                <div class="doc-form-campo"><label>CNPJ / CPF</label><input type="text" id="formCliCnpj" class="input-filtro" value="${escaparHtml(existente ? formatarDocumentoCnpjCpf(existente.cnpj) : '')}" ${existente ? 'disabled' : ''} placeholder="Somente números"></div>
+                <div class="doc-form-campo" style="margin-top:10px;"><label>Razão social / Nome</label><input type="text" id="formCliRazao" class="input-filtro" value="${escaparHtml(existente?.razaoSocial || '')}"></div>
+                <p style="font-size:11px;color:#8a949e;margin:10px 0 6px;">Um cliente pode ter até 3 endereços — na hora de emitir uma declaração ou recibo, você escolhe qual vale pra aquele registro.</p>
+                <div class="doc-form-campo"><label>Endereço 1</label><input type="text" id="formCliEnd1" class="input-filtro" value="${escaparHtml(existente?.endereco || '')}"></div>
+                <div class="doc-form-campo" style="margin-top:8px;"><label>Endereço 2</label><input type="text" id="formCliEnd2" class="input-filtro" value="${escaparHtml(existente?.endereco2 || '')}"></div>
+                <div class="doc-form-campo" style="margin-top:8px;"><label>Endereço 3</label><input type="text" id="formCliEnd3" class="input-filtro" value="${escaparHtml(existente?.endereco3 || '')}"></div>
+            `;
+            const botao = document.getElementById('btnSalvarFormularioDoc');
+            botao.textContent = 'Salvar cliente';
+            botao.onclick = () => salvarFormularioCliente(existente ? existente.cnpj : null);
+            document.getElementById('modalFormularioDoc').hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function salvarFormularioCliente(cnpjExistente) {
+            const razaoSocial = document.getElementById('formCliRazao').value.trim();
+            const digits = apenasDigitosDoc(document.getElementById('formCliCnpj').value);
+            const cnpj = cnpjExistente || (digits ? digits.padStart(digits.length > 11 ? 14 : 11, '0') : '');
+            if (!razaoSocial || !cnpj) { alert('Informe o CNPJ/CPF e a razão social/nome.'); return; }
+            const registro = {
+                cnpj, razaoSocial,
+                endereco: document.getElementById('formCliEnd1').value.trim(),
+                endereco2: document.getElementById('formCliEnd2').value.trim(),
+                endereco3: document.getElementById('formCliEnd3').value.trim()
+            };
+            db.root.child('clientesDocumentos').child(cnpj).set(registro)
+                .then(() => { fecharModalFormularioDoc(); mostrarAlerta('<b>Status:</b> cliente salvo.', 'sucesso'); })
+                .catch(erro => { console.error('Erro ao salvar cliente:', erro); mostrarAlerta('<b>Erro:</b> não foi possível salvar o cliente.', 'erro'); });
+        }
+
+        /* ---- Campo de cliente reutilizável (autocomplete + endereços + cliente novo) ---- */
+        function templateCampoClienteDoc(prefixo) {
+            return `
+                <div class="doc-form-linha cols-2">
+                    <div class="doc-form-campo">
+                        <label>CNPJ / CPF</label>
+                        <input type="text" id="${prefixo}Cnpj" placeholder="Somente números" oninput="sincronizarClienteDocPorCnpj('${prefixo}')">
+                    </div>
+                    <div class="doc-form-campo doc-cliente-autocomplete">
+                        <label>Cliente</label>
+                        <input type="text" id="${prefixo}Cliente" list="clientesDocDatalist" placeholder="Razão social ou nome" oninput="sincronizarClienteDocPorNome('${prefixo}')">
+                    </div>
+                </div>
+                <div id="${prefixo}Enderecos"></div>
+                <div id="${prefixo}AvisoNovo"></div>
+            `;
+        }
+
+        function sincronizarClienteDocPorCnpj(prefixo) {
+            const campoCnpj = document.getElementById(`${prefixo}Cnpj`);
+            const campoCliente = document.getElementById(`${prefixo}Cliente`);
+            const digits = apenasDigitosDoc(campoCnpj.value).slice(0, 14);
+            const padded14 = digits.padStart(14, '0');
+            const padded11 = digits.padStart(11, '0');
+            const encontrado = clientesDoc.find(c => c.cnpj === padded14 || c.cnpj === padded11);
+            if (encontrado) {
+                campoCliente.value = encontrado.razaoSocial;
+                estadoClienteFormDoc[prefixo] = { cnpj: encontrado.cnpj, endereco: encontrado.endereco || '' };
+            } else {
+                estadoClienteFormDoc[prefixo] = { cnpj: digits, endereco: '' };
+            }
+            atualizarEnderecosCampoClienteDoc(prefixo);
+        }
+
+        function sincronizarClienteDocPorNome(prefixo) {
+            const campoCliente = document.getElementById(`${prefixo}Cliente`);
+            const campoCnpj = document.getElementById(`${prefixo}Cnpj`);
+            const nome = campoCliente.value.trim();
+            const encontrado = clientesDoc.find(c => c.razaoSocial.toLowerCase() === nome.toLowerCase());
+            if (encontrado) {
+                campoCnpj.value = formatarDocumentoCnpjCpf(encontrado.cnpj);
+                estadoClienteFormDoc[prefixo] = { cnpj: encontrado.cnpj, endereco: encontrado.endereco || '' };
+            } else {
+                estadoClienteFormDoc[prefixo] = { cnpj: apenasDigitosDoc(campoCnpj.value), endereco: estadoClienteFormDoc[prefixo]?.endereco || '' };
+            }
+            atualizarEnderecosCampoClienteDoc(prefixo);
+        }
+
+        function atualizarEnderecosCampoClienteDoc(prefixo) {
+            const estado = estadoClienteFormDoc[prefixo] || {};
+            const containerEnd = document.getElementById(`${prefixo}Enderecos`);
+            const containerAviso = document.getElementById(`${prefixo}AvisoNovo`);
+            if (!containerEnd || !containerAviso) return;
+            const enderecos = enderecosDoClienteDoc(estado.cnpj || '');
+            containerEnd.innerHTML = enderecos.length > 1 ? `
+                <div class="doc-enderecos-opcoes">
+                    <span style="font-size:11px;font-weight:700;color:#64748b;">Este cliente tem mais de um endereço — qual deve ser usado?</span>
+                    ${enderecos.map(e => `<button type="button" class="doc-endereco-opcao ${estado.endereco === e.texto ? 'selecionado' : ''}" onclick="selecionarEnderecoClienteDoc('${prefixo}', ${e.slot})"><b>Endereço ${e.slot}:</b> ${escaparHtml(e.texto)}</button>`).join('')}
+                </div>
+            ` : '';
+            const digits = apenasDigitosDoc(estado.cnpj || document.getElementById(`${prefixo}Cnpj`)?.value || '');
+            const completo = digits.length === 11 || digits.length === 14;
+            const padded = digits ? digits.padStart(digits.length > 11 ? 14 : 11, '0') : '';
+            const jaExiste = clientesDoc.some(c => c.cnpj === padded);
+            containerAviso.innerHTML = (completo && !jaExiste) ? `
+                <div class="doc-aviso-cliente-novo">
+                    <b>Cliente novo:</b> esse CNPJ/CPF ainda não está cadastrado. Ele será salvo automaticamente como novo cliente ao salvar este registro.
+                    <input type="text" id="${prefixo}NovoEndereco" class="input-filtro" placeholder="Endereço (opcional)" style="width:100%;margin-top:6px;">
+                </div>
+            ` : '';
+        }
+
+        function selecionarEnderecoClienteDoc(prefixo, slot) {
+            const cnpjAtual = estadoClienteFormDoc[prefixo]?.cnpj || '';
+            const enderecos = enderecosDoClienteDoc(cnpjAtual);
+            const escolhido = enderecos.find(e => e.slot === slot);
+            if (escolhido) estadoClienteFormDoc[prefixo].endereco = escolhido.texto;
+            atualizarEnderecosCampoClienteDoc(prefixo);
+        }
+
+        function obterDadosClienteFormDoc(prefixo) {
+            const digits = apenasDigitosDoc(document.getElementById(`${prefixo}Cnpj`)?.value || '');
+            const cliente = document.getElementById(`${prefixo}Cliente`)?.value.trim() || '';
+            const estado = estadoClienteFormDoc[prefixo] || {};
+            const cnpjPadded = digits ? digits.padStart(digits.length > 11 ? 14 : 11, '0') : '';
+            const jaExiste = clientesDoc.some(c => c.cnpj === cnpjPadded);
+            let endereco = estado.endereco || '';
+            if (!jaExiste && cnpjPadded) endereco = document.getElementById(`${prefixo}NovoEndereco`)?.value.trim() || '';
+            return { cnpj: digits, cnpjPadded, cliente, endereco, salvarComoNovo: Boolean(!jaExiste && cnpjPadded && cliente) };
+        }
+
+        function salvarClienteNovoSeNecessario(dadosCliente) {
+            if (!dadosCliente.salvarComoNovo) return Promise.resolve();
+            const novo = { cnpj: dadosCliente.cnpjPadded, razaoSocial: dadosCliente.cliente, endereco: dadosCliente.endereco || '', endereco2: '', endereco3: '' };
+            return db.root.child('clientesDocumentos').child(dadosCliente.cnpjPadded).set(novo);
+        }
+
+        /* ---- Modal de formulário (compartilhado por declaração/recibo/cliente) ---- */
+        function fecharModalFormularioDoc() {
+            document.getElementById('modalFormularioDoc').hidden = true;
+            document.body.classList.remove('modal-aberto');
+        }
+        function fecharModalFormularioDocAoClicarFundo(evento) {
+            if (evento.target?.id === 'modalFormularioDoc') fecharModalFormularioDoc();
+        }
+
+        /* ---- Visualização e impressão ---- */
+        function visualizarDeclaracao(registro) {
+            const d = declaracoes.find(x => Number(x.registro) === Number(registro));
+            if (!d) return;
+            visualizandoDoc = { tipo: 'declaracao', registro: d };
+            enderecoEscolhidoDoc = d.endereco || (clientesDoc.find(c => c.cnpj === d.cnpj) || {}).endereco || '';
+            document.getElementById('modalVisualizarDocTitulo').textContent = `Declaração nº ${d.registro}`;
+            renderizarEnderecosVisualizacao(d.cnpj);
+            document.getElementById('modalVisualizarDocCorpo').innerHTML = montarHtmlDeclaracao(d);
+            document.getElementById('modalVisualizarDoc').hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function visualizarRecibo(registro) {
+            const r = recibos.find(x => Number(x.registro) === Number(registro));
+            if (!r) return;
+            visualizandoDoc = { tipo: 'recibo', registro: r };
+            enderecoEscolhidoDoc = r.endereco || (clientesDoc.find(c => c.cnpj === r.cnpj) || {}).endereco || '';
+            document.getElementById('modalVisualizarDocTitulo').textContent = `Recibo nº ${r.registro}`;
+            renderizarEnderecosVisualizacao(r.cnpj);
+            document.getElementById('modalVisualizarDocCorpo').innerHTML = montarHtmlRecibo(r);
+            document.getElementById('modalVisualizarDoc').hidden = false;
+            document.body.classList.add('modal-aberto');
+        }
+
+        function renderizarEnderecosVisualizacao(cnpj) {
+            const container = document.getElementById('modalVisualizarDocEnderecos');
+            const enderecos = enderecosDoClienteDoc(cnpj);
+            container.innerHTML = enderecos.length > 1 ? `
+                <div class="doc-aviso-cliente-novo" style="background:#fff8ec;border-color:#f1e0b6;color:#92620c;">
+                    <b>Este cliente tem mais de um endereço</b> — qual deve sair nesta impressão?
+                    <div class="doc-enderecos-opcoes">
+                        ${enderecos.map(e => `<button type="button" class="doc-endereco-opcao ${enderecoEscolhidoDoc === e.texto ? 'selecionado' : ''}" onclick="escolherEnderecoVisualizacao(${e.slot})"><b>Endereço ${e.slot}:</b> ${escaparHtml(e.texto)}</button>`).join('')}
+                    </div>
+                </div>
+            ` : '';
+        }
+
+        function escolherEnderecoVisualizacao(slot) {
+            if (!visualizandoDoc) return;
+            const cnpj = visualizandoDoc.registro.cnpj;
+            const enderecos = enderecosDoClienteDoc(cnpj);
+            const escolhido = enderecos.find(e => e.slot === slot);
+            if (escolhido) enderecoEscolhidoDoc = escolhido.texto;
+            renderizarEnderecosVisualizacao(cnpj);
+            document.getElementById('modalVisualizarDocCorpo').innerHTML = visualizandoDoc.tipo === 'declaracao'
+                ? montarHtmlDeclaracao(visualizandoDoc.registro)
+                : montarHtmlRecibo(visualizandoDoc.registro);
+        }
+
+        function fecharModalVisualizarDoc() {
+            document.getElementById('modalVisualizarDoc').hidden = true;
+            document.body.classList.remove('modal-aberto');
+            visualizandoDoc = null;
+        }
+        function fecharModalVisualizarDocAoClicarFundo(evento) {
+            if (evento.target?.id === 'modalVisualizarDoc') fecharModalVisualizarDoc();
+        }
+
+        document.addEventListener('keydown', evento => {
+            if (evento.key !== 'Escape') return;
+            const m1 = document.getElementById('modalFormularioDoc');
+            if (m1 && !m1.hidden) fecharModalFormularioDoc();
+            const m2 = document.getElementById('modalVisualizarDoc');
+            if (m2 && !m2.hidden) fecharModalVisualizarDoc();
+        });
+
+        function montarHtmlDeclaracao(d) {
+            const enderecoExibido = enderecoEscolhidoDoc || d.endereco || '';
+            return `
+                <div style="font-family:Arial,sans-serif;color:#172033;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172033;padding-bottom:14px;margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:22px;font-weight:800;">EXPRESSO SÃO MIGUEL SA</div>
+                            <div style="font-size:11px;color:#64748b;margin-top:2px;">Transporte de cargas · Balneário Camboriú - SC</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:11px;color:#64748b;">DECLARAÇÃO Nº</div>
+                            <div style="font-size:26px;font-weight:800;">${escaparHtml(d.registro)}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:16px;">
+                        <span>Emitido em: ${escaparHtml(formatarDataHoraDoc(d.data))}</span>
+                        <span>Impresso em: ${escaparHtml(formatarDataHoraDoc(new Date().toISOString()))}</span>
+                    </div>
+                    <p style="font-size:13px;line-height:1.6;margin-bottom:16px;">Declaramos, para os devidos fins, que a mercadoria abaixo relacionada foi apresentada para entrega pela transportadora <b>EXPRESSO SÃO MIGUEL SA</b>, tendo sido registrada a seguinte ocorrência:</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:12px;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <div><span style="color:#64748b;font-size:10px;display:block;">Cliente</span><b>${escaparHtml(d.cliente)}</b></div>
+                        <div><span style="color:#64748b;font-size:10px;display:block;">CNPJ / CPF</span>${escaparHtml(formatarDocumentoCnpjCpf(d.cnpj))}</div>
+                        ${enderecoExibido ? `<div style="grid-column:1/-1;"><span style="color:#64748b;font-size:10px;display:block;">Endereço</span>${escaparHtml(enderecoExibido)}</div>` : ''}
+                        <div><span style="color:#64748b;font-size:10px;display:block;">NF</span>${escaparHtml(d.nf || '—')}</div>
+                        <div><span style="color:#64748b;font-size:10px;display:block;">CT-e</span>${escaparHtml(d.cte || '—')}</div>
+                        <div><span style="color:#64748b;font-size:10px;display:block;">Volume(s)</span>${escaparHtml(d.volume || '—')}</div>
+                        <div><span style="color:#64748b;font-size:10px;display:block;">Origem</span>${escaparHtml(d.origem || '—')}</div>
+                        <div><span style="color:#64748b;font-size:10px;display:block;">CI</span>${escaparHtml(d.ci || '—')}</div>
+                        ${d.chaveNfe ? `<div style="grid-column:1/-1;"><span style="color:#64748b;font-size:10px;display:block;">Chave de acesso NF-e</span><span style="font-size:10px;word-break:break-all;">${escaparHtml(d.chaveNfe)}</span></div>` : ''}
+                    </div>
+                    <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;background:#f8fafc;margin-bottom:20px;">
+                        <span style="color:#64748b;font-size:10px;display:block;margin-bottom:4px;">Ocorrência / Observação</span>
+                        <p style="font-size:13px;font-weight:600;">${escaparHtml(d.obs || '—')}</p>
+                    </div>
+                    <div style="margin-bottom:26px;display:flex;align-items:center;gap:10px;">
+                        <span style="font-size:11px;color:#64748b;">Situação:</span>
+                        <span class="badge-status-doc ${d.entregue ? 'entregue' : 'pendente'}" style="cursor:default;">${d.entregue ? 'Entregue' : 'Pendente'}</span>
+                        ${d.entregue && d.dataEntrega ? `<span style="font-size:11px;color:#64748b;">em ${escaparHtml(formatarDataDoc(d.dataEntrega))}</span>` : ''}
+                    </div>
+                    <p style="font-size:13px;margin-bottom:40px;">Balneário Camboriú, ${escaparHtml(dataPorExtensoDoc())}.</p>
+                    <div style="max-width:280px;margin:0 auto;text-align:center;">
+                        <div style="border-top:1px solid #94a3b8;padding-top:8px;font-size:11px;color:#64748b;">Assinatura e carimbo do recebedor</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function montarHtmlReciboVia(r, via) {
+            const enderecoExibido = enderecoEscolhidoDoc || r.endereco || '';
+            return `
+                <div style="font-family:Arial,sans-serif;color:#172033;page-break-inside:avoid;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172033;padding-bottom:8px;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:16px;font-weight:800;line-height:1;">EXPRESSO SÃO MIGUEL SA</div>
+                            <div style="font-size:10px;color:#64748b;margin-top:2px;">Transporte de cargas · Balneário Camboriú - SC</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:10px;color:#64748b;">RECIBO Nº</div>
+                            <div style="font-size:18px;font-weight:800;line-height:1;">${escaparHtml(r.registro)}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:8px;">
+                        <span>Emitido: ${escaparHtml(formatarDataHoraDoc(r.data))}</span>
+                        <span style="font-weight:700;color:#475569;">${escaparHtml(via)}</span>
+                        <span>Impresso: ${escaparHtml(formatarDataHoraDoc(new Date().toISOString()))}</span>
+                    </div>
+                    <p style="font-size:11px;line-height:1.5;margin-bottom:8px;">Recebi de <b>EXPRESSO SÃO MIGUEL SA</b> a quantia de <b>${escaparHtml(formatarMoedaDoc(r.valor))}</b> (${escaparHtml(numeroPorExtensoDoc(r.valor))}), referente a: ${escaparHtml(r.obs)}${r.cte ? ` — ref. CT-e/origem ${escaparHtml(r.cte)}${r.origem ? ` (${escaparHtml(r.origem)})` : ''}` : ''}.</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:10px;border:1px solid #e2e8f0;border-radius:8px;padding:9px;margin-bottom:10px;">
+                        <div><span style="color:#64748b;display:block;">Cliente</span><b>${escaparHtml(r.cliente)}</b></div>
+                        <div><span style="color:#64748b;display:block;">CNPJ / CPF</span>${escaparHtml(formatarDocumentoCnpjCpf(r.cnpj))}</div>
+                        ${enderecoExibido ? `<div style="grid-column:1/-1;"><span style="color:#64748b;display:block;">Endereço</span>${escaparHtml(enderecoExibido)}</div>` : ''}
+                        <div><span style="color:#64748b;display:block;">Forma de pagamento</span>${r.formaPagamento === 'pix' ? `PIX — chave ${escaparHtml(r.chavePix || '—')}` : 'Dinheiro'}</div>
+                        <div><span style="color:#64748b;display:block;">Valor</span>${escaparHtml(formatarMoedaDoc(r.valor))}</div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:14px;">
+                        <p style="font-size:10px;">Balneário Camboriú, ${escaparHtml(dataPorExtensoDoc())}.</p>
+                        <div style="width:170px;text-align:center;">
+                            <div style="border-top:1px solid #94a3b8;padding-top:4px;font-size:10px;color:#64748b;">Assinatura</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function montarHtmlRecibo(r) {
+            return `
+                ${montarHtmlReciboVia(r, '1ª via — Cliente')}
+                <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
+                    <div style="flex:1;border-top:1px dashed #cbd5e1;"></div>
+                    <span style="font-size:10px;color:#94a3b8;">✂ corte aqui</span>
+                    <div style="flex:1;border-top:1px dashed #cbd5e1;"></div>
+                </div>
+                ${montarHtmlReciboVia(r, '2ª via — Conferência de Depósito')}
+            `;
+        }
+
+        function imprimirDocumentoAtual() {
+            if (!visualizandoDoc) return;
+            const conteudo = visualizandoDoc.tipo === 'declaracao' ? montarHtmlDeclaracao(visualizandoDoc.registro) : montarHtmlRecibo(visualizandoDoc.registro);
+            const titulo = visualizandoDoc.tipo === 'declaracao' ? `Declaração nº ${visualizandoDoc.registro.registro}` : `Recibo nº ${visualizandoDoc.registro.registro}`;
+            const janela = window.open('', '_blank');
+            if (!janela) { alert('Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.'); return; }
+            janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escaparHtml(titulo)}</title><style>body{padding:26px;font-family:Arial,sans-serif;} @media print { @page { size:A4; margin:14mm; } }</style></head><body>${conteudo}<script>window.onload=()=>window.print();<\/script></body></html>`);
+            janela.document.close();
+            const tipo = visualizandoDoc.tipo;
+            const registro = visualizandoDoc.registro.registro;
+            const caminho = tipo === 'declaracao' ? 'declaracoes' : 'recibos';
+            db.root.child(caminho).child(String(registro)).update({ impressao: `Impresso em ${formatarDataHoraDoc(new Date().toISOString())}` }).catch(() => {});
         }
 
         try {
