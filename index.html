@@ -1223,6 +1223,19 @@
             <div class="bloco">
                 <div class="doc-topo">
                     <div>
+                        <h3 style="color:#374151;">Importar backup antigo</h3>
+                        <p style="margin-top:5px; color:#8a949e; font-size:12px;">Importa um arquivo .json com declarações, recibos e clientes exportados da planilha antiga. Pode ser usado mais de uma vez sem duplicar (cada registro é identificado pelo próprio número/CNPJ).</p>
+                    </div>
+                </div>
+                <div class="doc-busca-linha">
+                    <input type="file" id="backupDocInput" accept=".json" onchange="lerArquivoBackupDoc(event)">
+                    <button type="button" class="btn-principal" id="btnImportarBackupDoc" onclick="importarBackupDoc()" disabled>Importar para o sistema</button>
+                </div>
+                <p id="backupDocStatus" style="font-size:12px; color:#8a949e;"></p>
+            </div>
+            <div class="bloco">
+                <div class="doc-topo">
+                    <div>
                         <h3 style="color:#374151;">Clientes</h3>
                         <p style="margin-top:5px; color:#8a949e; font-size:12px;" id="clientesDocContadorTexto">0 cadastrados</p>
                     </div>
@@ -4622,23 +4635,25 @@
             let lista = [...declaracoes];
             if (statusFiltro === 'pendentes') lista = lista.filter(d => !d.entregue);
             if (statusFiltro === 'entregues') lista = lista.filter(d => d.entregue);
-            if (busca) lista = lista.filter(d => normalizarTexto(`${d.registro} ${d.cliente} ${d.cnpj} ${d.cte} ${d.nf} ${d.obs}`).includes(busca));
+            if (busca) lista = lista.filter(d => normalizarTexto(`${d.registro} ${d.cliente} ${d.cnpj} ${d.cte} ${d.nf} ${d.obs} ${d.situacaoOriginal || ''}`).includes(busca));
             lista.sort((a, b) => new Date(b.data) - new Date(a.data));
             if (contadorTexto) contadorTexto.textContent = `${declaracoes.length} registro${declaracoes.length === 1 ? '' : 's'} no total`;
             const pendentes = declaracoes.filter(d => !d.entregue).length;
             if (badge) { badge.hidden = pendentes === 0; badge.textContent = pendentes; }
             if (!lista.length) { corpo.innerHTML = '<tr><td colspan="7" class="historico-vazio">Nenhuma declaração encontrada.</td></tr>'; return; }
-            corpo.innerHTML = lista.map(d => `
+            corpo.innerHTML = lista.map(d => {
+                const situacaoExtra = d.situacaoOriginal && d.situacaoOriginal.toUpperCase() !== 'ENTREGUE' && !/^ENTREGUE\s+\d{2}\/\d{2}\/\d{4}$/.test(d.situacaoOriginal.toUpperCase()) ? d.situacaoOriginal : '';
+                return `
                 <tr>
                     <td>#${escaparHtml(d.registro)}</td>
                     <td>${escaparHtml(formatarDataDoc(d.data))}</td>
                     <td>${escaparHtml(d.cliente)}</td>
                     <td>${escaparHtml(d.cte || '-')}/${escaparHtml(d.nf || '-')}</td>
-                    <td>${escaparHtml(d.obs || '-')}</td>
+                    <td>${escaparHtml(d.obs || '-')}${situacaoExtra ? `<br><small style="color:#8a949e;">${escaparHtml(situacaoExtra)}</small>` : ''}</td>
                     <td><button type="button" class="badge-status-doc ${d.entregue ? 'entregue' : 'pendente'}" onclick="alternarEntregueDeclaracao(${Number(d.registro)})">${d.entregue ? 'Entregue' : 'Pendente'}</button></td>
                     <td><button type="button" class="btn-ferramenta-tabela" onclick="visualizarDeclaracao(${Number(d.registro)})">Ver / imprimir</button></td>
                 </tr>
-            `).join('');
+            `; }).join('');
         }
 
         function alternarEntregueDeclaracao(registro) {
@@ -4714,7 +4729,7 @@
             if (!corpo) return;
             const busca = normalizarTexto(document.getElementById('recibosBusca')?.value || '');
             let lista = [...recibos];
-            if (busca) lista = lista.filter(r => normalizarTexto(`${r.registro} ${r.cliente} ${r.cnpj} ${r.cte} ${r.obs}`).includes(busca));
+            if (busca) lista = lista.filter(r => normalizarTexto(`${r.registro} ${r.cliente} ${r.cnpj} ${r.cte} ${r.obs} ${r.situacaoOriginal || ''}`).includes(busca));
             lista.sort((a, b) => new Date(b.data) - new Date(a.data));
             if (contadorTexto) contadorTexto.textContent = `${recibos.length} recibo${recibos.length === 1 ? '' : 's'} emitido${recibos.length === 1 ? '' : 's'}`;
             if (!lista.length) { corpo.innerHTML = '<tr><td colspan="7" class="historico-vazio">Nenhum recibo encontrado.</td></tr>'; return; }
@@ -4723,7 +4738,7 @@
                     <td>#${escaparHtml(r.registro)}</td>
                     <td>${escaparHtml(formatarDataDoc(r.data))}</td>
                     <td>${escaparHtml(r.cliente)}</td>
-                    <td>${escaparHtml(r.obs || '-')}</td>
+                    <td>${escaparHtml(r.obs || '-')}${r.situacaoOriginal ? `<br><small style="color:#8a949e;">${escaparHtml(r.situacaoOriginal)}</small>` : ''}</td>
                     <td>${escaparHtml(formatarMoedaDoc(r.valor))}</td>
                     <td><span class="badge-pagamento ${escaparHtml(r.formaPagamento)}">${escaparHtml(r.formaPagamento)}</span></td>
                     <td><button type="button" class="btn-ferramenta-tabela" onclick="visualizarRecibo(${Number(r.registro)})">Ver / imprimir</button></td>
@@ -4826,6 +4841,58 @@
                     ${c.endereco ? `<div class="doc-card-endereco">${escaparHtml(c.endereco)}</div>` : ''}
                 </button>
             `).join('');
+        }
+
+        /* ---- Importação de backup antigo (declarações/recibos/clientes) ---- */
+        let backupDocCarregado = null;
+
+        function lerArquivoBackupDoc(evento) {
+            const arquivo = evento.target.files?.[0];
+            const status = document.getElementById('backupDocStatus');
+            const botao = document.getElementById('btnImportarBackupDoc');
+            backupDocCarregado = null;
+            botao.disabled = true;
+            if (!arquivo) { if (status) status.textContent = ''; return; }
+            const leitor = new FileReader();
+            leitor.onload = () => {
+                try {
+                    const dados = JSON.parse(leitor.result);
+                    const qtdDecl = Object.keys(dados.declaracoes || {}).length;
+                    const qtdRec = Object.keys(dados.recibos || {}).length;
+                    const qtdCli = Object.keys(dados.clientesDocumentos || {}).length;
+                    if (!qtdDecl && !qtdRec && !qtdCli) { if (status) status.textContent = 'Arquivo lido, mas não encontrei declarações, recibos ou clientes dentro dele.'; return; }
+                    backupDocCarregado = dados;
+                    if (status) status.textContent = `Arquivo lido: ${qtdDecl} declaração(ões), ${qtdRec} recibo(s), ${qtdCli} cliente(s). Confira e clique em "Importar para o sistema".`;
+                    botao.disabled = false;
+                } catch (erro) {
+                    console.error('Erro ao ler arquivo de backup:', erro);
+                    if (status) status.textContent = 'Não foi possível ler esse arquivo — confira se é o .json exportado corretamente.';
+                }
+            };
+            leitor.readAsText(arquivo);
+        }
+
+        function importarBackupDoc() {
+            if (!backupDocCarregado || !exigirAcessoAutorizado() || !exigirPermissao('documentos')) return;
+            const status = document.getElementById('backupDocStatus');
+            const botao = document.getElementById('btnImportarBackupDoc');
+            botao.disabled = true;
+            if (status) status.textContent = 'Importando, aguarde...';
+            const tarefas = [];
+            if (backupDocCarregado.clientesDocumentos && Object.keys(backupDocCarregado.clientesDocumentos).length) tarefas.push(db.root.child('clientesDocumentos').update(backupDocCarregado.clientesDocumentos));
+            if (backupDocCarregado.declaracoes && Object.keys(backupDocCarregado.declaracoes).length) tarefas.push(db.root.child('declaracoes').update(backupDocCarregado.declaracoes));
+            if (backupDocCarregado.recibos && Object.keys(backupDocCarregado.recibos).length) tarefas.push(db.root.child('recibos').update(backupDocCarregado.recibos));
+            Promise.all(tarefas).then(() => {
+                if (status) status.textContent = 'Importação concluída com sucesso.';
+                mostrarAlerta('<b>Status:</b> backup importado com sucesso.', 'sucesso');
+                backupDocCarregado = null;
+                document.getElementById('backupDocInput').value = '';
+            }).catch(erro => {
+                console.error('Erro ao importar backup:', erro);
+                if (status) status.textContent = 'Erro ao importar — confira sua conexão e tente novamente.';
+                mostrarAlerta('<b>Erro:</b> não foi possível concluir a importação do backup.', 'erro');
+                botao.disabled = false;
+            });
         }
 
         function abrirFormularioCliente(cnpjExistente) {
