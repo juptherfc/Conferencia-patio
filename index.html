@@ -1043,6 +1043,7 @@
                     <div id="sugestoesLista" class="sugestoes-lista"></div>
                     <div class="sugestoes-acoes">
                         <button type="button" class="btn-secundario" data-permissao="cadastrarSobra" onclick="abrirCadastroSobraAPartirDaBusca()">Cadastrar como sobra</button>
+                        <button type="button" class="btn-secundario" data-permissao="cadastrarSobra" onclick="abrirCadastroSobraDoZero()">Cadastrar do zero</button>
                         <button type="button" class="btn-secundario" onclick="limparSugestoesDeposito()">Fechar opções</button>
                     </div>
                 </div>
@@ -3245,6 +3246,17 @@
             mostrarAlerta(registroFonte
                 ? '<b>Status:</b> dados do registro de outro dia foram importados para a nova sobra. Revise e salve.'
                 : '<b>Status:</b> preencha os dados para cadastrar a sobra.', 'info');
+        }
+
+        // Abre o formulário de sobra totalmente em branco, ignorando qualquer registro
+        // semelhante encontrado na busca — só o campo efetivamente pesquisado (CTe ou NF)
+        // vem preenchido, para o usuário completar o restante manualmente do zero.
+        function abrirCadastroSobraDoZero() {
+            if (!exigirPermissao('cadastrarSobra')) return;
+            const busca = { ...contextoBuscaDeposito };
+            limparRegistroDeposito(false);
+            mostrarFormularioSobra(busca.tipo, busca.termo, null);
+            mostrarAlerta('<b>Status:</b> formulário em branco, com o campo pesquisado já preenchido. Complete o restante e salve.', 'info');
         }
 
         function obterRegistroMaisRecenteDasSugestoes() {
