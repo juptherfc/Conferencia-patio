@@ -3239,7 +3239,7 @@
 
         function abrirCadastroSobraAPartirDaBusca() {
             if (!exigirPermissao('cadastrarSobra')) return;
-            const busca = { ...contextoBuscaDeposito };
+            const busca = obterTipoTermoAtualDeposito();
             const registroFonte = obterRegistroMaisRecenteDasSugestoes();
             limparRegistroDeposito(false);
             mostrarFormularioSobra(busca.tipo, busca.termo, registroFonte);
@@ -3251,6 +3251,19 @@
         // Abre o formulário de sobra totalmente em branco, ignorando qualquer registro
         // semelhante encontrado na busca — só o campo efetivamente pesquisado (CTe ou NF)
         // vem preenchido, para o usuário completar o restante manualmente do zero.
+        // Reforço de segurança: confirma tipo/termo direto dos campos de busca visíveis
+        // na tela, caso o contexto interno da última busca não esteja disponível por
+        // algum motivo — garante que "Cadastrar do zero" sempre traga o campo pesquisado.
+        function obterTipoTermoAtualDeposito() {
+            if (contextoBuscaDeposito.tipo && contextoBuscaDeposito.termo) return { ...contextoBuscaDeposito };
+            const ids = { etiqueta: 'd-etiqueta', cte: 'd-cte', nf: 'd-nf', remetente: 'd-remetente', destino: 'd-destino' };
+            for (const tipo of Object.keys(ids)) {
+                const valor = document.getElementById(ids[tipo])?.value.trim();
+                if (valor) return { tipo, termo: valor };
+            }
+            return { ...contextoBuscaDeposito };
+        }
+
         function abrirCadastroSobraDoZero() {
             if (!exigirPermissao('cadastrarSobra')) return;
             const busca = { ...contextoBuscaDeposito };
@@ -3318,7 +3331,6 @@
         }
 
         function limparCadastroSobra(mostrarMensagem = true) {
-            contextoBuscaDeposito = { tipo: '', termo: '' };
             registroSobraSelecionada = null;
             modoEdicaoSobra = false;
             ['sobra-cte', 'sobra-nf', 'sobra-volumes', 'sobra-qtd', 'sobra-rota', 'sobra-tipo', 'sobra-qtd-sec', 'sobra-agencia', 'sobra-emissao', 'sobra-tipo-sobra'].forEach(id => {
