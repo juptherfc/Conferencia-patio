@@ -158,6 +158,9 @@
         .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
         .filtro-coluna-input[type="date"] { padding-right: 5px; }
         .cabecalho-coluna-datas { gap: 4px; }
+        .dia-trabalho-seletores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; min-width: 190px; }
+        .dia-trabalho-seletores .filtro-coluna-select { padding: 0 3px; font-size: 9.5px; }
+        .dia-trabalho-seletores .filtro-multiplo-botao { padding: 0 14px 0 5px; font-size: 9.5px; }
         .filtro-coluna-input:focus, .filtro-coluna-select:focus { background: #fff; border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
         .filtro-multiplo { position: relative; text-transform: none; }
         .filtro-multiplo-botao { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 20px 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; text-align: left; cursor: pointer; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -941,7 +944,7 @@
                 <table class="tabela-painel">
                     <thead>
                         <tr>
-                            <th><div class="cabecalho-coluna"><span>Dia Trabalho</span><select id="filtroCabecalhoDiaTrabalho" class="filtro-coluna-select" aria-label="Filtrar por dia de trabalho" onchange="registrarSelecaoDiaTrabalho(this)"><option value="">Todos</option></select></div></th>
+                            <th><div class="cabecalho-coluna cabecalho-coluna-datas"><span>Dia Trabalho</span><div class="dia-trabalho-seletores"><select id="filtroDiaTrabalhoAno" class="filtro-coluna-select" aria-label="Filtrar por ano" onchange="alterarAnoDiaTrabalho()"></select><select id="filtroDiaTrabalhoMes" class="filtro-coluna-select" aria-label="Filtrar por mês" onchange="alterarMesDiaTrabalho()"></select><div class="filtro-multiplo" data-filtro="filtroDiaTrabalhoDia" data-padrao="Todos"></div></div></div></th>
                             <th><div class="cabecalho-coluna"><span>CTe</span><input id="filtroCabecalhoCte" class="filtro-coluna-input" type="search" aria-label="Pesquisar CTe" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Notas</span><input id="filtroCabecalhoNotas" class="filtro-coluna-input" type="search" aria-label="Pesquisar notas" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Vol.</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoVolumes" data-padrao="Todos" aria-label="Filtrar volumes"></div></div></th>
@@ -1447,8 +1450,8 @@
             perfilAutorizado = null;
             dadosLocais = [];
             registrosFiltradosAtuais = [];
-            const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
-            if (selectDiaCabecalho) selectDiaCabecalho.dataset.manual = 'false';
+            diaTrabalhoSelecaoManual = false;
+            estadoFiltrosMultiplos.filtroDiaTrabalhoDia = new Set();
             document.getElementById('usuarioSessao').textContent = '';
             document.getElementById('avatarSessao').textContent = 'SM';
             document.getElementById('btnSair').hidden = true;
@@ -1880,6 +1883,7 @@
                     </div>
                 `;
             });
+            document.querySelector('.filtro-multiplo[data-filtro="filtroDiaTrabalhoDia"]')?.addEventListener('click', () => { diaTrabalhoSelecaoManual = true; }, true);
             document.addEventListener('click', evento => {
                 document.querySelectorAll('.filtro-multiplo-painel:not([hidden])').forEach(painel => {
                     const container = painel.closest('.filtro-multiplo');
@@ -2097,18 +2101,20 @@
             if (campoCte && document.activeElement !== campoCte) campoCte.value = campoCte.value || '';
             if (campoNotas && document.activeElement !== campoNotas) campoNotas.value = campoNotas.value || '';
 
-            // Resolve primeiro qual será o dia de trabalho selecionado (manual, se o
-            // usuário já escolheu um; senão o último dia importado) para então montar as
-            // opções dos filtros de coluna já restritas a esse dia, evitando misturar
-            // valores de outros dias e deixar o resultado escapar do dia escolhido.
+            // Resolve quais dias de trabalho estão selecionados (manual, se o usuário já
+            // mexeu; senão o dia mais recente importado, marcado sozinho) para montar as
+            // opções dos demais filtros de coluna já restritas a esses dias.
             const diasTrabalho = obterDiasTrabalhoImportados();
             const ultimoDiaImportado = diasTrabalho[0] || '';
-            const selectDiaCabecalho = document.getElementById('filtroCabecalhoDiaTrabalho');
-            const selecaoManual = selectDiaCabecalho?.dataset.manual === 'true';
-            const diaDesejado = selecaoManual ? (selectDiaCabecalho.value || '') : ultimoDiaImportado;
+            const jaTemDiaSelecionado = (estadoFiltrosMultiplos.filtroDiaTrabalhoDia?.size || 0) > 0;
+            if (!diaTrabalhoSelecaoManual && !jaTemDiaSelecionado && ultimoDiaImportado) {
+                estadoFiltrosMultiplos.filtroDiaTrabalhoDia = new Set([ultimoDiaImportado.toLowerCase()]);
+            }
+            popularSeletoresDiaTrabalho(!diaTrabalhoSelecaoManual ? ultimoDiaImportado : null);
+            const diasSelecionadosTrabalho = valoresFiltroMultiplo('filtroDiaTrabalhoDia');
             const registrosSemSobras = dadosLocais.filter(registro => !ehRegistroSobra(registro));
-            const registrosParaOpcoes = diaDesejado
-                ? registrosSemSobras.filter(registro => obterDataTrabalhoRegistro(registro) === diaDesejado)
+            const registrosParaOpcoes = diasSelecionadosTrabalho.size
+                ? registrosSemSobras.filter(registro => atendeFiltroMultiplo(obterDataTrabalhoRegistro(registro), diasSelecionadosTrabalho))
                 : registrosSemSobras;
 
             preencherFiltroMultiplo('filtroCabecalhoVolumes', registrosParaOpcoes.map(registro => registro.volumes), 'Todos');
@@ -2127,30 +2133,60 @@
             preencherFiltroMultiplo('filtroCabecalhoDiasAtraso', registrosParaOpcoes.map(registro => registro.diasAtraso), 'Todos');
             preencherFiltroMultiplo('filtroCabecalhoUltOcorrencia', registrosParaOpcoes.map(registro => obterDataEmFormatoISO(registro.dataUltOcorrencia)), 'Todos', formatarData);
             preencherSelect('filtroAvancadoLote', registrosParaOpcoes.map(registro => registro.loteId), 'Todos os lotes');
-            preencherSelect('filtroCabecalhoDiaTrabalho', dadosLocais.map(obterDataTrabalhoRegistro), 'Todos', valor => valor, 'desc');
-            if (selectDiaCabecalho && [...selectDiaCabecalho.options].some(option => option.value === diaDesejado)) selectDiaCabecalho.value = diaDesejado;
-            [...(selectDiaCabecalho?.options || [])].forEach(option => {
-                if (filtroEhBranco(option.value)) option.textContent = 'Em branco';
-                else if (option.value) option.textContent = `${formatarDataImportacao(option.value)} — ${option.value}`;
-            });
             renderizarSobrasMenu();
         }
 
-        function registrarSelecaoDiaTrabalho(select) {
-            if (select) select.dataset.manual = 'true';
+        let diaTrabalhoSelecaoManual = false;
+        const nomesMeses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+        // Monta os seletores de Ano e Mês (únicos) com base nos dias que realmente têm
+        // registro, e o seletor de Dia (múltipla seleção) restrito ao ano/mês escolhidos.
+        // "diaDesejado" (opcional) força ano/mês para esse dia específico — usado só na
+        // primeira carga / quando não há seleção manual, para acompanhar o dia mais recente.
+        function popularSeletoresDiaTrabalho(diaDesejado) {
+            const selectAno = document.getElementById('filtroDiaTrabalhoAno');
+            const selectMes = document.getElementById('filtroDiaTrabalhoMes');
+            if (!selectAno || !selectMes) return;
+            const registrosSemSobras = dadosLocais.filter(registro => !ehRegistroSobra(registro));
+            const todosOsDias = [...new Set(registrosSemSobras.map(obterDataTrabalhoRegistro).filter(Boolean))];
+
+            const anos = [...new Set(todosOsDias.map(d => d.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+            const anoAlvo = diaDesejado ? diaDesejado.slice(0, 4) : (selectAno.value || anos[0] || '');
+            selectAno.innerHTML = anos.length ? anos.map(a => `<option value="${a}">${a}</option>`).join('') : '<option value="">—</option>';
+            selectAno.value = anos.includes(anoAlvo) ? anoAlvo : (anos[0] || '');
+
+            const anoSelecionado = selectAno.value;
+            const meses = [...new Set(todosOsDias.filter(d => d.startsWith(anoSelecionado)).map(d => d.slice(5, 7)))].sort((a, b) => b.localeCompare(a));
+            const mesAlvo = diaDesejado ? diaDesejado.slice(5, 7) : (selectMes.value || meses[0] || '');
+            selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${nomesMeses[Number(m) - 1] || m}</option>`).join('') : '<option value="">—</option>';
+            selectMes.value = meses.includes(mesAlvo) ? mesAlvo : (meses[0] || '');
+
+            const anoMesSelecionado = `${selectAno.value}-${selectMes.value}`;
+            const diasDoMes = todosOsDias.filter(d => d.startsWith(anoMesSelecionado));
+            preencherFiltroMultiplo('filtroDiaTrabalhoDia', diasDoMes, 'Todos', valor => valor.slice(8, 10));
+        }
+
+        function alterarAnoDiaTrabalho() {
+            diaTrabalhoSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroDiaTrabalhoDia = new Set();
             atualizarOpcoesFiltros();
             filtrarTabela();
         }
 
-        const nomesMeses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        function alterarMesDiaTrabalho() {
+            diaTrabalhoSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroDiaTrabalhoDia = new Set();
+            atualizarOpcoesFiltros();
+            filtrarTabela();
+        }
 
         function criarIdentificadorLote(dataTrabalho) {
             return `${dataTrabalho}_${Date.now()}`;
         }
 
         function obterDiaTrabalhoAtualParaSobra(dataFallback = '') {
-            const seletor = document.getElementById('filtroCabecalhoDiaTrabalho');
-            if (seletor?.dataset.manual === 'true' && seletor.value) return seletor.value;
+            const selecionados = valoresFiltroMultiplo('filtroDiaTrabalhoDia');
+            if (diaTrabalhoSelecaoManual && selecionados.size) return [...selecionados].sort().reverse()[0];
             return obterDiasTrabalhoImportados()[0] || dataFallback || obterDataAtualLocalISO();
         }
 
@@ -2690,13 +2726,13 @@
         }
 
         function limparFiltrosCabecalho() {
-            ['filtroCabecalhoDiaTrabalho', 'filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
+            ['filtroCabecalhoCte', 'filtroCabecalhoNotas', 'filtroAvancadoTexto', 'filtroAvancadoStatus', 'filtroAvancadoLote', 'filtroAvancadoOcorrencia', 'filtroAvancadoDiaInicial', 'filtroAvancadoDiaFinal', 'filtroAvancadoEmissaoInicial', 'filtroAvancadoEmissaoFinal', 'filtroAvancadoEntregaInicial', 'filtroAvancadoEntregaFinal', 'filtroAvancadoAtrasoMinimo'].forEach(id => {
                 const campo = document.getElementById(id);
                 if (campo) campo.value = '';
             });
             FILTROS_MULTIPLOS_IDS.forEach(redefinirFiltroMultiplo);
-            const dia = document.getElementById('filtroCabecalhoDiaTrabalho');
-            if (dia) dia.dataset.manual = 'true';
+            redefinirFiltroMultiplo('filtroDiaTrabalhoDia');
+            diaTrabalhoSelecaoManual = true;
             filtrarTabela();
         }
 
@@ -4040,7 +4076,7 @@
         }
 
         function filtrarTabela() {
-            const diaTrabalho = obterValorCampo('filtroCabecalhoDiaTrabalho');
+            const diaTrabalho = valoresFiltroMultiplo('filtroDiaTrabalhoDia');
             const cteCabecalho = obterValorCampo('filtroCabecalhoCte');
             const notasCabecalho = obterValorCampo('filtroCabecalhoNotas');
             const volumesCabecalho = valoresFiltroMultiplo('filtroCabecalhoVolumes');
@@ -4087,7 +4123,7 @@
                 const diaTrabalhoRegistro = obterDataTrabalhoRegistro(registro);
                 const emissaoRegistro = obterDataEmFormatoISO(registro.emissao);
                 const entregaRegistro = obterDataEmFormatoISO(registro.previsaoEntrega);
-                if (diaTrabalho && !atendeFiltroExato(diaTrabalhoRegistro, diaTrabalho)) return false;
+                if (!atendeFiltroMultiplo(diaTrabalhoRegistro, diaTrabalho)) return false;
                 if (!atendeFiltroMultiploData(registro.emissao, dataEmissao)) return false;
                 if (!atendeFiltroMultiploData(registro.previsaoAgencia, dataPrevAgencia)) return false;
                 if (!atendeFiltroMultiploData(registro.previsaoEntrega, dataPrevEntrega)) return false;
@@ -4169,11 +4205,11 @@
                 corpo.appendChild(linha);
             });
 
-            const diaTrabalho = document.getElementById('filtroCabecalhoDiaTrabalho')?.value || '';
+            const diaTrabalho = valoresFiltroMultiplo('filtroDiaTrabalhoDia');
             const dataEmissaoResumo = valoresFiltroMultiplo('filtroCabecalhoDataEmissao');
             const registrosPeriodo = dadosLocais.filter(registro => {
                 if (ehRegistroSobra(registro)) return false;
-                if (diaTrabalho && obterDataTrabalhoRegistro(registro) !== diaTrabalho) return false;
+                if (!atendeFiltroMultiplo(obterDataTrabalhoRegistro(registro), diaTrabalho)) return false;
                 if (!atendeFiltroMultiploData(registro.emissao, dataEmissaoResumo)) return false;
                 return true;
             });
