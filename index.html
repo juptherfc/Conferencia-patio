@@ -158,9 +158,6 @@
         .filtro-coluna-input, .filtro-coluna-select { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; outline: none; }
         .filtro-coluna-input[type="date"] { padding-right: 5px; }
         .cabecalho-coluna-datas { gap: 4px; }
-        .dia-trabalho-seletores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; min-width: 190px; }
-        .dia-trabalho-seletores .filtro-coluna-select { padding: 0 3px; font-size: 9.5px; }
-        .dia-trabalho-seletores .filtro-multiplo-botao { padding: 0 14px 0 5px; font-size: 9.5px; }
         .filtro-coluna-input:focus, .filtro-coluna-select:focus { background: #fff; border-color: #77a9e4; box-shadow: 0 0 0 3px rgba(47, 115, 201, .1); }
         .filtro-multiplo { position: relative; text-transform: none; }
         .filtro-multiplo-botao { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; padding: 0 20px 0 7px; background: #eef5ff; color: #2c476b; font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; text-align: left; cursor: pointer; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -237,7 +234,12 @@
         .campo-filtro .input-filtro { padding-left: 32px; }
         .select-filtro { cursor: pointer; }
 
-        .tabela-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+        .tabela-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 28px; flex-wrap: wrap; }
+        .dia-trabalho-toolbar { display: flex; align-items: center; gap: 7px; flex: 1 1 320px; min-width: 280px; }
+        .dia-trabalho-toolbar-rotulo { flex: 0 0 auto; font-size: 11px; font-weight: 700; color: #55627a; white-space: nowrap; }
+        .dia-trabalho-toolbar .filtro-coluna-select { flex: 0 1 100px; height: 32px; font-size: 12px; }
+        .dia-trabalho-toolbar .filtro-multiplo { flex: 1 1 130px; min-width: 110px; }
+        .dia-trabalho-toolbar .filtro-multiplo-botao { height: 32px; font-size: 12px; }
         .tabela-titulo { color: #495463; font-size: 13px; font-weight: 700; }
         .tabela-contador { color: #9aa3ad; font-size: 11px; }
         .tabela-cabecalho-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
@@ -929,6 +931,12 @@
             </div>
             <div class="tabela-cabecalho">
                 <span class="tabela-titulo">Registros de conferência</span>
+                <div class="dia-trabalho-toolbar">
+                    <span class="dia-trabalho-toolbar-rotulo">Dia de trabalho</span>
+                    <select id="filtroDiaTrabalhoAno" class="filtro-coluna-select" aria-label="Filtrar por ano" onchange="alterarAnoDiaTrabalho()"></select>
+                    <select id="filtroDiaTrabalhoMes" class="filtro-coluna-select" aria-label="Filtrar por mês" onchange="alterarMesDiaTrabalho()"></select>
+                    <div class="filtro-multiplo" data-filtro="filtroDiaTrabalhoDia" data-padrao="Todos"></div>
+                </div>
                 <div class="tabela-cabecalho-acoes">
                     <label class="controle-largura-colunas" for="reguladorLarguraColunas" title="Ajustar a largura de todas as colunas">
                         <span>Largura</span>
@@ -944,7 +952,7 @@
                 <table class="tabela-painel">
                     <thead>
                         <tr>
-                            <th><div class="cabecalho-coluna cabecalho-coluna-datas"><span>Dia Trabalho</span><div class="dia-trabalho-seletores"><select id="filtroDiaTrabalhoAno" class="filtro-coluna-select" aria-label="Filtrar por ano" onchange="alterarAnoDiaTrabalho()"></select><select id="filtroDiaTrabalhoMes" class="filtro-coluna-select" aria-label="Filtrar por mês" onchange="alterarMesDiaTrabalho()"></select><div class="filtro-multiplo" data-filtro="filtroDiaTrabalhoDia" data-padrao="Todos"></div></div></div></th>
+                            <th><div class="cabecalho-coluna"><span>Dia Trabalho</span></div></th>
                             <th><div class="cabecalho-coluna"><span>CTe</span><input id="filtroCabecalhoCte" class="filtro-coluna-input" type="search" aria-label="Pesquisar CTe" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Notas</span><input id="filtroCabecalhoNotas" class="filtro-coluna-input" type="search" aria-label="Pesquisar notas" placeholder="Pesquisar" oninput="filtrarTabela()"></div></th>
                             <th><div class="cabecalho-coluna"><span>Vol.</span><div class="filtro-multiplo" data-filtro="filtroCabecalhoVolumes" data-padrao="Todos" aria-label="Filtrar volumes"></div></div></th>
