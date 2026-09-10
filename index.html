@@ -2346,7 +2346,7 @@
         }
 
         function limparFiltrosHistorico() {
-            historicoSelecaoManual = true;
+            historicoSelecaoManual = false;
             redefinirFiltroMultiplo('historicoDia');
             atualizarFiltrosHistorico();
             renderizarHistorico();
@@ -2508,7 +2508,7 @@
         function limparFiltrosAuditoria() {
             const acao = document.getElementById('filtroAuditoriaAcao');
             if (acao) acao.value = '';
-            auditoriaSelecaoManual = true;
+            auditoriaSelecaoManual = false;
             redefinirFiltroMultiplo('filtroAuditoriaDia');
             renderizarAuditoria();
         }
@@ -2632,7 +2632,7 @@
         }
 
         function limparFiltrosSobrasMenu() {
-            sobrasSelecaoManual = true;
+            sobrasSelecaoManual = false;
             redefinirFiltroMultiplo('filtroSobrasDia');
             renderizarSobrasMenu();
         }
