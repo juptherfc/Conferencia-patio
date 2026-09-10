@@ -2844,7 +2844,8 @@
             });
             FILTROS_MULTIPLOS_IDS.forEach(redefinirFiltroMultiplo);
             redefinirFiltroMultiplo('filtroDiaTrabalhoDia');
-            diaTrabalhoSelecaoManual = true;
+            diaTrabalhoSelecaoManual = false;
+            atualizarOpcoesFiltros();
             filtrarTabela();
         }
 
