@@ -397,7 +397,9 @@
         .deposito-acoes { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
         .deposito-vazio { margin-top: 18px; padding: 14px; border-radius: 8px; background: #f8fafc; color: #8a949e; font-size: 11px; }
         .deposito-vazio.oculto { display: none; }
-        .historico-filtros { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 10px; margin-top: 14px; }
+        .historico-filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        .historico-filtros > select, .historico-filtros > input, .historico-filtros > .filtro-multiplo { flex: 1 1 130px; min-width: 130px; }
+        .historico-filtros > button { flex: 0 0 auto; }
         .historico-filtros .select-filtro { height: 36px; }
         .historico-resumo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; color: #7c8792; font-size: 11px; }
         .historico-resumo strong { color: #374151; font-size: 15px; }
@@ -643,7 +645,8 @@
             .sobras-cabecalho { align-items: stretch; flex-direction: column; gap: 8px; }
             .btn-ver-sobras { width: 100%; }
             .sobras-tabela-container { max-height: 260px; -webkit-overflow-scrolling: touch; }
-            .historico-filtros { grid-template-columns: 1fr; gap: 8px; }
+            .historico-filtros { gap: 8px; }
+            .historico-filtros > select, .historico-filtros > input, .historico-filtros > .filtro-multiplo { flex: 1 1 100%; }
             .historico-resumo { align-items: flex-start; flex-direction: column; gap: 4px; }
             .historico-tabela-container { max-height: calc(100vh - 275px); -webkit-overflow-scrolling: touch; }
             .historico-tabela { min-width: 720px; }
@@ -1139,7 +1142,10 @@
                     <span class="sobra-badge">Consulta operacional</span>
                 </div>
                 <div class="historico-filtros" aria-label="Filtro de sobras">
-                    <select id="filtroSobrasDiaTrabalho" class="select-filtro" onchange="renderizarSobrasMenu()"><option value="">Todos os dias</option></select>
+                    <select id="filtroSobrasAno" class="select-filtro" aria-label="Filtrar por ano" onchange="alterarAnoSobras()"></select>
+                    <select id="filtroSobrasMes" class="select-filtro" aria-label="Filtrar por mês" onchange="alterarMesSobras()"></select>
+                    <div class="filtro-multiplo" data-filtro="filtroSobrasDia" data-padrao="Todos"></div>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosSobrasMenu()">Limpar filtros</button>
                 </div>
                                 <div class="sobra-resumo-grid" aria-label="Resumo das sobras">
 
@@ -1167,7 +1173,9 @@
                 <p style="margin-top:5px; color:#8a949e; font-size:12px;">Consulte inclusões e alterações realizadas no painel por usuário, ação e dia de trabalho.</p>
                 <div class="historico-filtros auditoria-filtros" aria-label="Filtros da auditoria">
                     <select id="filtroAuditoriaAcao" class="select-filtro" onchange="renderizarAuditoria()"><option value="">Todas as ações</option></select>
-                    <input type="date" id="filtroAuditoriaDia" class="input-filtro" onchange="renderizarAuditoria()" aria-label="Filtrar auditoria por dia">
+                    <select id="filtroAuditoriaAno" class="select-filtro" aria-label="Filtrar por ano" onchange="alterarAnoAuditoria()"></select>
+                    <select id="filtroAuditoriaMes" class="select-filtro" aria-label="Filtrar por mês" onchange="alterarMesAuditoria()"></select>
+                    <div class="filtro-multiplo" data-filtro="filtroAuditoriaDia" data-padrao="Todos"></div>
                     <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosAuditoria()">Limpar filtros</button>
                 </div>
                                 <div class="historico-resumo">
@@ -1306,9 +1314,10 @@
                 <h3 style="color:#374151;">Histórico de importações</h3>
                 <p style="margin-top:5px; color:#8a949e; font-size:12px;">Acompanhe os lotes importados por dia, mês e ano. Se uma planilha estiver errada, exclua o lote inteiro.</p>
                 <div class="historico-filtros" aria-label="Filtros do histórico">
-                    <select id="historicoAno" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os anos</option></select>
-                    <select id="historicoMes" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os meses</option></select>
-                    <select id="historicoDia" class="select-filtro" onchange="renderizarHistorico()"><option value="">Todos os dias</option></select>
+                    <select id="historicoAno" class="select-filtro" aria-label="Filtrar por ano" onchange="alterarAnoHistorico()"></select>
+                    <select id="historicoMes" class="select-filtro" aria-label="Filtrar por mês" onchange="alterarMesHistorico()"></select>
+                    <div class="filtro-multiplo" data-filtro="historicoDia" data-padrao="Todos"></div>
+                    <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosHistorico()">Limpar filtros</button>
                 </div>
                 <div class="historico-resumo">
                     <span><strong id="historicoQtdLotes">0</strong> lotes encontrados</span>
@@ -1892,6 +1901,9 @@
                 `;
             });
             document.querySelector('.filtro-multiplo[data-filtro="filtroDiaTrabalhoDia"]')?.addEventListener('click', () => { diaTrabalhoSelecaoManual = true; }, true);
+            document.querySelector('.filtro-multiplo[data-filtro="filtroSobrasDia"]')?.addEventListener('click', () => { sobrasSelecaoManual = true; }, true);
+            document.querySelector('.filtro-multiplo[data-filtro="historicoDia"]')?.addEventListener('click', () => { historicoSelecaoManual = true; }, true);
+            document.querySelector('.filtro-multiplo[data-filtro="filtroAuditoriaDia"]')?.addEventListener('click', () => { auditoriaSelecaoManual = true; }, true);
             document.addEventListener('click', evento => {
                 document.querySelectorAll('.filtro-multiplo-painel:not([hidden])').forEach(painel => {
                     const container = painel.closest('.filtro-multiplo');
@@ -1967,11 +1979,22 @@
             atualizarRotuloFiltroMultiplo(id);
         }
 
+        // As áreas de Sobras, Histórico e Auditoria reaproveitam o mesmo componente de
+        // múltipla seleção da Conferência para o filtro de Dia, mas cada uma precisa
+        // recalcular sua PRÓPRIA tabela — não a de Conferência. Este despachante decide
+        // qual função de renderização chamar, com base em qual filtro foi alterado.
+        function atualizarFiltroAposMultiplo(id) {
+            if (id === 'filtroSobrasDia') { renderizarSobrasMenu(); return; }
+            if (id === 'historicoDia') { renderizarHistorico(); return; }
+            if (id === 'filtroAuditoriaDia') { renderizarAuditoria(); return; }
+            filtrarTabela();
+        }
+
         function alternarOpcaoFiltroMultiplo(id, valor, marcado) {
             if (!estadoFiltrosMultiplos[id]) estadoFiltrosMultiplos[id] = new Set();
             if (marcado) estadoFiltrosMultiplos[id].add(valor); else estadoFiltrosMultiplos[id].delete(valor);
             atualizarRotuloFiltroMultiplo(id);
-            filtrarTabela();
+            atualizarFiltroAposMultiplo(id);
         }
 
         function marcarTodosFiltroMultiplo(id) {
@@ -1985,7 +2008,7 @@
                 conjunto.add(caixa.value);
             });
             atualizarRotuloFiltroMultiplo(id);
-            filtrarTabela();
+            atualizarFiltroAposMultiplo(id);
         }
 
         function redefinirFiltroMultiplo(id) {
@@ -1996,7 +2019,7 @@
 
         function limparFiltroMultiploUnico(id) {
             redefinirFiltroMultiplo(id);
-            filtrarTabela();
+            atualizarFiltroAposMultiplo(id);
         }
 
         function filtrarOpcoesPainelMultiplo(id, termo) {
@@ -2151,27 +2174,36 @@
         // registro, e o seletor de Dia (múltipla seleção) restrito ao ano/mês escolhidos.
         // "diaDesejado" (opcional) força ano/mês para esse dia específico — usado só na
         // primeira carga / quando não há seleção manual, para acompanhar o dia mais recente.
-        function popularSeletoresDiaTrabalho(diaDesejado) {
-            const selectAno = document.getElementById('filtroDiaTrabalhoAno');
-            const selectMes = document.getElementById('filtroDiaTrabalhoMes');
+        // Função genérica reaproveitável: monta os seletores de Ano e Mês (únicos) e o
+        // seletor de Dia (múltipla seleção) com base numa lista de datas ISO brutas.
+        // "prefixo" define os IDs (ex: "filtroDiaTrabalho" -> filtroDiaTrabalhoAno/Mes/Dia).
+        // "diaDesejado" (opcional) força ano/mês para esse dia — usado só quando não há
+        // seleção manual do usuário, para acompanhar automaticamente o dia mais recente.
+        function popularCascataAnoMesDia(prefixo, diasDisponiveis, diaDesejado) {
+            const selectAno = document.getElementById(`${prefixo}Ano`);
+            const selectMes = document.getElementById(`${prefixo}Mes`);
             if (!selectAno || !selectMes) return;
-            const registrosSemSobras = dadosLocais.filter(registro => !ehRegistroSobra(registro));
-            const todosOsDias = [...new Set(registrosSemSobras.map(obterDataTrabalhoRegistro).filter(Boolean))];
+            const diasUnicos = [...new Set(diasDisponiveis.filter(Boolean))];
 
-            const anos = [...new Set(todosOsDias.map(d => d.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+            const anos = [...new Set(diasUnicos.map(d => d.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
             const anoAlvo = diaDesejado ? diaDesejado.slice(0, 4) : (selectAno.value || anos[0] || '');
             selectAno.innerHTML = anos.length ? anos.map(a => `<option value="${a}">${a}</option>`).join('') : '<option value="">—</option>';
             selectAno.value = anos.includes(anoAlvo) ? anoAlvo : (anos[0] || '');
 
             const anoSelecionado = selectAno.value;
-            const meses = [...new Set(todosOsDias.filter(d => d.startsWith(anoSelecionado)).map(d => d.slice(5, 7)))].sort((a, b) => b.localeCompare(a));
+            const meses = [...new Set(diasUnicos.filter(d => d.startsWith(anoSelecionado)).map(d => d.slice(5, 7)))].sort((a, b) => b.localeCompare(a));
             const mesAlvo = diaDesejado ? diaDesejado.slice(5, 7) : (selectMes.value || meses[0] || '');
             selectMes.innerHTML = meses.length ? meses.map(m => `<option value="${m}">${nomesMeses[Number(m) - 1] || m}</option>`).join('') : '<option value="">—</option>';
             selectMes.value = meses.includes(mesAlvo) ? mesAlvo : (meses[0] || '');
 
             const anoMesSelecionado = `${selectAno.value}-${selectMes.value}`;
-            const diasDoMes = todosOsDias.filter(d => d.startsWith(anoMesSelecionado));
-            preencherFiltroMultiplo('filtroDiaTrabalhoDia', diasDoMes, 'Todos', valor => valor.slice(8, 10));
+            const diasDoMes = diasUnicos.filter(d => d.startsWith(anoMesSelecionado));
+            preencherFiltroMultiplo(`${prefixo}Dia`, diasDoMes, 'Todos', valor => valor.slice(8, 10));
+        }
+
+        function popularSeletoresDiaTrabalho(diaDesejado) {
+            const registrosSemSobras = dadosLocais.filter(registro => !ehRegistroSobra(registro));
+            popularCascataAnoMesDia('filtroDiaTrabalho', registrosSemSobras.map(obterDataTrabalhoRegistro), diaDesejado);
         }
 
         function alterarAnoDiaTrabalho() {
@@ -2297,12 +2329,37 @@
             if ([...select.options].some(option => option.value === valorAtual)) select.value = valorAtual;
         }
 
+        let historicoSelecaoManual = false;
+
+        function alterarAnoHistorico() {
+            historicoSelecaoManual = true;
+            estadoFiltrosMultiplos.historicoDia = new Set();
+            atualizarFiltrosHistorico();
+            renderizarHistorico();
+        }
+
+        function alterarMesHistorico() {
+            historicoSelecaoManual = true;
+            estadoFiltrosMultiplos.historicoDia = new Set();
+            atualizarFiltrosHistorico();
+            renderizarHistorico();
+        }
+
+        function limparFiltrosHistorico() {
+            historicoSelecaoManual = true;
+            redefinirFiltroMultiplo('historicoDia');
+            atualizarFiltrosHistorico();
+            renderizarHistorico();
+        }
+
         function atualizarFiltrosHistorico() {
             const datas = dadosLocais.map(obterDataTrabalhoRegistro).filter(Boolean);
-            const partes = datas.map(obterPartesData);
-            preencherFiltroHistorico('historicoAno', partes.map(parte => parte.ano), 'Todos os anos');
-            preencherFiltroHistorico('historicoMes', partes.map(parte => parte.mes), 'Todos os meses', valor => nomesMeses[Number(valor) - 1] || valor);
-            preencherFiltroHistorico('historicoDia', partes.map(parte => parte.dia), 'Todos os dias');
+            const ultimaData = [...new Set(datas)].sort().reverse()[0] || '';
+            const jaTemSelecao = (estadoFiltrosMultiplos.historicoDia?.size || 0) > 0;
+            if (!historicoSelecaoManual && !jaTemSelecao && ultimaData) {
+                estadoFiltrosMultiplos.historicoDia = new Set([ultimaData.toLowerCase()]);
+            }
+            popularCascataAnoMesDia('historico', datas, !historicoSelecaoManual ? ultimaData : null);
         }
 
         function renderizarHistorico() {
@@ -2310,7 +2367,7 @@
             if (!corpo) return;
             const anoSelecionado = document.getElementById('historicoAno')?.value || '';
             const mesSelecionado = document.getElementById('historicoMes')?.value || '';
-            const diaSelecionado = document.getElementById('historicoDia')?.value || '';
+            const diasSelecionados = valoresFiltroMultiplo('historicoDia');
             const lotes = new Map();
 
             dadosLocais.forEach(registro => {
@@ -2319,7 +2376,7 @@
                 const partes = obterPartesData(data);
                 if (anoSelecionado && partes.ano !== anoSelecionado) return;
                 if (mesSelecionado && partes.mes !== mesSelecionado) return;
-                if (diaSelecionado && partes.dia !== diaSelecionado) return;
+                if (!atendeFiltroMultiplo(data, diasSelecionados)) return;
 
                 const loteId = valorRegistro(registro, 'loteId') || `legado_${data}`;
                 if (!lotes.has(loteId)) {
@@ -2392,19 +2449,41 @@
             return rotulos[acao] || acao || '-';
         }
 
+        let auditoriaSelecaoManual = false;
+
+        function alterarAnoAuditoria() {
+            auditoriaSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroAuditoriaDia = new Set();
+            renderizarAuditoria();
+        }
+
+        function alterarMesAuditoria() {
+            auditoriaSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroAuditoriaDia = new Set();
+            renderizarAuditoria();
+        }
+
         function renderizarAuditoria() {
             const corpo = document.getElementById('tabelaAuditoria');
             const contador = document.getElementById('auditoriaContador');
             const filtroAcao = document.getElementById('filtroAuditoriaAcao');
-                        const filtroDia = document.getElementById('filtroAuditoriaDia');
-            if (!corpo || !contador || !filtroAcao || !filtroDia) return;
+            if (!corpo || !contador || !filtroAcao) return;
 
             preencherSelect('filtroAuditoriaAcao', auditoriaLocais.map(evento => evento.acao), 'Todas as ações', rotuloAcaoAuditoria);
+
+            const datasEventos = auditoriaLocais.map(evento => obterDataEmFormatoISO(evento.criadoEm)).filter(Boolean);
+            const ultimaData = [...new Set(datasEventos)].sort().reverse()[0] || '';
+            const jaTemSelecao = (estadoFiltrosMultiplos.filtroAuditoriaDia?.size || 0) > 0;
+            if (!auditoriaSelecaoManual && !jaTemSelecao && ultimaData) {
+                estadoFiltrosMultiplos.filtroAuditoriaDia = new Set([ultimaData.toLowerCase()]);
+            }
+            popularCascataAnoMesDia('filtroAuditoria', datasEventos, !auditoriaSelecaoManual ? ultimaData : null);
+
             const acaoSelecionada = filtroAcao.value;
-            const diaSelecionado = filtroDia.value;
+            const diasSelecionados = valoresFiltroMultiplo('filtroAuditoriaDia');
             const eventos = auditoriaLocais
                 .filter(evento => !acaoSelecionada || valorRegistro(evento, 'acao') === acaoSelecionada)
-                .filter(evento => !diaSelecionado || obterDataEmFormatoISO(evento.criadoEm) === diaSelecionado)
+                .filter(evento => atendeFiltroMultiplo(obterDataEmFormatoISO(evento.criadoEm), diasSelecionados))
                 .sort((a, b) => String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')));
             contador.textContent = String(eventos.length);
             corpo.innerHTML = '';
@@ -2428,9 +2507,9 @@
 
         function limparFiltrosAuditoria() {
             const acao = document.getElementById('filtroAuditoriaAcao');
-            const dia = document.getElementById('filtroAuditoriaDia');
             if (acao) acao.value = '';
-            if (dia) dia.value = '';
+            auditoriaSelecaoManual = true;
+            redefinirFiltroMultiplo('filtroAuditoriaDia');
             renderizarAuditoria();
         }
 
@@ -2538,31 +2617,56 @@
             renderizarTabelaSobras(corpo, sobras);
         }
 
+        let sobrasSelecaoManual = false;
+
+        function alterarAnoSobras() {
+            sobrasSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroSobrasDia = new Set();
+            renderizarSobrasMenu();
+        }
+
+        function alterarMesSobras() {
+            sobrasSelecaoManual = true;
+            estadoFiltrosMultiplos.filtroSobrasDia = new Set();
+            renderizarSobrasMenu();
+        }
+
+        function limparFiltrosSobrasMenu() {
+            sobrasSelecaoManual = true;
+            redefinirFiltroMultiplo('filtroSobrasDia');
+            renderizarSobrasMenu();
+        }
+
         function obterSobrasMenuFiltradas() {
-            const filtro = document.getElementById('filtroSobrasDiaTrabalho');
             const todas = obterRegistrosSobras();
-            const diaSelecionado = filtro?.value || '';
-            const sobras = diaSelecionado === '__BRANCO__'
-                ? todas.filter(registro => !obterDataTrabalhoRegistro(registro))
-                : todas.filter(registro => !diaSelecionado || obterDataTrabalhoRegistro(registro) === diaSelecionado);
-            return { sobras, diaSelecionado };
+            const diasSelecionados = valoresFiltroMultiplo('filtroSobrasDia');
+            const sobras = todas.filter(registro => atendeFiltroMultiplo(obterDataTrabalhoRegistro(registro), diasSelecionados));
+            return { sobras, diasSelecionados };
         }
 
         function renderizarSobrasMenu() {
             const corpo = document.getElementById('tabelaSobrasMenu');
             const contador = document.getElementById('sobrasMenuContador');
-            const filtro = document.getElementById('filtroSobrasDiaTrabalho');
-            if (!corpo || !contador || !filtro) return;
+            if (!corpo || !contador) return;
             const todas = obterRegistrosSobras();
-            preencherSelect('filtroSobrasDiaTrabalho', todas.map(obterDataTrabalhoRegistro), 'Todos os dias', formatarDataImportacao);
-            const { sobras, diaSelecionado } = obterSobrasMenuFiltradas();
+            const diasTodasSobras = todas.map(obterDataTrabalhoRegistro);
+            const ultimoDiaSobras = [...new Set(diasTodasSobras.filter(Boolean))].sort().reverse()[0] || '';
+            const jaTemSelecao = (estadoFiltrosMultiplos.filtroSobrasDia?.size || 0) > 0;
+            if (!sobrasSelecaoManual && !jaTemSelecao && ultimoDiaSobras) {
+                estadoFiltrosMultiplos.filtroSobrasDia = new Set([ultimoDiaSobras.toLowerCase()]);
+            }
+            popularCascataAnoMesDia('filtroSobras', diasTodasSobras, !sobrasSelecaoManual ? ultimoDiaSobras : null);
+            const { sobras, diasSelecionados } = obterSobrasMenuFiltradas();
             const pendentes = sobras.filter(sobraTemPendencias).length;
             const completas = sobras.length - pendentes;
             const ultimoLancamento = sobras[0]?.dataImportacao || sobras[0]?.emissao || '';
             contador.textContent = String(sobras.length);
             document.getElementById('sobrasMenuPendentes').textContent = String(pendentes);
             document.getElementById('sobrasMenuCompletas').textContent = String(completas);
-            document.getElementById('sobrasMenuDiaExibido').textContent = diaSelecionado ? formatarDataImportacao(diaSelecionado) : 'Todos';
+            const rotuloDia = !diasSelecionados.size ? 'Todos'
+                : diasSelecionados.size === 1 ? formatarDataImportacao([...diasSelecionados][0])
+                : `${diasSelecionados.size} dias selecionados`;
+            document.getElementById('sobrasMenuDiaExibido').textContent = rotuloDia;
             document.getElementById('sobrasMenuUltimoLancamento').textContent = ultimoLancamento ? `Último: ${formatarDataHoraAuditoria(ultimoLancamento)}` : 'Sem lançamentos';
             renderizarTabelaSobras(corpo, sobras);
         }
