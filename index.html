@@ -379,6 +379,7 @@
         .forma-conferencia-badge.qrcode { background: #e6f4ea; color: #1c7a3c; }
         .forma-conferencia-badge.manual { background: #eef2f7; color: #55627a; }
         .deposito-sugestao-historico { margin: -4px 0 10px; padding: 8px 11px; border-radius: 8px; background: #eef6ff; color: #1d5aa8; font-size: 11.5px; border: 1px solid #cfe3fb; }
+        .deposito-sugestao-historico.deposito-aviso-ja-conferido { background: #fff4e5; color: #92620c; border-color: #f4d9a8; }
         .deposito-sugestao-historico b { font-weight: 750; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
         .deposito-resultado { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #edf0f2; }
@@ -3680,7 +3681,9 @@
             registroDepositoSelecionado = registro;
             formaConferenciaRegistroSelecionado = formaConferenciaAtual;
             atualizarBadgeFormaConferencia(formaConferenciaRegistroSelecionado);
-                        const sugestaoHistorico = buscarSugestaoHistoricoConferencia(registro);
+            const camposConferenciaJaFeita = ['qtd', 'rota', 'tipo', 'qtd2'];
+            const jaConferidoHoje = camposConferenciaJaFeita.some(campo => valorRegistro(registro, campo));
+            const sugestaoHistorico = jaConferidoHoje ? null : buscarSugestaoHistoricoConferencia(registro);
             const avisoSugestao = document.getElementById('depositoSugestaoHistorico');
             if (sugestaoHistorico) {
                 document.getElementById('d-qtd').value = valorRegistro(sugestaoHistorico, 'qtd');
@@ -3688,6 +3691,7 @@
                 document.getElementById('d-tipo').value = valorRegistro(sugestaoHistorico, 'tipo');
                 document.getElementById('d-qtd-sec').value = valorRegistro(sugestaoHistorico, 'qtd2');
                 if (avisoSugestao) {
+                    avisoSugestao.className = 'deposito-sugestao-historico';
                     avisoSugestao.style.display = 'block';
                     avisoSugestao.innerHTML = `<b>Sugestão:</b> este CTe/NF também apareceu no dia ${escaparHtml(formatarDataImportacao(obterDataTrabalhoRegistro(sugestaoHistorico)))}, e os campos abaixo foram preenchidos com os valores usados naquele dia. Confira e ajuste antes de atualizar.`;
                 }
@@ -3696,7 +3700,18 @@
                 document.getElementById('d-rota').value = valorRegistro(registro, 'rota');
                 document.getElementById('d-tipo').value = valorRegistro(registro, 'tipo');
                 document.getElementById('d-qtd-sec').value = valorRegistro(registro, 'qtd2');
-                if (avisoSugestao) { avisoSugestao.style.display = 'none'; avisoSugestao.innerHTML = ''; }
+                if (avisoSugestao) {
+                    if (jaConferidoHoje) {
+                        avisoSugestao.className = 'deposito-sugestao-historico deposito-aviso-ja-conferido';
+                        avisoSugestao.style.display = 'block';
+                        const quando = registro.formaConferenciaEm ? ` em ${escaparHtml(formatarDataHoraAuditoria(registro.formaConferenciaEm))}` : '';
+                        avisoSugestao.innerHTML = `<b>Atenção:</b> este registro já foi conferido hoje${quando}. Os valores atuais já estão preenchidos abaixo — a edição continua liberada, ajuste só se for realmente necessário corrigir algo.`;
+                    } else {
+                        avisoSugestao.className = 'deposito-sugestao-historico';
+                        avisoSugestao.style.display = 'none';
+                        avisoSugestao.innerHTML = '';
+                    }
+                }
             }
             const campoVolumes = document.getElementById('depositoVolumes');
             if (campoVolumes) campoVolumes.innerHTML = `VOL <strong>${escaparHtml(valorRegistro(registro, 'volumes') || '-')}</strong>`;
@@ -3715,7 +3730,7 @@
             formaConferenciaRegistroSelecionado = 'manual';
             atualizarBadgeFormaConferencia(null);
             const avisoSugestao = document.getElementById('depositoSugestaoHistorico');
-            if (avisoSugestao) { avisoSugestao.style.display = 'none'; avisoSugestao.innerHTML = ''; }
+            if (avisoSugestao) { avisoSugestao.style.display = 'none'; avisoSugestao.innerHTML = ''; avisoSugestao.className = 'deposito-sugestao-historico'; }
             limparSugestoesDeposito(false);
             limparCadastroSobra(false);
             if (limparBusca) limparCamposBuscaDeposito();
