@@ -378,7 +378,7 @@
         .forma-conferencia-badge { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
         .forma-conferencia-badge.qrcode { background: #e6f4ea; color: #1c7a3c; }
         .forma-conferencia-badge.manual { background: #eef2f7; color: #55627a; }
-        .deposito-sugestao-historico { margin: -4px 0 10px; padding: 8px 11px; border-radius: 8px; background: #eef6ff; color: #1d5aa8; font-size: 11.5px; border: 1px solid #cfe3fb; }
+        .deposito-sugestao-historico { margin: 14px 0 4px; padding: 9px 12px; border-radius: 8px; background: #eef6ff; color: #1d5aa8; font-size: 11.5px; line-height: 1.5; border: 1px solid #cfe3fb; }
         .deposito-sugestao-historico.deposito-aviso-ja-conferido { background: #fff4e5; color: #92620c; border-color: #f4d9a8; }
         .deposito-sugestao-historico b { font-weight: 750; }
         .btn-buscar-deposito:hover { background: #dce9ff; transform: translateY(-1px); }
@@ -391,7 +391,10 @@
         .resultado-volumes { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 7px 11px; border: 1px solid #b8d1ef; border-radius: 9px; background: #eaf3ff; color: #245fae; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
         .resultado-volumes strong { color: #173d70; font-size: 18px; line-height: 1; }
 
-        .deposito-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .deposito-ocorrencia { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 10px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 9px; background: #f8fafc; }
+        .deposito-ocorrencia-rotulo { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+        .deposito-ocorrencia-valor { font-size: 12px; font-weight: 700; color: #334155; }
+        .deposito-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 12px; margin-top: 14px; }
         .campo-edicao label { display: block; margin: 0 0 6px 2px; color: #7c8792; font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
         .campo-edicao input, .campo-edicao select { width: 100%; height: 36px; border: 1px solid #e0e4e8; border-radius: 7px; background: #fff; color: #4b5563; padding: 0 10px; outline: none; font-size: 12px; }
         .campo-edicao input:focus, .campo-edicao select:focus { border-color: #9dbcf7; box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
@@ -1072,6 +1075,10 @@
                                                 <span class="resultado-chave" id="depositoChave"></span>
                     </div>
                                         <div class="resultado-volumes" id="depositoVolumes" aria-live="polite">VOL <strong>-</strong></div>
+                    <div class="deposito-ocorrencia" id="depositoOcorrenciaBloco">
+                        <span class="deposito-ocorrencia-rotulo">Ocorrência</span>
+                        <span class="deposito-ocorrencia-valor" id="depositoOcorrenciaValor">-</span>
+                    </div>
                     <div class="deposito-campos">
 
                                                 <div class="campo-edicao"><label for="d-qtd">Qtd</label><input type="text" id="d-qtd" placeholder="Qtd" data-caixa-alta onkeydown="avancarCampoAtualizacao(event, 'd-rota')"></div>
@@ -3719,6 +3726,8 @@
             }
             const campoVolumes = document.getElementById('depositoVolumes');
             if (campoVolumes) campoVolumes.innerHTML = `VOL <strong>${escaparHtml(valorRegistro(registro, 'volumes') || '-')}</strong>`;
+            const campoOcorrencia = document.getElementById('depositoOcorrenciaValor');
+            if (campoOcorrencia) campoOcorrencia.innerHTML = renderizarOcorrencia(registro?.ocorrencia) || '-';
             const diaTrabalho = obterDataTrabalhoRegistro(registro);
 
             document.getElementById('depositoChave').textContent = `CTe ${valorRegistro(registro, 'cte') || '-'} · Dia ${formatarDataImportacao(diaTrabalho)}`;
@@ -3746,6 +3755,8 @@
             document.getElementById('depositoVazio')?.classList.remove('oculto');
             const campoVolumes = document.getElementById('depositoVolumes');
             if (campoVolumes) campoVolumes.innerHTML = 'VOL <strong>-</strong>';
+            const campoOcorrencia = document.getElementById('depositoOcorrenciaValor');
+            if (campoOcorrencia) campoOcorrencia.textContent = '-';
 
             if (mostrarMensagem) mostrarAlerta('<b>Status:</b> seleção limpa.', 'info');
         }
