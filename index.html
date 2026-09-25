@@ -313,6 +313,17 @@
         .tabela-painel th, .tabela-painel td { min-width: 0; }
         td:nth-child(2) { color: #344052; font-weight: 700; }
         td:nth-child(6) { color: #3d6ebd; font-weight: 650; }
+        .celula-edicao-inline { padding: 5px 6px !important; }
+        .edicao-inline-linha { display: flex; align-items: center; gap: 4px; min-width: 0; }
+        .campo-edicao-inline { width: 100%; min-width: 0; height: 28px; border: 1px solid #bcd3ef; border-radius: 6px; background: #f7fbff; color: #24466f; padding: 0 7px; outline: none; font: inherit; font-size: 10.5px; font-weight: 650; text-transform: uppercase; }
+        .campo-edicao-inline:hover { border-color: #8eb5e3; background: #fff; }
+        .campo-edicao-inline:focus { border-color: #3d7ac4; background: #fff; box-shadow: 0 0 0 3px rgba(61, 122, 196, .12); }
+        .btn-salvar-linha-inline { flex: 0 0 26px; width: 26px; height: 26px; border: 1px solid #bdd3ef; border-radius: 6px; background: #eef5ff; color: #245fae; font-size: 13px; font-weight: 900; line-height: 1; cursor: pointer; }
+        .btn-salvar-linha-inline:hover { border-color: #7fa8d5; background: #dcecff; }
+        .btn-salvar-linha-inline:disabled { opacity: .6; cursor: wait; }
+        .celula-edicao-inline.editando { background: #f8fbff !important; }
+        .celula-edicao-inline .campo-edicao-inline.salvo { border-color: #8bc8a8; background: #f0fbf5; }
+        .celula-edicao-inline .campo-edicao-inline.erro { border-color: #e4a2a2; background: #fff5f5; }
         tr.linha-conferida td { background-color: #f2fbf7 !important; }
 
         .ocorrencia-badge { display: inline-flex; align-items: center; gap: 6px; max-width: 260px; padding: 4px 8px; border: 1px solid transparent; border-radius: 5px; font-size: 10px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
@@ -4308,6 +4319,117 @@
             renderizarTabelaHtml(filtrados);
         }
 
+        function renderizarCelulaEdicaoInline(registro, indiceRegistro, campo, valor, incluirBotaoSalvar = false) {
+            const permitido = temPermissao('editarDeposito');
+            if (!permitido) return `<td>${escaparHtml(valor || '-')}</td>`;
+
+            const valorAtual = String(valor ?? '');
+            const label = {
+                qtd: 'Qtd',
+                rota: 'ROTA',
+                tipo: 'Tipo',
+                qtd2: 'Qtd Sec.'
+            }[campo] || campo;
+
+            const botaoSalvar = incluirBotaoSalvar
+                ? `<button type="button" class="btn-salvar-linha-inline" title="Salvar Qtd, ROTA, Tipo e Qtd Sec." aria-label="Salvar alterações da linha" onclick="salvarEdicaoLinhaInline(${indiceRegistro}, this)">✓</button>`
+                : '';
+
+            return `
+                <td class="celula-edicao-inline" data-campo-inline="${campo}">
+                    <div class="edicao-inline-linha">
+                        <input
+                            type="text"
+                            class="campo-edicao-inline"
+                            data-indice-registro="${indiceRegistro}"
+                            data-campo-inline="${campo}"
+                            value="${escaparHtml(valorAtual)}"
+                            aria-label="Editar ${label}"
+                            autocomplete="off"
+                            onkeydown="tratarTeclaEdicaoLinhaInline(event, ${indiceRegistro}, this)"
+                        >
+                        ${botaoSalvar}
+                    </div>
+                </td>
+            `;
+        }
+
+        function obterValoresEdicaoLinhaInline(indiceRegistro, raiz = document) {
+            const valores = {};
+            ['qtd', 'rota', 'tipo', 'qtd2'].forEach(campo => {
+                const input = raiz.querySelector(`.campo-edicao-inline[data-indice-registro="${indiceRegistro}"][data-campo-inline="${campo}"]`);
+                valores[campo] = String(input?.value ?? '').trim().toUpperCase();
+            });
+            return valores;
+        }
+
+        function tratarTeclaEdicaoLinhaInline(evento, indiceRegistro, input) {
+            if (evento.key !== 'Enter') return;
+            evento.preventDefault();
+            const botao = input.closest('tr')?.querySelector('.btn-salvar-linha-inline');
+            if (botao) salvarEdicaoLinhaInline(indiceRegistro, botao);
+        }
+
+        async function salvarEdicaoLinhaInline(indiceRegistro, botao) {
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('editarDeposito')) return;
+            const registro = dadosLocais[Number(indiceRegistro)];
+            if (!registro) {
+                mostrarAlerta('<b>Atenção:</b> não foi possível identificar o registro desta linha.', 'info');
+                return;
+            }
+
+            const linha = botao?.closest('tr') || document;
+            const valores = obterValoresEdicaoLinhaInline(indiceRegistro, linha);
+            const chaveRegistro = obterChaveRegistroAtual(registro);
+            if (!chaveRegistro) {
+                mostrarAlerta('<b>Erro:</b> o registro não possui uma chave válida para atualização.', 'erro');
+                return;
+            }
+
+            const valoresAtuais = {
+                qtd: String(registro.qtd ?? '').trim().toUpperCase(),
+                rota: String(registro.rota ?? '').trim().toUpperCase(),
+                tipo: String(registro.tipo ?? '').trim().toUpperCase(),
+                qtd2: String(registro.qtd2 ?? '').trim().toUpperCase()
+            };
+            const houveAlteracao = ['qtd', 'rota', 'tipo', 'qtd2'].some(campo => valores[campo] !== valoresAtuais[campo]);
+            if (!houveAlteracao) {
+                mostrarAlerta('<b>Status:</b> nenhuma alteração foi feita nesta linha.', 'info');
+                return;
+            }
+
+            const registroAntes = JSON.parse(JSON.stringify(registro));
+            const botoes = linha.querySelectorAll('.btn-salvar-linha-inline');
+            botoes.forEach(botaoLinha => botaoLinha.disabled = true);
+
+            try {
+                await db.child(chaveRegistro).update(valores);
+                Object.assign(registro, valores);
+
+                const registroDepois = JSON.parse(JSON.stringify(registro));
+                registrarAuditoria(
+                    'editar_linha',
+                    chaveRegistro,
+                    registroAntes,
+                    registroDepois,
+                    {
+                        dataTrabalho: obterDataTrabalhoRegistro(registro),
+                        detalhes: 'Edição direta na tabela: Qtd, ROTA, Tipo e Qtd Sec.'
+                    }
+                );
+
+                atualizarOpcoesFiltros();
+                filtrarTabela();
+                mostrarAlerta('<b>Status:</b> Qtd, ROTA, Tipo e Qtd Sec foram atualizados na linha.', 'sucesso');
+            } catch (error) {
+                console.error('Erro ao atualizar linha:', error);
+                botoes.forEach(botaoLinha => botaoLinha.disabled = false);
+                linha.querySelectorAll('.campo-edicao-inline').forEach(campo => campo.classList.add('erro'));
+                setTimeout(() => linha.querySelectorAll('.campo-edicao-inline').forEach(campo => campo.classList.remove('erro')), 1200);
+                mostrarAlerta('<b>Erro:</b> não foi possível salvar as alterações desta linha.', 'erro');
+            }
+        }
+
         function renderizarTabelaHtml(registros) {
             const corpo = document.getElementById('tabelaCorpo');
             if (!corpo) return;
@@ -4330,10 +4452,10 @@
                     <td>${cteCelula}</td>
                     <td>${escaparHtml(registro.notas || '-')}</td>
                     <td>${escaparHtml(registro.volumes || '-')}</td>
-                    <td>${escaparHtml(registro.qtd || '-')}</td>
-                    <td>${escaparHtml(registro.rota || '-')}</td>
-                    <td>${escaparHtml(registro.tipo || '-')}</td>
-                    <td>${escaparHtml(registro.qtd2 || '-')}</td>
+                    ${renderizarCelulaEdicaoInline(registro, indiceRegistro, 'qtd', registro.qtd)}
+                    ${renderizarCelulaEdicaoInline(registro, indiceRegistro, 'rota', registro.rota)}
+                    ${renderizarCelulaEdicaoInline(registro, indiceRegistro, 'tipo', registro.tipo)}
+                    ${renderizarCelulaEdicaoInline(registro, indiceRegistro, 'qtd2', registro.qtd2, true)}
                     <td title="${escaparHtml(registro.clienteRemetente || '')}">${escaparHtml(registro.clienteRemetente || '-')}</td>
                     <td title="${escaparHtml(registro.destino || '')}">${escaparHtml(registro.destino || '-')}</td>
                     <td>${escaparHtml(registro.agenciaRemetente || '-')}</td>
