@@ -409,6 +409,8 @@
         .historico-filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
         .historico-filtros > select, .historico-filtros > input, .historico-filtros > .filtro-multiplo { flex: 1 1 130px; min-width: 130px; }
         .historico-filtros > button { flex: 0 0 auto; }
+        .btn-excluir-mes { border-color: #f1b8b4; color: #b3342d; background: #fff5f4; }
+        .btn-excluir-mes:hover { background: #ffe9e7; border-color: #e58f89; }
         .historico-filtros .select-filtro { height: 36px; }
         .historico-resumo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; color: #7c8792; font-size: 11px; }
         .historico-resumo strong { color: #374151; font-size: 15px; }
@@ -1331,6 +1333,7 @@
                     <select id="historicoMes" class="select-filtro" aria-label="Filtrar por mês" onchange="alterarMesHistorico()"></select>
                     <div class="filtro-multiplo" data-filtro="historicoDia" data-padrao="Todos"></div>
                     <button type="button" class="btn-ferramenta-tabela" onclick="limparFiltrosHistorico()">Limpar filtros</button>
+                    <button type="button" class="btn-ferramenta-tabela btn-excluir-mes" data-permissao="excluirLote" onclick="excluirMesHistorico()" title="Exclui todos os lotes do ano/mês selecionados (gera backup antes)">Excluir mês inteiro</button>
                 </div>
                 <div class="historico-resumo">
                     <span><strong id="historicoQtdLotes">0</strong> lotes encontrados</span>
@@ -2514,6 +2517,7 @@
                 editar_detalhes: 'Editar card de detalhes',
                 importar_lote: 'Importar lote',
                                 excluir_lote: 'Excluir lote',
+                                excluir_mes: 'Excluir mês inteiro',
                 excluir_sobra: 'Excluir sobra'
 
             };
@@ -2582,6 +2586,67 @@
             auditoriaSelecaoManual = false;
             redefinirFiltroMultiplo('filtroAuditoriaDia');
             renderizarAuditoria();
+        }
+
+        // Exclui TODOS os lotes de um ano/mês de uma vez. Por ser destrutivo em larga escala:
+        // (1) mostra o resumo e exige digitar o mês (MM/AAAA) para confirmar;
+        // (2) baixa automaticamente o backup .xlsx do mês antes de apagar — se o backup
+        //     falhar, a exclusão é cancelada; (3) apaga numa única operação (tudo ou nada);
+        // (4) registra na auditoria um resumo por lote (não o conteúdo inteiro dos registros).
+        function excluirMesHistorico() {
+            if (!db || !exigirAcessoAutorizado() || !exigirPermissao('excluirLote')) return;
+            const ano = document.getElementById('historicoAno')?.value || '';
+            const mes = document.getElementById('historicoMes')?.value || '';
+            if (!ano || !mes) { alert('Selecione o ano e o mês que deseja excluir.'); return; }
+            const mesIso = `${ano}-${mes}`;
+            const registrosDoMes = dadosLocais.filter(registro => obterDataTrabalhoRegistro(registro).startsWith(mesIso));
+            if (!registrosDoMes.length) { alert('Não há registros nesse mês para excluir.'); return; }
+
+            const lotes = new Map();
+            registrosDoMes.forEach(registro => {
+                const data = obterDataTrabalhoRegistro(registro);
+                const loteId = registro.loteId || `sem-lote-${data}`;
+                const item = lotes.get(loteId) || { loteId, data, registros: 0 };
+                item.registros += 1;
+                lotes.set(loteId, item);
+            });
+            const nomeMes = `${nomesMeses[Number(mes) - 1] || mes} de ${ano}`;
+            const palavraConfirmacao = `${mes}/${ano}`;
+
+            const digitado = prompt(
+                `ATENÇÃO — EXCLUSÃO DO MÊS INTEIRO\n\n` +
+                `Mês: ${nomeMes}\n` +
+                `Lotes que serão apagados: ${lotes.size}\n` +
+                `Registros que serão apagados: ${registrosDoMes.length}\n\n` +
+                `Isso apaga TODOS os dias desse mês (inclusive sobras lançadas neles) e não pode ser desfeito.\n` +
+                `Um arquivo de backup do mês será baixado automaticamente antes da exclusão.\n\n` +
+                `Para confirmar, digite ${palavraConfirmacao}:`
+            );
+            if (digitado === null) return;
+            if (digitado.trim() !== palavraConfirmacao) { alert('O texto digitado não confere. Nada foi excluído.'); return; }
+
+            const backup = gerarArquivoBackupDoMes(mesIso);
+            if (!backup.ok) {
+                alert(`Não foi possível gerar o backup automático (${backup.erro})\n\nPor segurança, a exclusão foi cancelada e nada foi apagado.`);
+                return;
+            }
+
+            const atualizacoes = {};
+            registrosDoMes.forEach(registro => {
+                const chave = obterChaveRegistroAtual(registro);
+                if (chave) atualizacoes[chave] = null;
+            });
+            const totalChaves = Object.keys(atualizacoes).length;
+            if (!totalChaves) { alert('Não foi possível identificar os registros do mês. Nada foi excluído.'); return; }
+            const resumoLotes = [...lotes.values()].sort((a, b) => a.data.localeCompare(b.data));
+
+            db.update(atualizacoes).then(() => {
+                registrarAuditoria('excluir_mes', mesIso, { mes: mesIso, totalLotes: resumoLotes.length, totalRegistros: totalChaves, lotes: resumoLotes }, null, { dataTrabalho: mesIso, detalhes: `Exclusão do mês ${palavraConfirmacao} com ${resumoLotes.length} lote(s) e ${totalChaves} registro(s)` });
+                alert(`Mês ${nomeMes} excluído com sucesso: ${resumoLotes.length} lote(s) e ${totalChaves} registro(s).\nO backup foi baixado como conferencia-deposito-backup-${mesIso}.xlsx.`);
+            }).catch(erro => {
+                console.error('Erro ao excluir o mês:', erro);
+                alert('Não foi possível excluir o mês. Nada foi apagado — verifique sua conexão e tente novamente.\n(O backup já foi baixado e pode ser guardado.)');
+            });
         }
 
         function excluirLoteImportacao(loteId, data, quantidade) {
@@ -3038,43 +3103,49 @@
 
         // Gera UM único arquivo .xlsx para o mês escolhido, com uma aba separada para
         // cada dia de trabalho que tiver registros naquele mês (nome da aba = dia, ex: "01", "13").
-        function gerarBackupMensal() {
-            const campo = document.getElementById('backupMensalCampo');
-            const status = document.getElementById('backupMensalStatus');
-            const mesSelecionado = campo?.value || '';
-            if (!mesSelecionado) { if (status) status.textContent = 'Escolha um mês antes de gerar o backup.'; return; }
-            if (!window.XLSX) { if (status) status.textContent = 'A biblioteca de planilhas não carregou. Recarregue a página e tente novamente.'; return; }
-
+        // Monta e baixa o .xlsx de backup de um mês "AAAA-MM" (uma aba por dia de trabalho).
+        // Devolve { ok, dias, registros, erro }. É usado pelo botão "Backup mensal" e,
+        // automaticamente, antes de excluir um mês inteiro no Histórico.
+        function gerarArquivoBackupDoMes(mesSelecionado) {
+            if (!window.XLSX) return { ok: false, erro: 'A biblioteca de planilhas não carregou. Recarregue a página e tente novamente.' };
             const registrosDoMes = dadosLocais.filter(registro => obterDataTrabalhoRegistro(registro).startsWith(mesSelecionado));
-            if (!registrosDoMes.length) {
-                if (status) status.textContent = 'Não há nenhum registro nesse mês para gerar o backup.';
-                return;
-            }
-
+            if (!registrosDoMes.length) return { ok: false, erro: 'Não há nenhum registro nesse mês para gerar o backup.' };
             const registrosPorDia = {};
             registrosDoMes.forEach(registro => {
                 const dia = obterDataTrabalhoRegistro(registro);
                 if (!registrosPorDia[dia]) registrosPorDia[dia] = [];
                 registrosPorDia[dia].push(registro);
             });
-
             const diasOrdenados = Object.keys(registrosPorDia).sort();
-            const cabecalhos = obterCabecalhosExportacao();
-            const livro = XLSX.utils.book_new();
-            diasOrdenados.forEach(dia => {
-                const registrosDia = [...registrosPorDia[dia]].sort((a, b) => valorRegistro(a, 'cte').localeCompare(valorRegistro(b, 'cte'), 'pt-BR', { numeric: true }));
-                const dados = [cabecalhos, ...registrosDia.map(obterLinhaExportacao)];
-                const planilha = XLSX.utils.aoa_to_sheet(dados);
-                planilha['!cols'] = cabecalhos.map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
-                estilizarPlanilhaExportacao(planilha, cabecalhos, registrosDia);
-                const numeroDia = dia.slice(8, 10) || dia;
-                XLSX.utils.book_append_sheet(livro, planilha, numeroDia);
-            });
+            try {
+                const cabecalhos = obterCabecalhosExportacao();
+                const livro = XLSX.utils.book_new();
+                diasOrdenados.forEach(dia => {
+                    const registrosDia = [...registrosPorDia[dia]].sort((a, b) => valorRegistro(a, 'cte').localeCompare(valorRegistro(b, 'cte'), 'pt-BR', { numeric: true }));
+                    const dados = [cabecalhos, ...registrosDia.map(obterLinhaExportacao)];
+                    const planilha = XLSX.utils.aoa_to_sheet(dados);
+                    planilha['!cols'] = cabecalhos.map((_, indice) => ({ wch: indice === 15 ? 34 : indice === 8 || indice === 9 ? 24 : 15 }));
+                    estilizarPlanilhaExportacao(planilha, cabecalhos, registrosDia);
+                    const numeroDia = dia.slice(8, 10) || dia;
+                    XLSX.utils.book_append_sheet(livro, planilha, numeroDia);
+                });
+                XLSX.writeFile(livro, `conferencia-deposito-backup-${mesSelecionado}.xlsx`);
+            } catch (erro) {
+                console.error('Erro ao gerar backup mensal:', erro);
+                return { ok: false, erro: 'Falha ao gerar o arquivo de backup.' };
+            }
+            return { ok: true, dias: diasOrdenados.length, registros: registrosDoMes.length };
+        }
 
-            const nomeArquivo = `conferencia-deposito-backup-${mesSelecionado}.xlsx`;
-            XLSX.writeFile(livro, nomeArquivo);
-            if (status) status.textContent = `Backup gerado: ${diasOrdenados.length} dia(s), ${registrosDoMes.length} registro(s).`;
-            mostrarAlerta(`<b>Status:</b> backup de ${mesSelecionado} gerado com ${diasOrdenados.length} aba(s) e ${registrosDoMes.length} registro(s).`, 'sucesso');
+        function gerarBackupMensal() {
+            const campo = document.getElementById('backupMensalCampo');
+            const status = document.getElementById('backupMensalStatus');
+            const mesSelecionado = campo?.value || '';
+            if (!mesSelecionado) { if (status) status.textContent = 'Escolha um mês antes de gerar o backup.'; return; }
+            const resultado = gerarArquivoBackupDoMes(mesSelecionado);
+            if (!resultado.ok) { if (status) status.textContent = resultado.erro; return; }
+            if (status) status.textContent = `Backup gerado: ${resultado.dias} dia(s), ${resultado.registros} registro(s).`;
+            mostrarAlerta(`<b>Status:</b> backup de ${mesSelecionado} gerado com ${resultado.dias} aba(s) e ${resultado.registros} registro(s).`, 'sucesso');
         }
 
         function nomeArquivoExportacao(extensao) {
